@@ -82,10 +82,12 @@ Definition LoveAndPeace := 4.
 Inductive subject (X:Set) : Set :=
   | Subject : X -> subject X.
 
+(*
 Inductive money : Set :=
   | Money : nat -> money.
-
-Definition m1 := Money 3.
+*)
+Definition money := nat.
+Definition m1 := 3.
 
 
 Inductive requirement : Set :=
@@ -104,10 +106,10 @@ with B: Set :=
  | B2 (x: A).
 *)
 
-Inductive constraint (X:Set) : Set :=
-  | Principal : prin X -> constraint X
-  | ForEachMember : prin X -> list (constraint X) -> constraint X
-  | Count : nat -> constraint X.
+Inductive constraint : Set :=
+  | Principal : prin  -> constraint 
+  | ForEachMember : prin  -> list (constraint ) -> constraint 
+  | Count : nat -> constraint .
 
 Inductive policyId : Set :=
   | PolicyId : nat -> policyId.
