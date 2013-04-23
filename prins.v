@@ -47,12 +47,20 @@ Inductive act : Set :=
   | Print : act
   | Display : act.
 
-
+(*
 Inductive asset : Set :=
   | FindingNemo : asset
   | Alien : asset
   | Beatles : asset
   | LoveAndPeace : asset.
+*)
+
+Definition findingNemo := 1.
+Definition alien := 2.
+Definition beatles := 3.
+Definition LoveAndPeace := 4.
+
+
 
 Inductive subject (X:Set) : Set :=
   | Subject : X -> subject X.
