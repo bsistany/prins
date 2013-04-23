@@ -31,21 +31,38 @@ Naming convention: Constructors start with Capital letter, types with lower case
 where name is the name of the type to be defined; sort is one of Set or Type(or even Prop); ci are the names of the constructors and Ci is the type of theconstructor ci.The declaration of an inductive definition introduces new primitive objectsfor the type itself and its constructors; it also generates theorems which areabbreviations for more complex terms expressing that name is the smallest setcontaining the terms build with constructors. These theorems provide inductionprinciples to reason on objects in inductive types.
 *)
 
+Inductive nonemptylist : Set :=
+  | Single : nat -> nonemptylist
+  | NewList : nat -> nonemptylist -> nonemptylist.
+
+Definition ne2 := Single 2.
+Definition ne3 := NewList 3 ne2.
+Definition ne4 := NewList 4 (NewList 8 (Single 8)).
+
+Notation "x , l" := (NewList x l) (at level 60, right associativity).
+Notation "[ x ]" := (Single x).
+
+Definition mylist2 := 1 , 2 , [3].
 
 
 
-Inductive prin (X:Set) : Set :=
-  | Prin : X -> prin X
-  | Prins : list X -> prin X. 
+Inductive prin : Set :=
+  | Prin : nat -> prin 
+  | Prins : nonemptylist -> prin. 
 
-Definition myprins := Prins (2 :: 3 :: nil).
+Definition myprins := Prins (2 , 3 , [5]).
 Definition myprins1 := Prin 5.
 
-
+(*
 Inductive act : Set :=
   | Play : act
   | Print : act
   | Display : act.
+*)
+Definition act := nat.
+Definition Play := 1.
+Definition Print := 2.
+Definition Display := 3.
 
 (*
 Inductive asset : Set :=
@@ -54,10 +71,10 @@ Inductive asset : Set :=
   | Beatles : asset
   | LoveAndPeace : asset.
 *)
-
-Definition findingNemo := 1.
-Definition alien := 2.
-Definition beatles := 3.
+Definition asset := nat.
+Definition FindingNemo := 1.
+Definition Alien := 2.
+Definition Beatles := 3.
 Definition LoveAndPeace := 4.
 
 
@@ -116,6 +133,8 @@ with policy (X:Set) : Set :=
   | AndPolicy : list (policy X) -> policy X
   | OrPolicy : list (policy X) -> policy X
   | XorPolicy : list (policy X) -> policy X.
+
+
 
 Inductive agreement (X:Set) : Set :=
   | Agreement : prin X -> prin X -> asset -> policySet X -> agreement X.
