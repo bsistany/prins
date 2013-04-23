@@ -114,42 +114,42 @@ Inductive constraint : Set :=
 Inductive policyId : Set :=
   | PolicyId : nat -> policyId.
   
-Inductive preRequisite (X:Set) : Set :=
-  | Constraint : constraint X -> preRequisite X
-  | Requirement : requirement -> preRequisite X
-  | Condition : cond X -> preRequisite X
+Inductive preRequisite : Set :=
+  | Constraint : constraint -> preRequisite 
+  | Requirement : requirement -> preRequisite 
+  | Condition : cond -> preRequisite 
 
-with cond (X:Set) : Set :=
-  | SuspendPS : policySet X -> cond X
-  | SuspendConstrint : constraint X -> cond X
+with cond : Set :=
+  | SuspendPS : policySet -> cond
+  | SuspendConstrint : constraint -> cond
 
-with policySet (X:Set) : Set :=
-  | PrimitivePolicySet : list (preRequisite X) -> policy X -> policySet X
-  | PrimitiveExclusivePolicySet : list (preRequisite X) -> policy X -> policySet X
-  | AndPolicySet : list (policySet X) -> policySet X
-  | OrPolicySet : list (policySet X) -> policySet X
-  | XorPolicySet : list (policySet X) -> policySet X
+with policySet : Set :=
+  | PrimitivePolicySet : list (preRequisite) -> policy -> policySet 
+  | PrimitiveExclusivePolicySet : list (preRequisite) -> policy  -> policySet 
+  | AndPolicySet : list (policySet) -> policySet 
+  | OrPolicySet : list (policySet) -> policySet 
+  | XorPolicySet : list (policySet) -> policySet 
 
-with policy (X:Set) : Set :=
-  | PrimitivePolicy : list (preRequisite X) -> policyId -> act -> policy X
-  | AndPolicy : list (policy X) -> policy X
-  | OrPolicy : list (policy X) -> policy X
-  | XorPolicy : list (policy X) -> policy X.
+with policy : Set :=
+  | PrimitivePolicy : list (preRequisite) -> policyId -> act -> policy 
+  | AndPolicy : list (policy) -> policy 
+  | OrPolicy : list (policy ) -> policy
+  | XorPolicy : list (policy ) -> policy.
 
 
 
-Inductive agreement (X:Set) : Set :=
-  | Agreement : prin X -> prin X -> asset -> policySet X -> agreement X.
+Inductive agreement : Set :=
+  | Agreement : prin -> prin -> asset -> policySet -> agreement.
 
-Definition const1 := Count nat 5.
+Definition const1 := Count 5.
 Definition preReq1 := Constraint const1.
 Definition policyId1 := PolicyId 12.
 Definition act1 := Print.
 Check preReq1.
 Check PrimitivePolicy.
-Check (Constraint (Count nat 5)).
+Check (Constraint (Count 5)).
 
-Definition lis2 := (Constraint (Count nat 5)) :: nil.
+Definition lis2 := (Constraint (Count 5)) :: nil.
 Check lis2.
 
 (*  
@@ -162,13 +162,13 @@ Definition p1 := PrimitivePolicy lis2 policyId1 act1.
 Check length.
 Print length.
 
-Definition makePrimitivePolicy (X:Set) (prqs : list (preRequisite X)) (id : policyId) (ac : act) : policy X :=
+Definition makePrimitivePolicy (prqs : list (preRequisite)) (id : policyId) (ac : act) : policy :=
   PrimitivePolicy prqs id ac.
   
 
-Definition p2 := makePrimitivePolicy ((Constraint (Count nat 7)) :: nil) (PolicyId 22) Print.
+Definition p2 := makePrimitivePolicy ((Constraint (Count 7)) :: nil) (PolicyId 22) Print.
 
-Definition p3 := makePrimitivePolicy ((Constraint (Count nat 8)) :: nil) (PolicyId 23) Display.
+Definition p3 := makePrimitivePolicy ((Constraint (Count 8)) :: nil) (PolicyId 23) Display.
 
 Inductive user : Set :=
   | Alice : user
