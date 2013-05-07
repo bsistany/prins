@@ -78,21 +78,24 @@ Definition Beatles := 3.
 Definition LoveAndPeace := 4.
 
 
-
+(*
 Inductive subject (X:Set) : Set :=
   | Subject : X -> subject X.
+*)
+Definition subject := nat.
+
 
 (*
 Inductive money : Set :=
   | Money : nat -> money.
 *)
 Definition money := nat.
-Definition m1 := 3.
+
 
 
 Inductive requirement : Set :=
   | PrePay : money -> requirement
-  | Attribution : subject nat -> requirement
+  | Attribution : subject -> requirement
   | InSequence : list requirement -> requirement
   | AnySequence : list requirement -> requirement.
 
@@ -178,36 +181,93 @@ Inductive user : Set :=
   | Alex : user.
 
 
+
+
+(* First, you need to introduce the predicates.  Here is one example. *)
+
+(* 
+Assumptions extend the environment with axioms, parameters, hypotheses or variables. An assumption binds an ident to a type. It is accepted by Coq if and only if this type is a correct type in the environment preexisting the declaration and if ident was not previously defined in the same module. This type is considered to be the type (or specification, or statement) assumed by ident and we say that ident has type type.
+
+Axiom ident :term .
+
+This command links term to the name ident as its specification in the global context. The fact asserted by term is thus assumed as a postulate.
+
+
+Parameter ident :term. 
+Is equivalent to Axiom ident : term
+*)
+
+Parameter Permitted : subject -> act -> asset -> Prop.
+
+
+(* The following 2 definitions implement the translation of a
+   principle to a formula.  I implemented these 2 in full to give you
+   a complete example.  The first illustrates recursive function definitions
+   in Coq. *)
+
+(******
+If a fixpoint is not written with an explicit { struct ... }, then 
+all arguments are tried successively (from left to right) until one is 
+found that satisfies the structural decreasing condition.
+*******)
+
+
+Fixpoint trans_prin_list
+  (x:subject)(prins:nonemptylist){struct prins} : Prop :=
+  match prins with
+    | Single s => (x=s)      
+    | NewList s prins' => (x=s \/ trans_prin_list x prins')      
+  end.
+
+Definition trans_prin
+  (x:subject)(p:prin) : Prop :=
+  match p with
+    | Prin s => (x=s)      
+    | Prins prins => trans_prin_list x prins
+  end.
+
+(* This definition is what needs to be filled in.  It shows the
+   general structure of mutually recursive functions in Coq.  It
+   defines 6 functions mutually recursively, but I didn't try to get
+   them all.  There are probably some missing.  You will also probably
+   want to implement some helper functions outside the structure of
+   this recursive definition.  In each case there are a bunch of
+   arguments in parentheses, followed by a "struct" declaration, which
+   indicates which argument the recursion will be on.  The result
+   "True" must be filled in with the real definition.  Notice that
+   some functions have a regular and a list version.  The list version
+   needs to call the regular version on every element of the list,
+   similar to how trans_prin_list above works. *)
+
+Fixpoint trans_preRequisite_list
+  (x:subject)(preReqs:list preRequisite)(IDs:list policyId)
+  (Ss:list subject){struct preReqs} : Prop := True
+with trans_preRequisite
+  (x:subject)(preReq:preRequisite)(IDs:list policyId)
+  (Ss:list subject){struct preReq} : Prop := True
+with trans_ps_list
+  (x:subject)(pss:list policySet)(prin_u:prin)(a:asset){struct pss} :=
+  True
+with trans_ps
+  (x:subject)(ps:policySet)(prin_u:prin)(a:asset){struct ps} :=
+  True
+with trans_policy_positive
+  (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} :=
+  True
+with trans_policy_negative
+  (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} :=
+  True.
+
+Definition trans_agreement_aux :
+  subject nat -> agreement -> Prop :=
+    fun x a =>
+      match a with Agreement prin_o prin_u a ps => trans_ps x ps prin_u a
+      end.
+
+(* This is the top level translation function.  It calls the one above *)
+Definition trans_agreement : agreement -> Prop :=
+  fun a =>
+    forall (x:subject nat), trans_agreement_aux x a.
+
  
 End ODRL.
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
