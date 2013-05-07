@@ -31,9 +31,15 @@ Naming convention: Constructors start with Capital letter, types with lower case
 where name is the name of the type to be defined; sort is one of Set or Type(or even Prop); ci are the names of the constructors and Ci is the type of theconstructor ci.The declaration of an inductive definition introduces new primitive objectsfor the type itself and its constructors; it also generates theorems which areabbreviations for more complex terms expressing that name is the smallest setcontaining the terms build with constructors. These theorems provide inductionprinciples to reason on objects in inductive types.
 *)
 
-Inductive nonemptylist : Set :=
-  | Single : nat -> nonemptylist
-  | NewList : nat -> nonemptylist -> nonemptylist.
+(*
+Inductive list (X:Type) : Type :=
+  | nil : list X
+  | cons : X → list X → list X.
+*)
+
+Inductive nonemptylist (X: Set): Set :=
+  | Single : X -> nonemptylist X
+  | NewList : X -> nonemptylist X -> nonemptylist X.
 
 Definition ne2 := Single 2.
 Definition ne3 := NewList 3 ne2.
@@ -48,29 +54,16 @@ Definition mylist2 := 1 , 2 , [3].
 
 Inductive prin : Set :=
   | Prin : nat -> prin 
-  | Prins : nonemptylist -> prin. 
+  | Prins : nonemptylist nat -> prin. 
 
 Definition myprins := Prins (2 , 3 , [5]).
 Definition myprins1 := Prin 5.
 
-(*
-Inductive act : Set :=
-  | Play : act
-  | Print : act
-  | Display : act.
-*)
 Definition act := nat.
 Definition Play := 1.
 Definition Print := 2.
 Definition Display := 3.
 
-(*
-Inductive asset : Set :=
-  | FindingNemo : asset
-  | Alien : asset
-  | Beatles : asset
-  | LoveAndPeace : asset.
-*)
 Definition asset := nat.
 Definition FindingNemo := 1.
 Definition Alien := 2.
@@ -78,17 +71,9 @@ Definition Beatles := 3.
 Definition LoveAndPeace := 4.
 
 
-(*
-Inductive subject (X:Set) : Set :=
-  | Subject : X -> subject X.
-*)
 Definition subject := nat.
 
 
-(*
-Inductive money : Set :=
-  | Money : nat -> money.
-*)
 Definition money := nat.
 
 
@@ -96,53 +81,43 @@ Definition money := nat.
 Inductive requirement : Set :=
   | PrePay : money -> requirement
   | Attribution : subject -> requirement
-  | InSequence : list requirement -> requirement
-  | AnySequence : list requirement -> requirement.
+  | InSequence : nonemptylist requirement -> requirement
+  | AnySequence : nonemptylist requirement -> requirement.
 
-(* Mutually recursive types:
-Inductive A: Set :=
- | A1
- | A2 (x: B)
-
-with B: Set :=
- | B1
- | B2 (x: A).
-*)
 
 Inductive constraint : Set :=
   | Principal : prin  -> constraint 
-  | ForEachMember : prin  -> list (constraint ) -> constraint 
-  | Count : nat -> constraint .
+  | ForEachMember : prin  -> nonemptylist (constraint ) -> constraint 
+  | Count : nat -> constraint 
+  | CountByPrin : prin -> nat -> constraint.
 
 Inductive policyId : Set :=
   | PolicyId : nat -> policyId.
   
 Inductive preRequisite : Set :=
+  | TruePrq : bool -> preRequisite
   | Constraint : constraint -> preRequisite 
   | Requirement : requirement -> preRequisite 
   | Condition : cond -> preRequisite 
+  | AndPrqs : nonemptylist (preRequisite) -> preRequisite
+  | OrPrqs : nonemptylist (preRequisite) -> preRequisite
+  | XorPrqs : nonemptylist (preRequisite) -> preRequisite
 
 with cond : Set :=
   | SuspendPS : policySet -> cond
   | SuspendConstrint : constraint -> cond
 
 with policySet : Set :=
-  | PrimitivePolicySet : list (preRequisite) -> policy -> policySet 
-  | PrimitiveExclusivePolicySet : list (preRequisite) -> policy  -> policySet 
-  | AndPolicySet : list (policySet) -> policySet 
-  | OrPolicySet : list (policySet) -> policySet 
-  | XorPolicySet : list (policySet) -> policySet 
+  | PrimitivePolicySet : preRequisite -> policy -> policySet 
+  | PrimitiveExclusivePolicySet : preRequisite -> policy  -> policySet 
 
 with policy : Set :=
-  | PrimitivePolicy : list (preRequisite) -> policyId -> act -> policy 
-  | AndPolicy : list (policy) -> policy 
-  | OrPolicy : list (policy ) -> policy
-  | XorPolicy : list (policy ) -> policy.
-
+  | PrimitivePolicy : preRequisite -> policyId -> act -> policy 
+  | AndPolicy : nonemptylist (policy) -> policy.
 
 
 Inductive agreement : Set :=
-  | Agreement : prin -> prin -> asset -> policySet -> agreement.
+  | Agreement : prin -> asset -> policySet -> agreement.
 
 Definition const1 := Count 5.
 Definition preReq1 := Constraint const1.
@@ -152,26 +127,25 @@ Check preReq1.
 Check PrimitivePolicy.
 Check (Constraint (Count 5)).
 
-Definition lis2 := (Constraint (Count 5)) :: nil.
-Check lis2.
+
 
 (*  
 preReq1 : preRequisite nat
 PrimitivePolicy : forall X : Type, list (preRequisite X) -> policyId -> act -> policy X 
 Constraint : forall X : Type, constraint X -> preRequisite X
 *)
-Definition p1 := PrimitivePolicy lis2 policyId1 act1.
+Definition p1 := PrimitivePolicy (Constraint (Count 5)) policyId1 act1.
 
 Check length.
 Print length.
 
-Definition makePrimitivePolicy (prqs : list (preRequisite)) (id : policyId) (ac : act) : policy :=
-  PrimitivePolicy prqs id ac.
+Definition makePrimitivePolicy (prq : preRequisite) (id : policyId) (ac : act) : policy :=
+  PrimitivePolicy prq id ac.
   
 
-Definition p2 := makePrimitivePolicy ((Constraint (Count 7)) :: nil) (PolicyId 22) Print.
+Definition p2 := makePrimitivePolicy (Constraint (Count 7)) (PolicyId 22) Print.
 
-Definition p3 := makePrimitivePolicy ((Constraint (Count 8)) :: nil) (PolicyId 23) Display.
+Definition p3 := makePrimitivePolicy (Constraint (Count 8)) (PolicyId 23) Display.
 
 Inductive user : Set :=
   | Alice : user
@@ -213,7 +187,7 @@ found that satisfies the structural decreasing condition.
 
 
 Fixpoint trans_prin_list
-  (x:subject)(prins:nonemptylist){struct prins} : Prop :=
+  (x:subject)(prins: nonemptylist nat){struct prins} : Prop :=
   match prins with
     | Single s => (x=s)      
     | NewList s prins' => (x=s \/ trans_prin_list x prins')      
@@ -259,15 +233,15 @@ with trans_policy_negative
   True.
 
 Definition trans_agreement_aux :
-  subject nat -> agreement -> Prop :=
+  subject -> agreement -> Prop :=
     fun x a =>
-      match a with Agreement prin_o prin_u a ps => trans_ps x ps prin_u a
+      match a with Agreement prin_u a ps => trans_ps x ps prin_u a
       end.
 
 (* This is the top level translation function.  It calls the one above *)
 Definition trans_agreement : agreement -> Prop :=
   fun a =>
-    forall (x:subject nat), trans_agreement_aux x a.
+    forall (x:subject), trans_agreement_aux x a.
 
  
 End ODRL.
