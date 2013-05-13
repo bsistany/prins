@@ -76,7 +76,7 @@ Definition subject := nat.
 
 Definition money := nat.
 
-
+Definition policyId := nat.
 
 Inductive requirement : Set :=
   | PrePay : money -> requirement
@@ -91,8 +91,10 @@ Inductive constraint : Set :=
   | Count : nat -> constraint 
   | CountByPrin : prin -> nat -> constraint.
 
+(*
 Inductive policyId : Set :=
   | PolicyId : nat -> policyId.
+*)
   
 Inductive preRequisite : Set :=
   | TruePrq : bool -> preRequisite
@@ -110,6 +112,7 @@ with cond : Set :=
 with policySet : Set :=
   | PrimitivePolicySet : preRequisite -> policy -> policySet 
   | PrimitiveExclusivePolicySet : preRequisite -> policy  -> policySet 
+  | AndPolicySet : nonemptylist (policySet) -> policySet
 
 with policy : Set :=
   | PrimitivePolicy : preRequisite -> policyId -> act -> policy 
@@ -121,7 +124,7 @@ Inductive agreement : Set :=
 
 Definition const1 := Count 5.
 Definition preReq1 := Constraint const1.
-Definition policyId1 := PolicyId 12.
+Definition policyId1 := 12.
 Definition act1 := Print.
 Check preReq1.
 Check PrimitivePolicy.
@@ -143,9 +146,9 @@ Definition makePrimitivePolicy (prq : preRequisite) (id : policyId) (ac : act) :
   PrimitivePolicy prq id ac.
   
 
-Definition p2 := makePrimitivePolicy (Constraint (Count 7)) (PolicyId 22) Print.
+Definition p2 := makePrimitivePolicy (Constraint (Count 7)) 22 Print.
 
-Definition p3 := makePrimitivePolicy (Constraint (Count 8)) (PolicyId 23) Display.
+Definition p3 := makePrimitivePolicy (Constraint (Count 8)) 23 Display.
 
 Inductive user : Set :=
   | Alice : user
@@ -190,15 +193,18 @@ Fixpoint trans_prin_list
   (x:subject)(prins: nonemptylist nat){struct prins} : Prop :=
   match prins with
     | Single s => (x=s)      
-    | NewList s prins' => (x=s \/ trans_prin_list x prins')      
+    | NewList s prins' => ((x=s) \/ trans_prin_list x prins')      
   end.
 
+(* is x in prin? *)
 Definition trans_prin
   (x:subject)(p:prin) : Prop :=
   match p with
     | Prin s => (x=s)      
     | Prins prins => trans_prin_list x prins
   end.
+
+
 
 (* This definition is what needs to be filled in.  It shows the
    general structure of mutually recursive functions in Coq.  It
@@ -213,29 +219,62 @@ Definition trans_prin
    needs to call the regular version on every element of the list,
    similar to how trans_prin_list above works. *)
 
+
+Definition getIds (p:policy) : nonemptylist policyId := Single 2.
+                 
+Check getIds.
+
 Fixpoint trans_preRequisite_list
   (x:subject)(preReqs:list preRequisite)(IDs:list policyId)
-  (Ss:list subject){struct preReqs} : Prop := True
+  (Ss:list subject){struct preReqs} : Prop := 
+  True
 with trans_preRequisite
-  (x:subject)(preReq:preRequisite)(IDs:list policyId)
-  (Ss:list subject){struct preReq} : Prop := True
-with trans_ps_list
-  (x:subject)(pss:list policySet)(prin_u:prin)(a:asset){struct pss} :=
+  (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
   True
-with trans_ps
-  (x:subject)(ps:policySet)(prin_u:prin)(a:asset){struct ps} :=
-  True
+
 with trans_policy_positive
   (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} :=
   True
 with trans_policy_negative
-  (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} :=
-  True.
+  (x:subject)(p:policy)(a:asset){struct p} :=
+  True
+(*
+I had to define trans_ps_list as a 'let' inside of trans_ps otherwise I was getting the:
+"Recursive call to trans_ps has principal argument equal to "ps1" instead of
+a subterm of "ps_list"." error.
+
+This solution was found here: 
+http://cs.stackexchange.com/questions/104/recursive-definitions-over-an-inductive-type-with-nested-components
+
+*)
+with trans_ps
+  (x:subject)(ps:policySet)(prin_u:prin)(a:asset){struct ps} :=
+
+let trans_ps_list := (fix trans_ps_list (x:subject)(ps_list:nonemptylist policySet)(prin_u:prin)(a:asset){struct ps_list}:=
+                  match ps_list with
+                    | Single ps1 => trans_ps x ps1 prin_u a
+                    | NewList ps ps_list' => ((trans_ps x ps prin_u a) /\ (trans_ps_list x ps_list' prin_u a))
+                  end) in
+  match ps with
+    | PrimitivePolicySet prq p => (((trans_prin x prin_u) /\ 
+                                    (trans_preRequisite x prq (getIds p) prin_u a)) -> 
+                                   (trans_policy_positive x p prin_u a))
+    | PrimitiveExclusivePolicySet prq p => ((((trans_prin x prin_u) /\ 
+                                              (trans_preRequisite x prq (getIds p) prin_u a)) -> 
+                                             (trans_policy_positive x p prin_u a)) /\
+
+                                            ((not (trans_prin x prin_u)) -> (trans_policy_negative x p a)))
+                   
+    | AndPolicySet ps_list => trans_ps_list x ps_list prin_u a
+  end.
+
+
 
 Definition trans_agreement_aux :
   subject -> agreement -> Prop :=
     fun x a =>
-      match a with Agreement prin_u a ps => trans_ps x ps prin_u a
+      match a with 
+        | Agreement prin_u a ps => trans_ps x ps prin_u a
       end.
 
 (* This is the top level translation function.  It calls the one above *)
