@@ -234,7 +234,22 @@ with trans_preRequisite
 
 with trans_policy_positive
   (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} :=
-  True
+
+let trans_p_list := (fix trans_p_list (x:subject)(p_list:nonemptylist policy)(prin_u:prin)(a:asset){struct p_list}:=
+                  match p_list with
+                    | Single p1 => trans_policy_positive x p1 prin_u a
+                    | NewList p p_list' => ((trans_policy_positive x p prin_u a) /\ (trans_p_list x p_list' prin_u a))
+                  end) in
+
+
+  match p with
+    | PrimitivePolicy prq policyId action => trans_preRequisite x prq (Single policyId) prin_u a
+    | AndPolicy p_list => trans_p_list x p_list prin_u a
+  end
+
+
+
+
 with trans_policy_negative
   (x:subject)(p:policy)(a:asset){struct p} :=
   True
