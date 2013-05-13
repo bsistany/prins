@@ -224,6 +224,8 @@ Definition getIds (p:policy) : nonemptylist policyId := Single 2.
                  
 Check getIds.
 
+
+
 Fixpoint trans_preRequisite_list
   (x:subject)(preReqs:list preRequisite)(IDs:list policyId)
   (Ss:list subject){struct preReqs} : Prop := 
@@ -232,6 +234,8 @@ with trans_preRequisite
   (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
   True
 
+
+   
 with trans_policy_positive
   (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} :=
 
@@ -243,7 +247,8 @@ let trans_p_list := (fix trans_p_list (x:subject)(p_list:nonemptylist policy)(pr
 
 
   match p with
-    | PrimitivePolicy prq policyId action => trans_preRequisite x prq (Single policyId) prin_u a
+    | PrimitivePolicy prq policyId action => ((trans_preRequisite x prq (Single policyId) prin_u a) ->
+                                              (Permitted x action a))
     | AndPolicy p_list => trans_p_list x p_list prin_u a
   end
 
@@ -252,7 +257,18 @@ let trans_p_list := (fix trans_p_list (x:subject)(p_list:nonemptylist policy)(pr
 
 with trans_policy_negative
   (x:subject)(p:policy)(a:asset){struct p} :=
-  True
+let trans_p_list := (fix trans_p_list (x:subject)(p_list:nonemptylist policy)(a:asset){struct p_list}:=
+                  match p_list with
+                    | Single p1 => trans_policy_negative x p1 a
+                    | NewList p p_list' => ((trans_policy_negative x p a) /\ (trans_p_list x p_list' a))
+                  end) in
+
+
+  match p with
+    | PrimitivePolicy prq policyId action => not (Permitted x action a)
+    | AndPolicy p_list => trans_p_list x p_list a
+  end
+
 (*
 I had to define trans_ps_list as a 'let' inside of trans_ps otherwise I was getting the:
 "Recursive call to trans_ps has principal argument equal to "ps1" instead of
