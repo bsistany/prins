@@ -230,10 +230,25 @@ Fixpoint trans_preRequisite_list
   (x:subject)(preReqs:list preRequisite)(IDs:list policyId)
   (Ss:list subject){struct preReqs} : Prop := 
   True
+
+with trans_constraint : Prop := True
+with trans_requirment : Prop := True
+with trans_condition : Prop := True
+with trans_andPrqs : Prop := True
+with trans_orPrqs : Prop := True
+with trans_xorPrqs : Prop := True
+
 with trans_preRequisite
   (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
-  True
-
+  match prq with
+    | TruePrq b => True
+    | Constraint const => trans_constraint
+    | Requirement req => trans_requirment
+    | Condition cond => trans_condition
+    | AndPrqs prqs => trans_andPrqs
+    | OrPrqs prqs => trans_orPrqs
+    | XorPrqs prqs => trans_xorPrqs
+  end
 
    
 with trans_policy_positive
