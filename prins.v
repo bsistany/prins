@@ -97,7 +97,7 @@ Inductive policyId : Set :=
 *)
   
 Inductive preRequisite : Set :=
-  | TruePrq : bool -> preRequisite
+  | TruePrq : preRequisite
   | Constraint : constraint -> preRequisite 
   | Requirement : requirement -> preRequisite 
   | Condition : cond -> preRequisite 
@@ -224,30 +224,67 @@ Definition getIds (p:policy) : nonemptylist policyId := Single 2.
                  
 Check getIds.
 
+Definition getPrincipals (prn : prin) : nonemptylist nat :=
+  match prn with
+    | Prin s => Single s
+    | Prins prin_list => prin_list
+  end.  
 
+Fixpoint trans_forEachMember
+  (x:subject)(principals: nonemptylist nat)(const_list:nonemptylist constraint)
+  (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
+  True.
 
 Fixpoint trans_preRequisite_list
-  (x:subject)(preReqs:list preRequisite)(IDs:list policyId)
+  (x:subject)(preReqs:nonemptylist preRequisite)(IDs:list policyId)
   (Ss:list subject){struct preReqs} : Prop := 
+  True.
+
+
+
+Fixpoint trans_constraint 
+  (x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct const} : Prop := 
+let trans_const_list 
+  := (fix trans_const_list (x:subject)(const_list:nonemptylist constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct const_list}:=
+     match const_list with
+       | Single const1 => trans_constraint x const1 IDs prin_u a
+       | NewList const const_list' => ((trans_constraint x const IDs prin_u a) /\ (trans_const_list x const_list' IDs prin_u a))
+     end) in
+
+  match const with
+    | Principal prn => trans_prin x prin_u
+    | ForEachMember prn const_list => trans_forEachMember x (getPrincipals prn) const_list IDs a
+    | Count nat => True
+    | CountByPrin prn nat => True
+  end.
+
+(*
+with trans_requirment
+(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
   True
-
-with trans_constraint : Prop := True
-with trans_requirment : Prop := True
-with trans_condition : Prop := True
-with trans_andPrqs : Prop := True
-with trans_orPrqs : Prop := True
-with trans_xorPrqs : Prop := True
-
-with trans_preRequisite
+with trans_condition
+(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
+  True
+with trans_andPrqs
+(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
+  True
+with trans_orPrqs
+(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
+  True
+with trans_xorPrqs
+(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
+  True
+*)
+Fixpoint trans_preRequisite
   (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
   match prq with
-    | TruePrq b => True
-    | Constraint const => trans_constraint
-    | Requirement req => trans_requirment
-    | Condition cond => trans_condition
-    | AndPrqs prqs => trans_andPrqs
-    | OrPrqs prqs => trans_orPrqs
-    | XorPrqs prqs => trans_xorPrqs
+    | TruePrq => True
+    | Constraint const => trans_constraint x const IDs prin_u a 
+    | Requirement req => True (*trans_requirment x prq IDs prin_u a*)
+    | Condition cond => True (*trans_condition x prq IDs prin_u a*)
+    | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
+    | OrPrqs prqs => True (*trans_orPrqs x prq IDs prin_u a*)
+    | XorPrqs prqs => True (*trans_xorPrqs x prq IDs prin_u a*)
   end
 
    
