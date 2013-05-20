@@ -194,20 +194,22 @@ found that satisfies the structural decreasing condition.
 *******)
 
 
-Fixpoint trans_prin_list
-  (x:subject)(prins: nonemptylist nat){struct prins} : Prop :=
-  match prins with
-    | Single s => (x=s)      
-    | NewList s prins' => ((x=s) \/ trans_prin_list x prins')      
-  end.
-
 (* is x in prin? *)
-Definition trans_prin
-  (x:subject)(p:prin) : Prop :=
+Fixpoint trans_prin
+  (x: subject)(p: prin) : Prop :=
+
+let trans_prin_list := (fix trans_prin_list (x: subject)(prins: nonemptylist prin){struct prins} : Prop :=
+  match prins with
+    | Single s => trans_prin x s
+    | NewList s prins' => ((trans_prin x s) \/ trans_prin_list x prins')
+  end) in
+
   match p with
     | Prin s => (x=s)      
     | Prins prins => trans_prin_list x prins
   end.
+
+
 
 
 
@@ -232,11 +234,13 @@ Check getIds.
 Definition getPrincipals (prn : prin) : nonemptylist prin :=
   match prn with
     | Prin s => Single prn
-    | Prins prin_list => prn
-  end.  
+    | Prins prin_list => prin_list
+  end.
+
+Check getPrincipals.
 
 Fixpoint trans_forEachMember
-  (x:subject)(principals: nonemptylist nat)(const_list:nonemptylist constraint)
+  (x:subject)(principals: nonemptylist prin)(const_list:nonemptylist constraint)
   (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
   True.
 
