@@ -50,14 +50,19 @@ Notation "[ x ]" := (Single x).
 
 Definition mylist2 := 1 , 2 , [3].
 
+Definition subject := nat.
 
 
 Inductive prin : Set :=
-  | Prin : nat -> prin 
-  | Prins : nonemptylist nat -> prin. 
+  | Prin : subject -> prin 
+  | Prins : nonemptylist prin -> prin. 
 
-Definition myprins := Prins (2 , 3 , [5]).
-Definition myprins1 := Prin 5.
+
+Definition myprin1 := Prin 5.
+Check myprin1.
+Definition myprin_list := NewList myprin1 (Single (Prin 2)).
+Definition myprins := Prins myprin_list.
+Check myprins.
 
 Definition act := nat.
 Definition Play := 1.
@@ -71,7 +76,7 @@ Definition Beatles := 3.
 Definition LoveAndPeace := 4.
 
 
-Definition subject := nat.
+
 
 
 Definition money := nat.
@@ -224,10 +229,10 @@ Definition getIds (p:policy) : nonemptylist policyId := Single 2.
                  
 Check getIds.
 
-Definition getPrincipals (prn : prin) : nonemptylist nat :=
+Definition getPrincipals (prn : prin) : nonemptylist prin :=
   match prn with
-    | Prin s => Single s
-    | Prins prin_list => prin_list
+    | Prin s => Single prn
+    | Prins prin_list => prn
   end.  
 
 Fixpoint trans_forEachMember
