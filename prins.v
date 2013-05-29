@@ -239,10 +239,9 @@ Definition getPrincipals (prn : prin) : nonemptylist prin :=
 
 Check getPrincipals.
 
-Fixpoint trans_forEachMember
-  (x:subject)(principals: nonemptylist prin)(const_list:nonemptylist constraint)
-  (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
-  True.
+
+
+
 
 Fixpoint trans_preRequisite_list
   (x:subject)(preReqs:nonemptylist preRequisite)(IDs:list policyId)
@@ -250,6 +249,12 @@ Fixpoint trans_preRequisite_list
   True.
 
 
+(* 
+Fixpoint trans_forEachMember
+  (x:subject)(principals: nonemptylist prin)(const_list:nonemptylist constraint)
+  (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
+  True
+*)
 
 Fixpoint trans_constraint 
   (x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct const} : Prop := 
@@ -259,7 +264,36 @@ let trans_const_list
        | Single const1 => trans_constraint x const1 IDs prin_u a
        | NewList const const_list' => ((trans_constraint x const IDs prin_u a) /\ (trans_const_list x const_list' IDs prin_u a))
      end) in
+let trans_forMember 
+  := (fix trans_forMember 
+          (x:subject)(s : subject)(const_list:nonemptylist constraint)
+          (IDs:nonemptylist policyId)(a:asset){struct principals} : Prop :=
+     
 
+let trans_forEachMember 
+  := (fix trans_forEachMember 
+          (x:subject)(principals: nonemptylist prin)(const_list:nonemptylist constraint)
+          (IDs:nonemptylist policyId)(a:asset){struct principals} : Prop :=
+     
+        match principals with
+          | Single s => trans_forMember x s const_list IDs a
+          | NewList s prins' => True
+        end) in
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
   match const with
     | Principal prn => trans_prin x prin_u
     | ForEachMember prn const_list => trans_forEachMember x (getPrincipals prn) const_list IDs a
