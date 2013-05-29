@@ -66,20 +66,37 @@ Check Single 2.
 
 Check app.
 
+Section MyPair.
+  Variable X : Set.
+  Variable Y : Set.
+
+  Record Twos : Set := 
+  mkTwos 
+  {
+    left    : X;
+    right   : Y
+  }.
+End MyPair.
+
+Definition half := (mkTwos 2 5).
+
+Eval compute in (left half).
+Check half.
+Check Twos.
+
 Section Process_Lists.
 
 Variable X : Set.
 Variable Y : Set.
 Variable Z : Set.
-Variable combiner : X -> Y -> Z.
 
 
-Fixpoint process_two_lists (l1 : nonemptylist X) (l2 : nonemptylist Y) :  nonemptylist Z := 
+Fixpoint process_two_lists (l1 : nonemptylist X) (l2 : nonemptylist Y) :  nonemptylist (Twos X Y) := 
 
-let process_element_list := (fix process_element_list (e1 : X) (l2 : nonemptylist Y) :  nonemptylist Z :=
+let process_element_list := (fix process_element_list (e1 : X) (l2 : nonemptylist Y) :  nonemptylist (Twos X Y) :=
   match l2 with
-    | Single s => Single (combiner e1 s)
-    | NewList s rest => app_nonempty (Single (combiner e1 s)) (process_element_list e1 rest) 
+    | Single s => Single (mkTwos e1 s)
+    | NewList s rest => app_nonempty (Single (mkTwos e1 s)) (process_element_list e1 rest) 
   end) in
 
   match l1 with
@@ -92,11 +109,14 @@ let process_element_list := (fix process_element_list (e1 : X) (l2 : nonemptylis
 
 End Process_Lists.
 
-Definition lst1 := process_two_lists (fun x y => x + y)(NewList 4 (NewList 8 (Single 8))) (NewList 3 (NewList 2 (Single 1))).
+Definition lst1 := process_two_lists (NewList 4 (NewList 8 (Single 8))) (NewList 3 (NewList 2 (Single 1))).
 Eval compute in lst1.
 
+(*
 Eval compute in
 fold_nonempty (fun x y => x + y) 0 lst1.
+*)
 
-Definition lst2 := process_two_lists (fun x y => (x::y::nil)) (NewList 91 (Single 92)) (NewList 3 (NewList 2 (Single 1))).
+Definition lst2 := process_two_lists (NewList 91 (Single 92)) (NewList 3 (NewList 2 (Single 1))).
 Eval compute in lst2.
+
