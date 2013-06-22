@@ -31,15 +31,23 @@ Naming convention: Constructors start with Capital letter, types with lower case
 where name is the name of the type to be defined; sort is one of Set or Type(or even Prop); ci are the names of the constructors and Ci is the type of theconstructor ci.The declaration of an inductive definition introduces new primitive objectsfor the type itself and its constructors; it also generates theorems which areabbreviations for more complex terms expressing that name is the smallest setcontaining the terms build with constructors. These theorems provide inductionprinciples to reason on objects in inductive types.
 *)
 
-(*
-Inductive list (X:Type) : Type :=
-  | nil : list X
-  | cons : X → list X → list X.
-*)
 
-Inductive nonemptylist (X: Set): Set :=
-  | Single : X -> nonemptylist X
-  | NewList : X -> nonemptylist X -> nonemptylist X.
+Section nonemptylist.
+
+Variable X : Set.
+
+Inductive nonemptylist : Set :=
+  | Single : X -> nonemptylist 
+  | NewList : X -> nonemptylist -> nonemptylist.
+
+
+Fixpoint app_nonempty (l1 l2 : nonemptylist) : nonemptylist := 
+  match l1 with
+  | Single s  => NewList s l2
+  | NewList s rest => NewList s (app_nonempty rest l2)
+  end.
+
+End nonemptylist.
 
 Definition ne2 := Single 2.
 Definition ne3 := NewList 3 ne2.
@@ -49,6 +57,77 @@ Notation "x , l" := (NewList x l) (at level 60, right associativity).
 Notation "[ x ]" := (Single x).
 
 Definition mylist2 := 1 , 2 , [3].
+
+Section Fold_Nonempty.
+  Variables A B : Set.
+  Variable f : B -> A -> A.
+  Variable a0 : A.
+
+  Fixpoint fold_nonempty (l:nonemptylist B) : A :=
+    match l with
+      | Single s => f s a0
+      | NewList s rest => f s (fold_nonempty rest)
+    end.
+
+End Fold_Nonempty.
+
+Section MyPair.
+  Variable X : Set.
+  Variable Y : Set.
+
+  Record Twos : Set := 
+  mkTwos 
+  {
+    left    : X;
+    right   : Y
+  }.
+End MyPair.
+
+Definition half := (mkTwos 2 5).
+
+Eval compute in (left half).
+Check half.
+Check Twos.
+
+Section Process_Lists.
+
+Variable X : Set.
+Variable Y : Set.
+Variable Z : Set.
+
+
+Fixpoint process_two_lists (l1 : nonemptylist X) (l2 : nonemptylist Y) :  nonemptylist (Twos X Y) := 
+
+let process_element_list := (fix process_element_list (e1 : X) (l2 : nonemptylist Y) :  nonemptylist (Twos X Y) :=
+  match l2 with
+    | Single s => Single (mkTwos e1 s)
+    | NewList s rest => app_nonempty (Single (mkTwos e1 s)) (process_element_list e1 rest) 
+  end) in
+
+  match l1 with
+    | Single s => process_element_list s l2 
+    | NewList s rest => app_nonempty (process_element_list s l2) (process_two_lists rest l2) 
+  end.
+
+
+  
+
+End Process_Lists.
+
+Definition lst1 := process_two_lists (NewList 4 (NewList 8 (Single 8))) (NewList 3 (NewList 2 (Single 1))).
+Eval compute in lst1.
+
+(*
+Eval compute in
+fold_nonempty (fun x y => x + y) 0 lst1.
+*)
+
+Definition lst2 := process_two_lists (NewList 91 (Single 92)) (NewList 3 (NewList 2 (Single 1))).
+Eval compute in lst2.
+
+
+
+
 
 Definition subject := nat.
 
@@ -256,49 +335,93 @@ Fixpoint trans_forEachMember
   True
 *)
 
+(*
+subjects(s) => {s}
+subjects({prin1, . . . , prink}) => subjects(prin1) + ... + subjects(prink)
+*)
+
+Fixpoint getSubjects (prn : prin) : nonemptylist subject :=
+let getSubjectsAux 
+  := (fix getSubjectsAux 
+        (prins_list : nonemptylist prin) :=
+            match prins_list with
+              | Single prn => getSubjects prn
+              | NewList prn prn_list =>  app_nonempty (getSubjects prn) (getSubjectsAux prn_list)
+            end) in
+
+  match prn with
+    | Prin s => Single s
+    | Prins prin_list => getSubjectsAux prin_list
+  end.
+
+
+Definition getCount (s:subject) (id: policyId) : nat :=
+2.
+
+
+Fixpoint trans_count 
+  (x:subject)(n:nat)(IDs:nonemptylist policyId)
+  (prin_u:prin)(a:asset) : Prop := 
+
+
+  let trans_count_aux 
+    := (fix trans_count_aux
+         (ids_and_subjects : nonemptylist (Twos policyId subject)) : nat :=
+     match ids_and_subjects with
+        | Single pair1 => getCount (right pair1) (left pair1)
+        | NewList pair1 rest_pairs =>
+            (getCount (right pair1)(left pair1)) +
+            (trans_count_aux rest_pairs)
+      end) in
+  
+  let ids_and_subjects := process_two_lists IDs (getSubjects prin_u) in
+  let running_total := trans_count_aux ids_and_subjects in
+  running_total < n.
+  
 Fixpoint trans_constraint 
-  (x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct const} : Prop := 
-let trans_const_list 
-  := (fix trans_const_list (x:subject)(const_list:nonemptylist constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct const_list}:=
+  (x:subject)(const:constraint)(IDs:nonemptylist policyId)
+  (prin_u:prin)(a:asset){struct const} : Prop := 
+  
+  
+  let trans_const_list 
+    := (fix trans_const_list 
+         (x:subject)(const_list:nonemptylist constraint)
+	 (IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct const_list} :=
      match const_list with
        | Single const1 => trans_constraint x const1 IDs prin_u a
        | NewList const const_list' => ((trans_constraint x const IDs prin_u a) /\ (trans_const_list x const_list' IDs prin_u a))
      end) in
-let trans_forMember 
-  := (fix trans_forMember 
-          (x:subject)(s : subject)(const_list:nonemptylist constraint)
-          (IDs:nonemptylist policyId)(a:asset){struct principals} : Prop :=
-     
+(*
+let trans_forEachMember_Aux   
+  := (fix trans_forEachMember_Aux
+         (x:subject)(prins_and_constraints : nonemptylist (Twos prin constraint))
+         (IDs:nonemptylist policyId)(a:asset) {struct prins_and_constraints} : Prop :=
 
-let trans_forEachMember 
-  := (fix trans_forEachMember 
-          (x:subject)(principals: nonemptylist prin)(const_list:nonemptylist constraint)
-          (IDs:nonemptylist policyId)(a:asset){struct principals} : Prop :=
-     
-        match principals with
-          | Single s => trans_forMember x s const_list IDs a
-          | NewList s prins' => True
-        end) in
+      match prins_and_constraints with
+        | Single pair1 => trans_constraint x (right pair1) IDs (left pair1) a
+        | NewList pair1 rest_pairs =>
+            (trans_constraint x (right pair1) IDs (left pair1) a) /\
+            (trans_forEachMember_Aux x rest_pairs IDs a)
+      end) in
 
+let trans_forEachMember
+  := (fix trans_forEachMember
+         (x:subject)(principals: nonemptylist prin)(const_list:nonemptylist constraint)
+         (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
 
+      let prins_and_constraints := process_two_lists principals const_list in
+      trans_forEachMember_Aux x prins_and_constraints IDs a) in
 
-
-
-
-
-
-
-
-
-
-
-
-    
+*)    
   match const with
-    | Principal prn => trans_prin x prin_u
-    | ForEachMember prn const_list => trans_forEachMember x (getPrincipals prn) const_list IDs a
-    | Count nat => True
-    | CountByPrin prn nat => True
+    | Principal prn => trans_prin x prn
+
+    | ForEachMember prn const_list => True (*trans_forEachMember x (getPrincipals prn) const_list IDs a*)
+  
+    | Count n => trans_count x n IDs prin_u a
+
+    | CountByPrin prn n => True
+
   end.
 
 (*
