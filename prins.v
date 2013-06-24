@@ -162,6 +162,35 @@ Definition money := nat.
 
 Definition policyId := nat.
 
+Section times.
+
+Definition time := nat.
+
+Inductive timeprod : Set :=
+  timepair : time -> time -> timeprod.
+
+Definition rangestart (p : timeprod) : time := 
+  match p with
+  | timepair x y => x
+  end.
+Definition rangeend (p : timeprod) : time := 
+  match p with
+  | timepair x y => y
+  end.
+
+Definition inRange (t: time) (p : timeprod) : Prop := 
+  ((rangestart p) <= t) /\ (t <= (rangeend p)).
+
+
+
+End times.
+
+
+
+Eval simpl in (timepair 2 5). 
+
+Eval simpl in (inRange 2 (timepair 2 5)).
+
 Inductive requirement : Set :=
   | PrePay : money -> requirement
   | Attribution : subject -> requirement
@@ -377,7 +406,10 @@ Fixpoint trans_count
   let ids_and_subjects := process_two_lists IDs (getSubjects prin_u) in
   let running_total := trans_count_aux ids_and_subjects in
   running_total < n.
-  
+
+
+
+
 Fixpoint trans_constraint 
   (x:subject)(const:constraint)(IDs:nonemptylist policyId)
   (prin_u:prin)(a:asset){struct const} : Prop := 
@@ -422,12 +454,12 @@ let trans_forEachMember
 
     | CountByPrin prn n => True
 
-  end.
+  end
 
-(*
 with trans_requirment
 (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
-  True
+  True.
+(*
 with trans_condition
 (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct prq} : Prop := 
   True
