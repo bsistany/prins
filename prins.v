@@ -6,9 +6,59 @@ Require Import Coq.Lists.List.
 Require Import Coq.Init.Datatypes.
 Set Implicit Arguments .
 
-Inductive nonemptylist (X: Set): Set :=
-  | Single : X -> nonemptylist X
-  | NewList : X -> nonemptylist X -> nonemptylist X.
+
+
+Definition l23 : list nat
+  := 2 :: 3 :: nil.
+
+Locate pair.
+
+(*
+Inductive triple M := Triple : M -> M -> M -> triple M. 
+Notation "[ x , y , z ]" := (Triple x y z). 
+Definition triple1 := [1,2,3].
+*)
+
+(*
+Inductive C : sort := 
+
+| c1 : C1           c1 is the constructor, and C1 is the type of the c1
+| ...
+| cn : Cn.
+
+Naming convention: Constructors start with Capital letter, types with lower case.
+
+where name is the name of the type to be defined; sort is one of Set or Type
+(or even Prop); ci are the names of the constructors and Ci is the type of the
+constructor ci.
+The declaration of an inductive definition introduces new primitive objects
+for the type itself and its constructors; it also generates theorems which are
+abbreviations for more complex terms expressing that name is the smallest set
+containing the terms build with constructors. These theorems provide induction
+principles to reason on objects in inductive types.
+*)
+
+
+Section nonemptylist.
+
+Variable X : Set.
+
+Inductive nonemptylist : Set :=
+  | Single : X -> nonemptylist 
+  | NewList : X -> nonemptylist -> nonemptylist.
+
+
+Fixpoint app_nonempty (l1 l2 : nonemptylist) : nonemptylist := 
+  match l1 with
+  | Single s  => NewList s l2
+  | NewList s rest => NewList s (app_nonempty rest l2)
+  end.
+
+End nonemptylist.
+
+Definition ne2 := Single 2.
+Definition ne3 := NewList 3 ne2.
+Definition ne4 := NewList 4 (NewList 8 (Single 8)).
 
 Notation "x , l" := (NewList x l) (at level 60, right associativity).
 Notation "[ x ]" := (Single x).
@@ -19,15 +69,15 @@ Definition subject := nat.
 Definition prin := nonemptylist subject.
 
 Definition act := nat.
-Definition Play:act := 1.
-Definition Print:act := 2.
-Definition Display:act := 3.
+Definition Play : act := 1.
+Definition Print : act := 2.
+Definition Display : act := 3.
 
 Definition asset := nat.
-Definition FindingNemo := 1.
-Definition Alien := 2.
-Definition Beatles := 3.
-Definition LoveAndPeace := 4.
+Definition FindingNemo : asset := 1.
+Definition Alien : asset := 2.
+Definition Beatles : asset := 3.
+Definition LoveAndPeace : asset := 4.
 
 Definition money := nat.
 
@@ -51,9 +101,12 @@ Inductive preRequisite : Set :=
   | Constraint : constraint -> preRequisite 
   | Requirement : requirement -> preRequisite 
   | NotCons : constraint -> preRequisite 
-  | AndPrqs : nonemptylist (preRequisite) -> preRequisite
-  | OrPrqs : nonemptylist (preRequisite) -> preRequisite
-  | XorPrqs : nonemptylist (preRequisite) -> preRequisite.
+  | AndPrqs : nonemptylist preRequisite -> preRequisite
+  | OrPrqs : nonemptylist preRequisite -> preRequisite
+  | XorPrqs : nonemptylist preRequisite -> preRequisite.
+
+Check nonemptylist requirement.
+Check nonemptylist (requirement).
 
 Inductive policy : Set :=
   | PrimitivePolicy : preRequisite -> policyId -> act -> policy 
