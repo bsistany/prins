@@ -142,4 +142,20 @@ Definition p2A1:policySet :=
 Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
                   (AndPolicySet (NewList p1A1 (Single p2A1))).
 
+(******* Semantics ********)
+
+Parameter Permitted : subject -> act -> asset -> Prop.
+
+(* is x in prin? *)
+(** Definition prin := nonemptylist subject. **)
+Fixpoint trans_prin
+  (x: subject)(p: prin) : Prop :=
+
+  match p with
+    | Single s => (x=s)
+    | NewList s rest => ((x=s) \/ trans_prin x rest)
+  end.
+
+
+
 End ODRL.
