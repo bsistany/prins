@@ -157,5 +157,75 @@ Fixpoint trans_prin
   end.
 
 
+Definition getIds (p:policy) : nonemptylist policyId := Single 2.
+
+Definition trans_preRequisite
+  (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+  match prq with
+    | TruePrq => True
+    | Constraint const => True (* trans_constraint x const IDs prin_u a *)
+    | Requirement req => True (*trans_requirment x prq IDs prin_u a*)
+    | NotCons const => True (*trans_notCons x const IDs prin_u a*)
+    | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
+    | OrPrqs prqs => True (*trans_orPrqs x prq IDs prin_u a*)
+    | XorPrqs prqs => True (*trans_xorPrqs x prq IDs prin_u a*)
+  end.
+
+Fixpoint trans_policy_positive
+  (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} : Prop :=
+
+let trans_p_list := (fix trans_p_list (x:subject)(p_list:nonemptylist policy)(prin_u:prin)(a:asset){struct p_list}:=
+                  match p_list with
+                    | Single p1 => trans_policy_positive x p1 prin_u a
+                    | NewList p p_list' => ((trans_policy_positive x p prin_u a) /\ (trans_p_list x p_list' prin_u a))
+                  end) in
+
+
+  match p with
+    | PrimitivePolicy prq policyId action => ((trans_preRequisite x prq (Single policyId) prin_u a) ->
+                                              (Permitted x action a))
+    | AndPolicy p_list => trans_p_list x p_list prin_u a
+  end.
+
+Fixpoint trans_policy_negative
+  (x:subject)(p:policy)(a:asset){struct p} : Prop :=
+let trans_p_list := (fix trans_p_list (x:subject)(p_list:nonemptylist policy)(a:asset){struct p_list}:=
+                  match p_list with
+                    | Single p1 => trans_policy_negative x p1 a
+                    | NewList p p_list' => ((trans_policy_negative x p a) /\ (trans_p_list x p_list' a))
+                  end) in
+
+
+  match p with
+    | PrimitivePolicy prq policyId action => not (Permitted x action a)
+    | AndPolicy p_list => trans_p_list x p_list a
+  end.
+
+
+
+Fixpoint trans_ps
+  (x:subject)(ps:policySet)(prin_u:prin)(a:asset){struct ps} : Prop :=
+
+let trans_ps_list := (fix trans_ps_list (x:subject)(ps_list:nonemptylist policySet)(prin_u:prin)(a:asset){struct ps_list}:=
+                  match ps_list with
+                    | Single ps1 => trans_ps x ps1 prin_u a
+                    | NewList ps ps_list' => ((trans_ps x ps prin_u a) /\ (trans_ps_list x ps_list' prin_u a))
+                  end) in
+  match ps with
+    | PrimitivePolicySet prq p => ((trans_prin x prin_u) /\ 
+                                   (trans_preRequisite x prq (getIds p) prin_u a)) -> 
+                                   (trans_policy_positive x p prin_u a)
+
+    | PrimitiveExclusivePolicySet prq p => ((((trans_prin x prin_u) /\ 
+                                              (trans_preRequisite x prq (getIds p) prin_u a)) -> 
+                                             (trans_policy_positive x p prin_u a)) /\
+
+                                            ((not (trans_prin x prin_u)) -> (trans_policy_negative x p a)))
+                   
+    | AndPolicySet ps_list => trans_ps_list x ps_list prin_u a
+  end.
+
+
+
 
 End ODRL.
