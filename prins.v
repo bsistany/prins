@@ -152,7 +152,7 @@ Inductive requirement : Set :=
 
 Inductive constraint : Set :=
   | Principal : prin  -> constraint 
-  | ForEachMember : prin  -> nonemptylist constraint -> constraint 
+  (*| ForEachMember : prin  -> nonemptylist constraint -> constraint *)
   | Count : nat -> constraint 
   | CountByPrin : prin -> nat -> constraint.
 
@@ -160,6 +160,7 @@ Inductive constraint : Set :=
 Inductive preRequisite : Set :=
   | TruePrq : preRequisite
   | Constraint : constraint -> preRequisite 
+  | ForEachMember : prin  -> nonemptylist constraint -> preRequisite
   | Requirement : requirement -> preRequisite 
   | NotCons : constraint -> preRequisite 
   | AndPrqs : nonemptylist preRequisite -> preRequisite
@@ -252,10 +253,10 @@ Fixpoint trans_count
 Fixpoint trans_constraint 
   (x:subject)(const:constraint)(IDs:nonemptylist policyId)
   (prin_u:prin)(a:asset){struct const} : Prop := 
+(*************************************************)
+(*************************************************)
   match const with
     | Principal prn => trans_prin x prn
-
-    | ForEachMember prn const_list => True (*trans_forEachMember x (getPrincipals prn) const_list IDs a*)
   
     | Count n => trans_count x n IDs prin_u a
 
@@ -264,11 +265,37 @@ Fixpoint trans_constraint
   end.
 
 
+
+
+Fixpoint trans_forEachMember
+         (x:subject)(principals: nonemptylist subject)(const_list:nonemptylist constraint)
+         (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
+
+let trans_forEachMember_Aux   
+  := (fix trans_forEachMember_Aux
+         (x:subject)(prins_and_constraints : nonemptylist (Twos subject constraint))
+         (IDs:nonemptylist policyId)(a:asset) {struct prins_and_constraints} : Prop :=
+
+      match prins_and_constraints with
+        | Single pair1 => trans_constraint x (right pair1) IDs (Single (left pair1)) a
+        | NewList pair1 rest_pairs =>
+            (trans_constraint x (right pair1) IDs (Single (left pair1)) a) /\
+            (trans_forEachMember_Aux x rest_pairs IDs a)
+      end) in
+
+      let prins_and_constraints := process_two_lists principals const_list in
+      trans_forEachMember_Aux x prins_and_constraints IDs a.
+
+
+
+
+
 Definition trans_preRequisite
   (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
   match prq with
     | TruePrq => True
     | Constraint const => trans_constraint x const IDs prin_u a 
+    | ForEachMember prn const_list => trans_forEachMember x prn const_list IDs a
     | Requirement req => True (*trans_requirment x prq IDs prin_u a*)
     | NotCons const => True (*trans_notCons x const IDs prin_u a*)
     | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
