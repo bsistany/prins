@@ -144,9 +144,38 @@ Definition money := nat.
 
 Definition policyId := nat.
 
+Section times.
+
+Definition time := nat.
+
+Inductive timeprod : Set :=
+  timepair : time -> time -> timeprod.
+
+Definition rangestart (p : timeprod) : time := 
+  match p with
+  | timepair x y => x
+  end.
+Definition rangeend (p : timeprod) : time := 
+  match p with
+  | timepair x y => y
+  end.
+
+Definition inRange (t: time) (p : timeprod) : Prop := 
+  ((rangestart p) <= t) /\ (t <= (rangeend p)).
+
+
+
+End times.
+
+
+
+Eval simpl in (timepair 2 5). 
+
+Eval simpl in (inRange 2 (timepair 2 5)).
+
 Inductive requirement : Set :=
-  | PrePay : money -> requirement
-  | Attribution : subject -> requirement
+  | PrePay : money -> time -> timeprod -> requirement
+  | Attribution : subject -> time -> timeprod -> requirement
   | InSequence : nonemptylist requirement -> requirement
   | AnySequence : nonemptylist requirement -> requirement.
 
@@ -207,6 +236,8 @@ Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
 (******* Semantics ********)
 
 Parameter Permitted : subject -> act -> asset -> Prop.
+Parameter Paid : money -> nonemptylist policyId -> time -> Prop.
+Parameter Attributed : subject -> time -> Prop.
 
 (* is x in prin? *)
 (** Definition prin := nonemptylist subject. **)
@@ -286,17 +317,33 @@ let trans_forEachMember_Aux
       let prins_and_constraints := process_two_lists principals const_list in
       trans_forEachMember_Aux x prins_and_constraints IDs a.
 
+Definition trans_prepay
+  (amount:money)(t'':time)(tp:timeprod)(IDs:nonemptylist policyId) : Prop := 
+  (inRange t'' tp) /\ (Paid amount IDs t'').
 
+Definition trans_attribution
+  (s:subject)(t'':time)(tp:timeprod) : Prop := 
+  (inRange t'' tp) /\ (Attributed s t'').
 
-
+Definition trans_requirment
+  (x:subject)(req:requirement)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+  
+  match req with
+  | PrePay amount t'' tp => trans_prepay amount t'' tp IDs
+  | Attribution subj t'' tp => trans_attribution subj t'' tp
+  (* The two cases below will probably have to be moved out of here like forEachMember *)
+  | InSequence reqs => True
+  | AnySequence reqs => True
+  end.
 
 Definition trans_preRequisite
   (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+
   match prq with
     | TruePrq => True
     | Constraint const => trans_constraint x const IDs prin_u a 
     | ForEachMember prn const_list => trans_forEachMember x prn const_list IDs a
-    | Requirement req => True (*trans_requirment x prq IDs prin_u a*)
+    | Requirement req => trans_requirment x req IDs prin_u a
     | NotCons const => True (*trans_notCons x const IDs prin_u a*)
     | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
     | OrPrqs prqs => True (*trans_orPrqs x prq IDs prin_u a*)
