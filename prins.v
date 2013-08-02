@@ -4,7 +4,10 @@ Require Import Arith.
 Require Import Coq.Strings.String.
 Require Import Coq.Lists.List.
 Require Import Coq.Init.Datatypes.
-Set Implicit Arguments .
+Require Import Coq.Strings.Ascii.
+Set Implicit Arguments.
+
+Open Scope string_scope.
 
 
 
@@ -124,25 +127,25 @@ Eval compute in lst1.
 
 
 
-Definition subject := nat.
+Definition subject := string.
 
 (* simplified *)
 Definition prin := nonemptylist subject.
 
-Definition act := nat.
-Definition Play : act := 1.
-Definition Print : act := 2.
-Definition Display : act := 3.
+Definition act := string.
+Definition Play : act := "Play".
+Definition Print : act := "Print".
+Definition Display : act := "Display".
 
-Definition asset := nat.
-Definition FindingNemo : asset := 1.
-Definition Alien : asset := 2.
-Definition Beatles : asset := 3.
-Definition LoveAndPeace : asset := 4.
+Definition asset := string.
+Definition FindingNemo : asset := "FindingNemo".
+Definition Alien : asset := "Alien".
+Definition Beatles : asset := "Beatles".
+Definition LoveAndPeace : asset := "LoveAndPeace".
 
-Definition money := nat.
+Definition money := string.
 
-Definition policyId := nat.
+Definition policyId := string.
 
 Section times.
 
@@ -212,15 +215,15 @@ Inductive agreement : Set :=
   | Agreement : prin -> asset -> policySet -> agreement.
 
 (* Example 2.1 *)
-Definition Alice:subject := 1.
-Definition Bob:subject := 2.
+Definition Alice:subject := "Alice".
+Definition Bob:subject := "Bob".
 
-Definition TheReport:asset := 1.
+Definition TheReport:asset := "TheReport".
 
 Definition p1A1:policySet :=
   PrimitivePolicySet
     TruePrq
-    (PrimitivePolicy (Constraint (Count  5)) 1 Print).
+    (PrimitivePolicy (Constraint (Count  5)) "id1" Print).
 
 Definition p2A1prq1:preRequisite := (Constraint (Principal (Single Alice))).
 Definition p2A1prq2:preRequisite := (Constraint (Count 2)).
@@ -228,13 +231,13 @@ Definition p2A1prq2:preRequisite := (Constraint (Count 2)).
 Definition p2A1:policySet :=
   PrimitivePolicySet
     TruePrq
-    (PrimitivePolicy (AndPrqs (NewList p2A1prq1 (Single p2A1prq2))) 2 Print).
+    (PrimitivePolicy (AndPrqs (NewList p2A1prq1 (Single p2A1prq2))) "id2" Print).
 
 Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
                   (AndPolicySet (NewList p1A1 (Single p2A1))).
 
 (* Example 2.5 *)
-Definition ebook:asset := 2.
+Definition ebook:asset := "ebook".
 Definition tenCount:preRequisite := (Constraint (Count 10)).
 Definition fiveCount:constraint := (Count 5).
 Definition oneCount:constraint := (Count 1).
@@ -245,8 +248,8 @@ Check ForEachMember prins2_5 (Single fiveCount).
 Definition forEach_display:preRequisite := ForEachMember prins2_5 (Single fiveCount).
 Definition forEach_print:preRequisite := ForEachMember prins2_5 (Single oneCount).
 
-Definition primPolicy1:policy := PrimitivePolicy forEach_display 1 Display.
-Definition primPolicy2:policy := PrimitivePolicy forEach_print 2 Print.
+Definition primPolicy1:policy := PrimitivePolicy forEach_display "id1" Display.
+Definition primPolicy2:policy := PrimitivePolicy forEach_print "id2" Print.
 
 Definition policySet2_5:policySet :=
   PrimitivePolicySet tenCount (AndPolicy (NewList primPolicy1 (Single primPolicy2))).
@@ -270,23 +273,34 @@ Fixpoint trans_prin
     | NewList s rest => ((x=s) \/ trans_prin x rest)
   end.
 
+  
+Fixpoint getId (p:policy) : nonemptylist policyId := 
 
-Definition getIds (p:policy) : nonemptylist policyId := Single 2.
-
+ let getIds 
+    := (fix getIds (policies: nonemptylist policy) : nonemptylist policyId :=
+          match policies with
+            | Single p => getId p
+            | NewList p rest => app_nonempty (getId p) (getIds rest)
+          end) in
+  
+  match p with
+    | PrimitivePolicy prereq pid action => Single pid
+    | AndPolicy policies => getIds policies
+  end.
+  
 (*
 subjects(s) => {s}
 subjects({prin1, . . . , prink}) => subjects(prin1) + ... + subjects(prink)
 *)
 
 
-Definition getCount (s:subject) (id: policyId) : nat :=
-2.
+
+Definition getCount (s:subject) (id: policyId) : nat := 3.
 
 
 Fixpoint trans_count 
   (x:subject)(n:nat)(IDs:nonemptylist policyId)
   (prin_u:prin)(a:asset) : Prop := 
-
 
   let trans_count_aux 
     := (fix trans_count_aux
@@ -301,6 +315,7 @@ Fixpoint trans_count
   let ids_and_subjects := process_two_lists IDs prin_u in
   let running_total := trans_count_aux ids_and_subjects in
   running_total < n.
+
 
 Fixpoint trans_constraint 
   (x:subject)(const:constraint)(IDs:nonemptylist policyId)
@@ -359,7 +374,7 @@ Definition trans_requirment
 
 Definition trans_notCons
   (x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
-  ~(trans_constraint x const IDs prin_u a).
+  not (trans_constraint x const IDs prin_u a).
 
 
 
@@ -420,11 +435,11 @@ let trans_ps_list := (fix trans_ps_list (x:subject)(ps_list:nonemptylist policyS
                   end) in
   match ps with
     | PrimitivePolicySet prq p => ((trans_prin x prin_u) /\ 
-                                   (trans_preRequisite x prq (getIds p) prin_u a)) -> 
+                                   (trans_preRequisite x prq (getId p) prin_u a)) -> 
                                    (trans_policy_positive x p prin_u a)
 
     | PrimitiveExclusivePolicySet prq p => ((((trans_prin x prin_u) /\ 
-                                              (trans_preRequisite x prq (getIds p) prin_u a)) -> 
+                                              (trans_preRequisite x prq (getId p) prin_u a)) -> 
                                              (trans_policy_positive x p prin_u a)) /\
 
                                             ((not (trans_prin x prin_u)) -> (trans_policy_negative x p a)))
@@ -436,5 +451,15 @@ let trans_ps_list := (fix trans_ps_list (x:subject)(ps_list:nonemptylist policyS
 (***** 3.1 *****)
 Check (trans_ps Alice policySet2_5 prins2_5 ebook).
 
+Definition myids := (NewList "id1" (Single "id2")).
+Definition myids2 := (Single "id2").
+Definition prins3 := (Single "Alice").
+Eval compute in (process_two_lists myids2 prins3).
+Eval compute in (myids).
+
+Eval compute in (trans_count "Joe" 10 myids2 prins3 ebook).
+
+Eval compute in (trans_ps Alice policySet2_5 prins2_5 ebook).
+Check not.
 
 End ODRL.
