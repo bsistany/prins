@@ -215,7 +215,7 @@ Inductive agreement : Set :=
 Definition Alice:subject := 1.
 Definition Bob:subject := 2.
 
-Definition TheReport:asset := 5.
+Definition TheReport:asset := 1.
 
 Definition p1A1:policySet :=
   PrimitivePolicySet
@@ -232,6 +232,27 @@ Definition p2A1:policySet :=
 
 Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
                   (AndPolicySet (NewList p1A1 (Single p2A1))).
+
+(* Example 2.5 *)
+Definition ebook:asset := 2.
+Definition tenCount:preRequisite := (Constraint (Count 10)).
+Definition fiveCount:constraint := (Count 5).
+Definition oneCount:constraint := (Count 1).
+
+Definition prins2_5 := (NewList Alice (Single Bob)).
+
+Check ForEachMember prins2_5 (Single fiveCount).
+Definition forEach_display:preRequisite := ForEachMember prins2_5 (Single fiveCount).
+Definition forEach_print:preRequisite := ForEachMember prins2_5 (Single oneCount).
+
+Definition primPolicy1:policy := PrimitivePolicy forEach_display 1 Display.
+Definition primPolicy2:policy := PrimitivePolicy forEach_print 2 Print.
+
+Definition policySet2_5:policySet :=
+  PrimitivePolicySet tenCount (AndPolicy (NewList primPolicy1 (Single primPolicy2))).
+                     
+
+Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
 
 (******* Semantics ********)
 
@@ -336,6 +357,13 @@ Definition trans_requirment
   | AnySequence reqs => True
   end.
 
+Definition trans_notCons
+  (x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
+  ~(trans_constraint x const IDs prin_u a).
+
+
+
+
 Definition trans_preRequisite
   (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
 
@@ -344,7 +372,7 @@ Definition trans_preRequisite
     | Constraint const => trans_constraint x const IDs prin_u a 
     | ForEachMember prn const_list => trans_forEachMember x prn const_list IDs a
     | Requirement req => trans_requirment x req IDs prin_u a
-    | NotCons const => True (*trans_notCons x const IDs prin_u a*)
+    | NotCons const => trans_notCons x const IDs prin_u a
     | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
     | OrPrqs prqs => True (*trans_orPrqs x prq IDs prin_u a*)
     | XorPrqs prqs => True (*trans_xorPrqs x prq IDs prin_u a*)
@@ -405,6 +433,8 @@ let trans_ps_list := (fix trans_ps_list (x:subject)(ps_list:nonemptylist policyS
   end.
 
 
+(***** 3.1 *****)
+Check (trans_ps Alice policySet2_5 prins2_5 ebook).
 
 
 End ODRL.
