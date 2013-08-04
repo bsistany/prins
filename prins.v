@@ -259,6 +259,10 @@ Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
 
 (******* Semantics ********)
 
+Section Sems.
+
+   Variable x:subject.
+
 Parameter Permitted : subject -> act -> asset -> Prop.
 Parameter Paid : money -> nonemptylist policyId -> time -> Prop.
 Parameter Attributed : subject -> time -> Prop.
@@ -266,11 +270,11 @@ Parameter Attributed : subject -> time -> Prop.
 (* is x in prin? *)
 (** Definition prin := nonemptylist subject. **)
 Fixpoint trans_prin
-  (x: subject)(p: prin) : Prop :=
+  (p: prin) : Prop :=
 
   match p with
     | Single s => (x=s)
-    | NewList s rest => ((x=s) \/ trans_prin x rest)
+    | NewList s rest => ((x=s) \/ trans_prin rest)
   end.
 
   
@@ -296,10 +300,12 @@ subjects({prin1, . . . , prink}) => subjects(prin1) + ... + subjects(prink)
 
 
 Definition getCount (s:subject) (id: policyId) : nat := 3.
+(* subject -> policyId -> nat -> nat := fun (s:subject) (pid:policyId) => fun (m:nat) => m. *)
+
 
 
 Fixpoint trans_count 
-  (x:subject)(n:nat)(IDs:nonemptylist policyId)
+  (n:nat)(IDs:nonemptylist policyId)
   (prin_u:prin)(a:asset) : Prop := 
 
   let trans_count_aux 
@@ -318,14 +324,14 @@ Fixpoint trans_count
 
 
 Fixpoint trans_constraint 
-  (x:subject)(const:constraint)(IDs:nonemptylist policyId)
+  (const:constraint)(IDs:nonemptylist policyId)
   (prin_u:prin)(a:asset){struct const} : Prop := 
 (*************************************************)
 (*************************************************)
   match const with
-    | Principal prn => trans_prin x prn
+    | Principal prn => trans_prin prn
   
-    | Count n => trans_count x n IDs prin_u a
+    | Count n => trans_count n IDs prin_u a
 
     | CountByPrin prn n => True
 
@@ -335,23 +341,23 @@ Fixpoint trans_constraint
 
 
 Fixpoint trans_forEachMember
-         (x:subject)(principals: nonemptylist subject)(const_list:nonemptylist constraint)
+         (principals: nonemptylist subject)(const_list:nonemptylist constraint)
          (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
 
 let trans_forEachMember_Aux   
   := (fix trans_forEachMember_Aux
-         (x:subject)(prins_and_constraints : nonemptylist (Twos subject constraint))
+         (prins_and_constraints : nonemptylist (Twos subject constraint))
          (IDs:nonemptylist policyId)(a:asset) {struct prins_and_constraints} : Prop :=
 
       match prins_and_constraints with
-        | Single pair1 => trans_constraint x (right pair1) IDs (Single (left pair1)) a
+        | Single pair1 => trans_constraint (right pair1) IDs (Single (left pair1)) a
         | NewList pair1 rest_pairs =>
-            (trans_constraint x (right pair1) IDs (Single (left pair1)) a) /\
-            (trans_forEachMember_Aux x rest_pairs IDs a)
+            (trans_constraint (right pair1) IDs (Single (left pair1)) a) /\
+            (trans_forEachMember_Aux rest_pairs IDs a)
       end) in
 
       let prins_and_constraints := process_two_lists principals const_list in
-      trans_forEachMember_Aux x prins_and_constraints IDs a.
+      trans_forEachMember_Aux prins_and_constraints IDs a.
 
 Definition trans_prepay
   (amount:money)(t'':time)(tp:timeprod)(IDs:nonemptylist policyId) : Prop := 
@@ -362,7 +368,7 @@ Definition trans_attribution
   (inRange t'' tp) /\ (Attributed s t'').
 
 Definition trans_requirment
-  (x:subject)(req:requirement)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+  (req:requirement)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
   
   match req with
   | PrePay amount t'' tp => trans_prepay amount t'' tp IDs
@@ -373,83 +379,83 @@ Definition trans_requirment
   end.
 
 Definition trans_notCons
-  (x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
-  not (trans_constraint x const IDs prin_u a).
+  (const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
+  not (trans_constraint const IDs prin_u a).
 
 
 
 
 Definition trans_preRequisite
-  (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+  (prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
 
   match prq with
     | TruePrq => True
-    | Constraint const => trans_constraint x const IDs prin_u a 
-    | ForEachMember prn const_list => trans_forEachMember x prn const_list IDs a
-    | Requirement req => trans_requirment x req IDs prin_u a
-    | NotCons const => trans_notCons x const IDs prin_u a
+    | Constraint const => trans_constraint const IDs prin_u a 
+    | ForEachMember prn const_list => trans_forEachMember prn const_list IDs a
+    | Requirement req => trans_requirment req IDs prin_u a
+    | NotCons const => trans_notCons const IDs prin_u a
     | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
     | OrPrqs prqs => True (*trans_orPrqs x prq IDs prin_u a*)
     | XorPrqs prqs => True (*trans_xorPrqs x prq IDs prin_u a*)
   end.
 
 Fixpoint trans_policy_positive
-  (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} : Prop :=
+  (p:policy)(prin_u:prin)(a:asset){struct p} : Prop :=
 
-let trans_p_list := (fix trans_p_list (x:subject)(p_list:nonemptylist policy)(prin_u:prin)(a:asset){struct p_list}:=
+let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(a:asset){struct p_list}:=
                   match p_list with
-                    | Single p1 => trans_policy_positive x p1 prin_u a
-                    | NewList p p_list' => ((trans_policy_positive x p prin_u a) /\ (trans_p_list x p_list' prin_u a))
+                    | Single p1 => trans_policy_positive p1 prin_u a
+                    | NewList p p_list' => ((trans_policy_positive p prin_u a) /\ (trans_p_list p_list' prin_u a))
                   end) in
 
 
   match p with
-    | PrimitivePolicy prq policyId action => ((trans_preRequisite x prq (Single policyId) prin_u a) ->
+    | PrimitivePolicy prq policyId action => ((trans_preRequisite prq (Single policyId) prin_u a) ->
                                               (Permitted x action a))
-    | AndPolicy p_list => trans_p_list x p_list prin_u a
+    | AndPolicy p_list => trans_p_list p_list prin_u a
   end.
 
 Fixpoint trans_policy_negative
-  (x:subject)(p:policy)(a:asset){struct p} : Prop :=
-let trans_p_list := (fix trans_p_list (x:subject)(p_list:nonemptylist policy)(a:asset){struct p_list}:=
+  (p:policy)(a:asset){struct p} : Prop :=
+let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){struct p_list}:=
                   match p_list with
-                    | Single p1 => trans_policy_negative x p1 a
-                    | NewList p p_list' => ((trans_policy_negative x p a) /\ (trans_p_list x p_list' a))
+                    | Single p1 => trans_policy_negative p1 a
+                    | NewList p p_list' => ((trans_policy_negative p a) /\ (trans_p_list p_list' a))
                   end) in
 
 
   match p with
     | PrimitivePolicy prq policyId action => not (Permitted x action a)
-    | AndPolicy p_list => trans_p_list x p_list a
+    | AndPolicy p_list => trans_p_list p_list a
   end.
 
 
 
 Fixpoint trans_ps
-  (x:subject)(ps:policySet)(prin_u:prin)(a:asset){struct ps} : Prop :=
+  (ps:policySet)(prin_u:prin)(a:asset){struct ps} : Prop :=
 
-let trans_ps_list := (fix trans_ps_list (x:subject)(ps_list:nonemptylist policySet)(prin_u:prin)(a:asset){struct ps_list}:=
+let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:prin)(a:asset){struct ps_list}:=
                   match ps_list with
-                    | Single ps1 => trans_ps x ps1 prin_u a
-                    | NewList ps ps_list' => ((trans_ps x ps prin_u a) /\ (trans_ps_list x ps_list' prin_u a))
+                    | Single ps1 => trans_ps ps1 prin_u a
+                    | NewList ps ps_list' => ((trans_ps ps prin_u a) /\ (trans_ps_list ps_list' prin_u a))
                   end) in
   match ps with
-    | PrimitivePolicySet prq p => ((trans_prin x prin_u) /\ 
-                                   (trans_preRequisite x prq (getId p) prin_u a)) -> 
-                                   (trans_policy_positive x p prin_u a)
+    | PrimitivePolicySet prq p => ((trans_prin prin_u) /\ 
+                                   (trans_preRequisite prq (getId p) prin_u a)) -> 
+                                   (trans_policy_positive p prin_u a)
 
-    | PrimitiveExclusivePolicySet prq p => ((((trans_prin x prin_u) /\ 
-                                              (trans_preRequisite x prq (getId p) prin_u a)) -> 
-                                             (trans_policy_positive x p prin_u a)) /\
+    | PrimitiveExclusivePolicySet prq p => ((((trans_prin prin_u) /\ 
+                                              (trans_preRequisite prq (getId p) prin_u a)) -> 
+                                             (trans_policy_positive p prin_u a)) /\
 
-                                            ((not (trans_prin x prin_u)) -> (trans_policy_negative x p a)))
+                                            ((not (trans_prin prin_u)) -> (trans_policy_negative p a)))
                    
-    | AndPolicySet ps_list => trans_ps_list x ps_list prin_u a
+    | AndPolicySet ps_list => trans_ps_list ps_list prin_u a
   end.
 
 
 (***** 3.1 *****)
-Check (trans_ps Alice policySet2_5 prins2_5 ebook).
+Check (trans_ps policySet2_5 prins2_5 ebook).
 
 Definition myids := (NewList "id1" (Single "id2")).
 Definition myids2 := (Single "id2").
@@ -457,9 +463,11 @@ Definition prins3 := (Single "Alice").
 Eval compute in (process_two_lists myids2 prins3).
 Eval compute in (myids).
 
-Eval compute in (trans_count "Joe" 10 myids2 prins3 ebook).
+Eval compute in (trans_count 10 myids2 prins3 ebook).
+Eval compute in (trans_ps policySet2_5 prins2_5 ebook).
 
-Eval compute in (trans_ps Alice policySet2_5 prins2_5 ebook).
-Check not.
+End Sems.
+
+
 
 End ODRL.
