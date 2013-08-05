@@ -152,33 +152,33 @@ Section times.
 Definition time := nat.
 
 Inductive timeprod : Set :=
-  timepair : time -> time -> timeprod.
+  | Timepair : time -> time -> timeprod.
 
 Definition rangestart (p : timeprod) : time := 
   match p with
-  | timepair x y => x
+  | Timepair x y => x
   end.
 Definition rangeend (p : timeprod) : time := 
   match p with
-  | timepair x y => y
+  | Timepair x y => y
   end.
 
 Definition inRange (t: time) (p : timeprod) : Prop := 
   ((rangestart p) <= t) /\ (t <= (rangeend p)).
 
-
+Definition MAX_TIME : time := 99. (* Hack for now *)
 
 End times.
 
 
 
-Eval simpl in (timepair 2 5). 
+Eval simpl in (Timepair 2 5). 
 
-Eval simpl in (inRange 2 (timepair 2 5)).
+Eval simpl in (inRange 2 (Timepair 2 5)).
 
 Inductive requirement : Set :=
-  | PrePay : money -> time -> timeprod -> requirement
-  | Attribution : subject -> time -> timeprod -> requirement
+  | PrePay : money -> timeprod -> requirement
+  | Attribution : subject -> timeprod -> requirement
   | InSequence : nonemptylist requirement -> requirement
   | AnySequence : nonemptylist requirement -> requirement.
 
@@ -257,6 +257,23 @@ Definition policySet2_5:policySet :=
 
 Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
 
+(*** 2.6 ***)
+Definition Charlie:subject := "Charlie".
+Definition aliceCount10:preRequisite := Constraint (CountByPrin prins2_5 10).
+Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 "id3" Play.
+
+Definition prePay2_6:requirement := PrePay "5.00" (Timepair 0 MAX_TIME).
+Definition attrib2_6:requirement := Attribution Charlie (Timepair 0 MAX_TIME).
+Definition inSeq2_6_req:requirement := InSequence (NewList prePay2_6 (Single attrib2_6)).
+Definition inSeq2_6_preReq:preRequisite := Requirement inSeq2_6_req.
+
+Definition policySet2_6:policySet := PrimitiveExclusivePolicySet inSeq2_6_preReq primPolicy2_6.
+  
+
+Definition latestJingle:asset := "LatestJingle".
+Definition A2_6 := Agreement prins2_5 latestJingle policySet2_6.
+
+
 (******* Semantics ********)
 
 Section Sems.
@@ -300,7 +317,7 @@ subjects({prin1, . . . , prink}) => subjects(prin1) + ... + subjects(prink)
 
 
 Definition getCount (s:subject) (id: policyId) : nat := 3.
-(* subject -> policyId -> nat -> nat := fun (s:subject) (pid:policyId) => fun (m:nat) => m. *)
+
 
 
 
@@ -360,21 +377,42 @@ let trans_forEachMember_Aux
       trans_forEachMember_Aux prins_and_constraints IDs a.
 
 Definition trans_prepay
+  (amount:money)(tp:timeprod)(IDs:nonemptylist policyId) : Prop := 
+  exists t'', ((inRange t'' tp) /\ (Paid amount IDs t'')).
+
+(*
+Definition trans_prepay
   (amount:money)(t'':time)(tp:timeprod)(IDs:nonemptylist policyId) : Prop := 
   (inRange t'' tp) /\ (Paid amount IDs t'').
-
+*)
+(*
 Definition trans_attribution
   (s:subject)(t'':time)(tp:timeprod) : Prop := 
   (inRange t'' tp) /\ (Attributed s t'').
+*)
+Definition trans_attribution
+  (s:subject)(tp:timeprod) : Prop := 
+  exists t'', ((inRange t'' tp) /\ (Attributed s t'')).
 
-Definition trans_requirment
+Fixpoint trans_requirment
   (req:requirement)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
-  
+
+let trans_InSequence := 
+  (fix trans_InSequence (reqs: nonemptylist requirement)(IDs:nonemptylist policyId)
+  (prin_u:prin)(a:asset){struct reqs} := 
+     match reqs with
+       | Single req  => trans_requirment req IDs prin_u a
+       | NewList req rest => 
+            (trans_requirment req IDs prin_u a) /\
+            (trans_InSequence rest IDs prin_u a) 
+     end) in
+
+
   match req with
-  | PrePay amount t'' tp => trans_prepay amount t'' tp IDs
-  | Attribution subj t'' tp => trans_attribution subj t'' tp
+  | PrePay amount tp => trans_prepay amount tp IDs
+  | Attribution subj tp => trans_attribution subj tp
   (* The two cases below will probably have to be moved out of here like forEachMember *)
-  | InSequence reqs => True
+  | InSequence reqs => trans_InSequence reqs IDs prin_u a
   | AnySequence reqs => True
   end.
 
@@ -455,16 +493,10 @@ let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:
 
 
 (***** 3.1 *****)
-Check (trans_ps policySet2_5 prins2_5 ebook).
 
-Definition myids := (NewList "id1" (Single "id2")).
-Definition myids2 := (Single "id2").
-Definition prins3 := (Single "Alice").
-Eval compute in (process_two_lists myids2 prins3).
-Eval compute in (myids).
-
-Eval compute in (trans_count 10 myids2 prins3 ebook).
 Eval compute in (trans_ps policySet2_5 prins2_5 ebook).
+(***** 3.2 *****)
+Eval compute in (trans_ps policySet2_6 prins2_5 ebook).
 
 End Sems.
 
