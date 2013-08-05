@@ -258,8 +258,9 @@ Definition policySet2_5:policySet :=
 Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
 
 (*** 2.6 ***)
+Definition prins2_6 := prins2_5.
 Definition Charlie:subject := "Charlie".
-Definition aliceCount10:preRequisite := Constraint (CountByPrin prins2_5 10).
+Definition aliceCount10:preRequisite := Constraint (CountByPrin prins2_6 10).
 Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 "id3" Play.
 
 Definition prePay2_6:requirement := PrePay "5.00" (Timepair 0 MAX_TIME).
@@ -271,7 +272,7 @@ Definition policySet2_6:policySet := PrimitiveExclusivePolicySet inSeq2_6_preReq
   
 
 Definition latestJingle:asset := "LatestJingle".
-Definition A2_6 := Agreement prins2_5 latestJingle policySet2_6.
+Definition A2_6 := Agreement prins2_6 latestJingle policySet2_6.
 
 
 (******* Semantics ********)
@@ -495,8 +496,9 @@ let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:
 (***** 3.1 *****)
 
 Eval compute in (trans_ps policySet2_5 prins2_5 ebook).
+
 (***** 3.2 *****)
-Eval compute in (trans_ps policySet2_6 prins2_5 ebook).
+Eval compute in (trans_ps policySet2_6 prins2_6 latestJingle).
 
 End Sems.
 
