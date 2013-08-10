@@ -57,6 +57,12 @@ Fixpoint app_nonempty (l1 l2 : nonemptylist) : nonemptylist :=
   | NewList s rest => NewList s (app_nonempty rest l2)
   end.
 
+Fixpoint length_nonempty (l1 : nonemptylist) : nat := 
+  match l1 with
+  | Single s  => 1
+  | NewList s rest => 1 + (length_nonempty rest)
+  end.
+
 End nonemptylist.
 
 Definition ne2 := Single 2.
@@ -178,10 +184,11 @@ Eval simpl in (inRange 2 (Timepair 2 5)).
 
 Inductive requirement : Set :=
   | PrePay : money -> timeprod -> requirement
-  | Attribution : subject -> timeprod -> requirement
-  | InSequence : nonemptylist requirement -> requirement
-  | AnySequence : nonemptylist requirement -> requirement.
-
+  | Attribution : subject -> timeprod -> requirement.
+(* Moved out to prereq level
+  | InSequence : nonemptylist requirement -> timeprod -> requirement
+  | AnySequence : nonemptylist requirement -> timeprod -> requirement.
+*)
 Inductive constraint : Set :=
   | Principal : prin  -> constraint 
   (*| ForEachMember : prin  -> nonemptylist constraint -> constraint *)
@@ -194,6 +201,7 @@ Inductive preRequisite : Set :=
   | Constraint : constraint -> preRequisite 
   | ForEachMember : prin  -> nonemptylist constraint -> preRequisite
   | Requirement : requirement -> preRequisite 
+  | InSequence : nonemptylist requirement -> timeprod -> preRequisite
   | NotCons : constraint -> preRequisite 
   | AndPrqs : nonemptylist preRequisite -> preRequisite
   | OrPrqs : nonemptylist preRequisite -> preRequisite
@@ -265,8 +273,9 @@ Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 "id3" Play.
 
 Definition prePay2_6:requirement := PrePay "5.00" (Timepair 0 MAX_TIME).
 Definition attrib2_6:requirement := Attribution Charlie (Timepair 0 MAX_TIME).
-Definition inSeq2_6_req:requirement := InSequence (NewList prePay2_6 (Single attrib2_6)).
-Definition inSeq2_6_preReq:preRequisite := Requirement inSeq2_6_req.
+Definition inSeq2_6_preReq:preRequisite := 
+  InSequence (NewList prePay2_6 (Single attrib2_6)) (Timepair 0 MAX_TIME).
+
 
 Definition policySet2_6:policySet := PrimitiveExclusivePolicySet inSeq2_6_preReq primPolicy2_6.
   
@@ -281,9 +290,15 @@ Section Sems.
 
    Variable x:subject.
 
-Parameter Permitted : subject -> act -> asset -> Prop.
-Parameter Paid : money -> nonemptylist policyId -> time -> Prop.
-Parameter Attributed : subject -> time -> Prop.
+
+Inductive permitted : subject -> act -> asset -> Prop :=
+  | Permitted : forall s a1 a2, permitted s a1 a2.
+
+Inductive paid : money -> nonemptylist policyId -> time -> Prop :=
+  | Paid : forall m ids t, paid m ids t.
+
+Inductive attributed : subject -> time -> Prop :=
+  | Attributed : forall s t, attributed s t.
 
 (* is x in prin? *)
 (** Definition prin := nonemptylist subject. **)
@@ -351,7 +366,7 @@ Fixpoint trans_constraint
   
     | Count n => trans_count n IDs prin_u a
 
-    | CountByPrin prn n => True
+    | CountByPrin prn n => trans_count n IDs prn a
 
   end.
 
@@ -377,49 +392,154 @@ let trans_forEachMember_Aux
       let prins_and_constraints := process_two_lists principals const_list in
       trans_forEachMember_Aux prins_and_constraints IDs a.
 
-Definition trans_prepay
-  (amount:money)(tp:timeprod)(IDs:nonemptylist policyId) : Prop := 
-  exists t'', ((inRange t'' tp) /\ (Paid amount IDs t'')).
+
+(*************
+
+Parameter Perm : nat -> Prop.
+
+
+Check (ex Perm). (* gives you exists x, Perm x *)
+Definition ff3 : Prop :=
+ex Perm.
+**************)
 
 (*
-Definition trans_prepay
-  (amount:money)(t'':time)(tp:timeprod)(IDs:nonemptylist policyId) : Prop := 
-  (inRange t'' tp) /\ (Paid amount IDs t'').
+Definition trans_prepay2
+  (amount:money)(tp:timeprod)(IDs:nonemptylist policyId) : Prop := 
+  ex ((inRange tp) /\ (Paid amount IDs)).
+
 *)
-(*
+
+Definition trans_prepay
+  (amount:money)(t'':time)(tp:timeprod)(IDs:nonemptylist policyId) : Prop :=
+  ((inRange t'' tp) /\ (paid amount IDs t'')).
+ 
+
+
 Definition trans_attribution
   (s:subject)(t'':time)(tp:timeprod) : Prop := 
-  (inRange t'' tp) /\ (Attributed s t'').
-*)
+  (inRange t'' tp) /\ (attributed s t'').
+
+(*
 Definition trans_attribution
   (s:subject)(tp:timeprod) : Prop := 
   exists t'', ((inRange t'' tp) /\ (Attributed s t'')).
+*)
+(*
+Fixpoint separated 
+   (t t' len : nat)
+   (reqs: nonemptylist requirement)
+   (IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
 
+  match len with
+    | O => 
+         match reqs with          
+           | NewList req1 (Single req2) =>           
+                exists n, t < n < t' /\ 
+                trans_requirment req1 (Timepair t n) IDs prin_u a /\ 
+                trans_requirment req2 (Timepair n t') IDs prin_u a
+           | _  => error   
+        
+    | S len' => 
+         match reqs with
+           | NewList req rest => 
+                exists n, t < n /\ 
+                trans_requirment req (Timepair t n) IDs prin_u a /\ 
+                separated n t' len'
+           | _ => error
+  end.
+  
+*)
 Fixpoint trans_requirment
-  (req:requirement)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+  (req:requirement)(tp:timeprod)
+  (IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct req} : Prop := 
+(*
+let trans_InSequence2 := 
+  (fix trans_InSequence2 
+      (t t' len: nat)
+      (reqs: nonemptylist requirement)
+      (IDs:nonemptylist policyId)
+      (prin_u:prin)(a:asset){struct len} : Prop := 
 
+  
+  match len with
+    | O => 
+         match reqs with          
+           | NewList req10 (Single req2) =>           
+                exists n, t < n < t' /\ 
+                trans_requirment req10 (Timepair t n) IDs prin_u a /\ 
+                trans_requirment req2 (Timepair n t') IDs prin_u a
+           | _  => True 
+         end   
+    | S len' => 
+         match reqs with
+           | NewList req rest => 
+                exists n, t < n /\ 
+                trans_requirment req (Timepair t n) IDs prin_u a /\ 
+                trans_InSequence2 n t' len' rest IDs prin_u a
+           | _ => True
+         end
+  end) in
+
+*)
+(*
 let trans_InSequence := 
-  (fix trans_InSequence (reqs: nonemptylist requirement)(IDs:nonemptylist policyId)
-  (prin_u:prin)(a:asset){struct reqs} := 
+  (fix trans_InSequence 
+      (reqs: nonemptylist requirement)(tp:timeprod)
+      (IDs:nonemptylist policyId)
+      (prin_u:prin)(a:asset){struct reqs} := 
+
+  let reqs_len := (length_nonempty reqs - 2) in
      match reqs with
        | Single req  => trans_requirment req IDs prin_u a
        | NewList req rest => 
             (trans_requirment req IDs prin_u a) /\
             (trans_InSequence rest IDs prin_u a) 
      end) in
-
+*)
 
   match req with
-  | PrePay amount tp => trans_prepay amount tp IDs
-  | Attribution subj tp => trans_attribution subj tp
+  | PrePay amount tp => exists s'', trans_prepay amount s'' tp IDs
+  | Attribution subj tp => exists t'', trans_attribution subj t'' tp
   (* The two cases below will probably have to be moved out of here like forEachMember *)
-  | InSequence reqs => trans_InSequence reqs IDs prin_u a
-  | AnySequence reqs => True
+  (*
+  | InSequence reqs tp => 
+      let len := (length_nonempty reqs - 2) in
+       trans_InSequence2 (rangestart tp) (rangeend tp) len reqs IDs prin_u a
+  | AnySequence reqs tp => True
+  *)
   end.
+
+Fixpoint trans_InSequence
+      (t t' len: nat)
+      (reqs: nonemptylist requirement)
+      (IDs:nonemptylist policyId)
+      (prin_u:prin)(a:asset){struct len} : Prop := 
+
+  
+  match len with
+    | O => 
+         match reqs with          
+           | NewList req10 (Single req2) =>           
+                exists n, t < n < t' /\ 
+                trans_requirment req10 (Timepair t n) IDs prin_u a /\ 
+                trans_requirment req2 (Timepair n t') IDs prin_u a
+           | _  => True 
+         end   
+    | S len' => 
+         match reqs with
+           | NewList req rest => 
+                exists n, t < n /\ 
+                trans_requirment req (Timepair t n) IDs prin_u a /\ 
+                trans_InSequence n t' len' rest IDs prin_u a
+           | _ => True
+         end
+  end.
+
 
 Definition trans_notCons
   (const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
-  not (trans_constraint const IDs prin_u a).
+  ~ (trans_constraint const IDs prin_u a).
 
 
 
@@ -431,7 +551,10 @@ Definition trans_preRequisite
     | TruePrq => True
     | Constraint const => trans_constraint const IDs prin_u a 
     | ForEachMember prn const_list => trans_forEachMember prn const_list IDs a
-    | Requirement req => trans_requirment req IDs prin_u a
+    | Requirement req => trans_requirment req (Timepair 0 MAX_TIME) IDs prin_u a
+    | InSequence reqs tp => 
+      let len := (length_nonempty reqs - 2) in
+       trans_InSequence (rangestart tp) (rangeend tp) len reqs IDs prin_u a
     | NotCons const => trans_notCons const IDs prin_u a
     | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
     | OrPrqs prqs => True (*trans_orPrqs x prq IDs prin_u a*)
@@ -450,7 +573,7 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(
 
   match p with
     | PrimitivePolicy prq policyId action => ((trans_preRequisite prq (Single policyId) prin_u a) ->
-                                              (Permitted x action a))
+                                              (permitted x action a))
     | AndPolicy p_list => trans_p_list p_list prin_u a
   end.
 
@@ -464,7 +587,7 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){stru
 
 
   match p with
-    | PrimitivePolicy prq policyId action => not (Permitted x action a)
+    | PrimitivePolicy prq policyId action => not (permitted x action a)
     | AndPolicy p_list => trans_p_list p_list a
   end.
 
