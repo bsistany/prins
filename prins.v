@@ -468,8 +468,8 @@ Fixpoint trans_InSequence
     | S len' => 
          match reqs with
            | NewList req rest => 
-                exists n, (t < n /\ 
-                (exists e, trans_requirment x req t n e IDs prin_u a) /\ 
+                exists n e, (t < n /\ 
+                (trans_requirment x req t n e IDs prin_u a) /\ 
                 trans_InSequence x n t' len' rest IDs prin_u a)
            | _ => True (* should be error but True for now *)
          end
