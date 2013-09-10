@@ -267,7 +267,8 @@ Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
 (*** 2.6 ***)
 Definition prins2_6 := prins2_5.
 Definition Charlie:subject := "Charlie".
-Definition aliceCount10:preRequisite := Constraint (CountByPrin prins2_6 10).
+(** Definition aliceCount10:preRequisite := Constraint (CountByPrin prins2_6 10). **)
+Definition aliceCount10:preRequisite := Constraint (CountByPrin (Single Alice) 10).
 Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 "id3" Play.
 
 Definition prePay2_6:requirement := PrePay "5.00".
@@ -297,9 +298,12 @@ Definition A2_6 := Agreement prins2_6 latestJingle policySet2_6.
 
 Section Sems.
 
-   
+Parameter Permitted : subject -> act -> asset -> Prop.
+Parameter Paid : money -> nonemptylist policyId -> time -> Prop.
+Parameter Attributed : subject -> time -> Prop.
+Parameter getCount : subject -> policyId -> nat.  
 
-
+(**
 Inductive permitted : subject -> act -> asset -> Prop :=
   | Permitted : forall s a1 a2, permitted s a1 a2.
 
@@ -309,6 +313,10 @@ Inductive paid : money -> nonemptylist policyId -> time -> Prop :=
 
 Inductive attributed : subject -> time -> Prop :=
   | Attributed : forall s t, attributed s t.
+  
+Definition getCount (s:subject) (id: policyId) : nat := 3.
+ 
+**)
 
 (* is x in prin? *)
 (** Definition prin := nonemptylist subject. **)
@@ -342,7 +350,7 @@ subjects({prin1, . . . , prink}) => subjects(prin1) + ... + subjects(prink)
 
 
 
-Definition getCount (s:subject) (id: policyId) : nat := 3.
+
 
 
 
@@ -413,22 +421,23 @@ Definition ff3 : Prop :=
 ex Perm.
 **************)
 
-(***
-Definition trans_prepay2
-  (amount:money)(tp:timeprod)(IDs:nonemptylist policyId) : Prop := 
-  ex ((inRange tp) /\ (Paid amount IDs)).
-***)
+Fixpoint trans_requirement_aux
+  (req:requirement)(t t': time)
+  (IDs:nonemptylist policyId){struct req} : Prop := 
+  let timeProp : time -> Prop := fun t'' => (t<=t'' /\ t''< t') in
+  match req with
+  | PrePay amount => (exists t'', (timeProp t'') /\ (Paid amount IDs t''))
+      (* trans_prepay amount time_prop IDs *)
+  | Attribution subj => (exists t'', (timeProp t'') /\ (Attributed subj t''))
+      (* trans_attribution subj time_prop *)
+  end.
 
-(*
-Definition trans_prepay
-  (amount:money)(timeProp : Prop)(IDs:nonemptylist policyId) : Prop :=
-  (timeProp /\ (paid amount IDs t'')).
- 
+Fixpoint trans_requirement
+  (x:subject)(req:requirement)
+  (IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct req} : Prop := 
+  trans_requirement_aux req MIN_TIME MAX_TIME IDs.
 
-Definition trans_attribution
-  (s:subject)(timeProp : Prop): Prop := 
-  (timeProp /\ (attributed s t'')).
-*)
+(**
 Fixpoint trans_requirment
   (x:subject)(req:requirement)(t t' t'': time)
   (IDs:nonemptylist policyId)(prin_u:prin)(a:asset){struct req} : Prop := 
@@ -447,7 +456,7 @@ Fixpoint trans_requirment
   | AnySequence reqs tp => True
   *)
   end.
-
+**)
 Fixpoint trans_InSequence
       (x:subject)
       (t t':time)(len: nat)
