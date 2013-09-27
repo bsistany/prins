@@ -294,6 +294,8 @@ Definition latestJingle:asset := "LatestJingle".
 Definition A2_6 := Agreement prins2_6 latestJingle policySet2_6.
 
 
+
+
 (******* Semantics ********)
 
 Section Sems.
@@ -564,6 +566,13 @@ let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:
   end.
 
 
+Fixpoint trans_agreement
+   (ag:agreement) : Prop :=
+   match ag with 
+   | Agreement prin_u a ps => trans_ps ps prin_u a
+   end.
+
+  
 (***** 3.1 *****)
 
 
@@ -579,6 +588,20 @@ Eval compute in (trans_ps policySet2_6_second prins2_6 latestJingle).
 Eval compute in (trans_ps policySet2_6_third prins2_6 latestJingle).
 
 
+
+
+(*** Canonical Agreement example ***)
+Section AAA.
+
+Definition AgreeCan := Agreement (Single Alice) TheReport p1A1.
+
+Eval compute in (trans_agreement AgreeCan).
+
+Hypothesis H: trans_agreement AgreeCan.
+Hypothesis AliceCount : getCount Alice "id1" = 2.
+Theorem SSS: Permitted Alice Print TheReport.
+Proof. simpl in H. apply H. split. reflexivity. auto. rewrite AliceCount. auto. Qed.
+End AAA.
 
 End Sems.
 
