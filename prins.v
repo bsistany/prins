@@ -591,9 +591,14 @@ Eval compute in (trans_ps policySet2_6_third prins2_6 latestJingle).
 
 
 (*** Canonical Agreement example ***)
-Section AAA.
+Section A1.
 
-Definition AgreeCan := Agreement (Single Alice) TheReport p1A1.
+Definition psA1:policySet :=
+  PrimitivePolicySet
+    TruePrq
+    (PrimitivePolicy (Constraint (Count  5)) "id1" Print).
+
+Definition AgreeCan := Agreement (Single Alice) TheReport psA1.
 
 Eval compute in (trans_agreement AgreeCan).
 
@@ -601,8 +606,67 @@ Hypothesis H: trans_agreement AgreeCan.
 Hypothesis AliceCount : getCount Alice "id1" = 2.
 Theorem SSS: Permitted Alice Print TheReport.
 Proof. simpl in H. apply H. split. reflexivity. auto. rewrite AliceCount. auto. Qed.
-End AAA.
+End A1.
 
+
+
+Section A2.
+
+(**  getCount Alice "id1" = 5,  and see if you can prove ~(Permitted Alice ...). **)
+
+Definition psA2:policySet :=
+  PrimitivePolicySet
+    TruePrq
+    (PrimitivePolicy (Constraint (Count  5)) "id1" Print).
+
+Definition AgreeA2 := Agreement (Single Alice) TheReport psA2.
+
+Eval compute in (trans_agreement AgreeA2).
+
+Hypothesis AliceCount : getCount Alice "id1" = 5.
+Hypothesis H: trans_agreement AgreeA2.
+
+Theorem SS1: (getCount "Alice" "id1") < 5 -> (Permitted Alice Print TheReport).
+Proof. simpl in H. apply H. split. reflexivity. apply I. Qed.
+
+Theorem SSS: ~(Permitted Alice Print TheReport).
+Proof. simpl in H. rewrite AliceCount in H. unfold not.   
+
+intro H'. generalize H. Abort.
+
+End A2.
+
+
+
+Section A3.
+
+(***
+Theorem FFF: 8<10.
+Proof. apply le_S. apply le_n. Qed.
+ 
+le_n : forall n : nat, n <= n
+le_S : : forall n m : nat, n <= m -> n <= S m.
+***)
+
+
+Definition AgreeA3 := Agreement prins2_5 ebook policySet2_5.
+Eval compute in (trans_agreement AgreeA3).
+
+Hypothesis AliceDisplayCount : getCount Alice "id1" = 3.
+Hypothesis AlicePrintCount : getCount Alice "id2" = 0.
+Hypothesis BobDisplayCount : getCount Bob "id1" = 4.
+Hypothesis BobPrintCount : getCount Bob "id2" = 0.
+Hypothesis H: trans_agreement AgreeA3.
+
+Theorem T1_A3: Permitted Alice Print ebook.
+Proof. simpl in H. 
+rewrite AliceDisplayCount in H.
+rewrite AlicePrintCount in H.
+rewrite BobDisplayCount in H.
+rewrite BobPrintCount in H. simpl in H. apply H. intuition. intuition. Qed.
+
+
+End A3.
 End Sems.
 
 
