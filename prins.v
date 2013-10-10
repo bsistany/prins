@@ -667,6 +667,34 @@ rewrite BobPrintCount in H. simpl in H. apply H. intuition. intuition. Qed.
 
 
 End A3.
+
+Section A4.
+
+
+
+Definition AgreeA4 := Agreement prins2_6 latestJingle policySet2_6.
+Eval compute in (trans_agreement AgreeA4).
+
+Hypothesis TEN_LT_H : 10 < MAX_TIME.
+Hypothesis THREE_LT_H : 3 < 10.
+
+Hypothesis AliceCount : getCount Alice "id3" = 3.
+Hypothesis AlicePaid : Paid "5.00" (Single "id3") 2.
+Hypothesis CharlieAttrib : Attributed Charlie 10.
+Hypothesis H: trans_agreement AgreeA4.
+
+Theorem T1_A4: Permitted Alice Play latestJingle.
+Proof. simpl in H. apply H. split. auto. exists 3. exists 2. exists 10. split. intuition.
+apply le_S. intuition. split. split. 
+intuition. exact AlicePaid. 
+split. intuition. exact CharlieAttrib. rewrite AliceCount. assumption. Qed.
+End A4.
+
+
+
+
+
+
 End Sems.
 
 
