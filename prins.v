@@ -5,6 +5,8 @@ Require Import Coq.Strings.String.
 Require Import Coq.Lists.List.
 Require Import Coq.Init.Datatypes.
 Require Import Coq.Strings.Ascii.
+Require Import Omega.
+
 Set Implicit Arguments.
 
 Open Scope string_scope.
@@ -675,9 +677,10 @@ Section A4.
 Definition AgreeA4 := Agreement prins2_6 latestJingle policySet2_6.
 Eval compute in (trans_agreement AgreeA4).
 
+(*
 Hypothesis TEN_LT_H : 10 < MAX_TIME.
 Hypothesis THREE_LT_H : 3 < 10.
-
+*)
 Hypothesis AliceCount : getCount Alice "id3" = 3.
 Hypothesis AlicePaid : Paid "5.00" (Single "id3") 2.
 Hypothesis CharlieAttrib : Attributed Charlie 10.
@@ -687,7 +690,8 @@ Theorem T1_A4: Permitted Alice Play latestJingle.
 Proof. simpl in H. apply H. split. auto. exists 3. exists 2. exists 10. split. intuition.
 apply le_S. intuition. split. split. 
 intuition. exact AlicePaid. 
-split. intuition. exact CharlieAttrib. rewrite AliceCount. assumption. Qed.
+split. intuition. unfold MAX_TIME; omega.
+exact CharlieAttrib. rewrite AliceCount. omega. Qed.
 End A4.
 
 
