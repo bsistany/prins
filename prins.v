@@ -695,6 +695,31 @@ exact CharlieAttrib. rewrite AliceCount. omega. Qed.
 End A4.
 
 
+Section A5.
+
+Definition prin_bob := (Single Bob).
+Definition pol:policy := PrimitivePolicy TruePrq "id3" Print.
+Definition pol_set:policySet := PrimitiveExclusivePolicySet TruePrq pol.
+Definition AgreeA5 := Agreement prin_bob LoveAndPeace pol_set.
+Eval compute in (trans_agreement AgreeA5).
+
+(* Not sure how to prove Alice<>Bob so for now, making it a hypo *)
+Hypothesis H0: Alice <> Bob.
+
+Hypothesis H: trans_agreement AgreeA5.
+
+
+Theorem T1_A5: forall x, x<>Bob -> ~Permitted x Print LoveAndPeace.
+Proof. simpl in H. apply H. Qed.
+
+(*
+Theorem T2_A5: ~Permitted Alice Print LoveAndPeace.
+Proof. simpl in H. apply H. apply H0. Qed. 
+*)
+Theorem T2_A5: ~Permitted Alice Print LoveAndPeace.
+Proof. apply T1_A5. apply H0. Qed. 
+
+End A5.
 
 
 
