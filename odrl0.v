@@ -18,30 +18,6 @@ Definition l23 : list nat
 
 Locate pair.
 
-(*
-Inductive triple M := Triple : M -> M -> M -> triple M. 
-Notation "[ x , y , z ]" := (Triple x y z). 
-Definition triple1 := [1,2,3].
-*)
-
-(*
-Inductive C : sort := 
-
-| c1 : C1           c1 is the constructor, and C1 is the type of the c1
-| ...
-| cn : Cn.
-
-Naming convention: Constructors start with Capital letter, types with lower case.
-
-where name is the name of the type to be defined; sort is one of Set or Type
-(or even Prop); ci are the names of the constructors and Ci is the type of the
-constructor ci.
-The declaration of an inductive definition introduces new primitive objects
-for the type itself and its constructors; it also generates theorems which are
-abbreviations for more complex terms expressing that name is the smallest set
-containing the terms build with constructors. These theorems provide induction
-principles to reason on objects in inductive types.
-*)
 
 
 Section nonemptylist.
@@ -155,29 +131,6 @@ Definition money := string.
 
 Definition policyId := string.
 
-Section times.
-
-Definition time := nat.
-(*
-Inductive timeprod : Set :=
-  | Timepair : time -> time -> timeprod.
-
-Definition rangestart (p : timeprod) : time := 
-  match p with
-  | Timepair x y => x
-  end.
-Definition rangeend (p : timeprod) : time := 
-  match p with
-  | Timepair x y => y
-  end.
-
-Definition inRange (t: time) (p : timeprod) : Prop := 
-  ((rangestart p) <= t) /\ (t <= (rangeend p)).
-*)
-Definition MIN_TIME : time := 0. (* Hack for now *)
-Definition MAX_TIME : time := 99. (* Hack for now *)
-
-End times.
 
 
 
@@ -272,24 +225,8 @@ Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 "id3" Play.
 Section Sems.
 
 Parameter Permitted : subject -> act -> asset -> Prop.
-Parameter Paid : money -> nonemptylist policyId -> time -> Prop.
-Parameter Attributed : subject -> time -> Prop.
 Parameter getCount : subject -> policyId -> nat.  
 
-(**
-Inductive permitted : subject -> act -> asset -> Prop :=
-  | Permitted : forall s a1 a2, permitted s a1 a2.
-
-
-Inductive paid : money -> nonemptylist policyId -> time -> Prop :=
-  | Paid : forall m IDs t, paid m IDs t.
-
-Inductive attributed : subject -> time -> Prop :=
-  | Attributed : forall s t, attributed s t.
-  
-Definition getCount (s:subject) (id: policyId) : nat := 3.
- 
-**)
 
 (* is x in prin? *)
 (** Definition prin := nonemptylist subject. **)
@@ -316,16 +253,6 @@ Fixpoint getId (p:policy) : nonemptylist policyId :=
     | AndPolicy policies => getIds policies
   end.
   
-(*
-subjects(s) => {s}
-subjects({prin1, . . . , prink}) => subjects(prin1) + ... + subjects(prink)
-*)
-
-
-
-
-
-
 
 
 Fixpoint trans_count 
@@ -401,11 +328,8 @@ Definition trans_notCons
   (x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
   ~ (trans_constraint x const IDs prin_u a).
 
-
-
-
 Definition trans_preRequisite
-  (x:subject)(prq:preRequisite)(t t':time)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+  (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
 
   match prq with
     | TruePrq => True
@@ -430,7 +354,7 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(
 
 
   match p with
-    | PrimitivePolicy prq policyId action => ((trans_preRequisite x prq MIN_TIME MAX_TIME (Single policyId) prin_u a) ->
+    | PrimitivePolicy prq policyId action => ((trans_preRequisite x prq (Single policyId) prin_u a) ->
                                               (Permitted x action a))
     | AndPolicy p_list => trans_p_list p_list prin_u a
   end.
@@ -462,11 +386,11 @@ let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:
                   end) in
   match ps with
     | PrimitivePolicySet prq p => forall x, (((trans_prin x prin_u) /\ 
-                                   (trans_preRequisite x prq MIN_TIME MAX_TIME (getId p) prin_u a)) -> 
+                                   (trans_preRequisite x prq (getId p) prin_u a)) -> 
                                    (trans_policy_positive x p prin_u a))  
 
     | PrimitiveExclusivePolicySet prq p => forall x, ((((trans_prin x prin_u) /\ 
-                                              (trans_preRequisite x prq MIN_TIME MAX_TIME (getId p) prin_u a)) -> 
+                                              (trans_preRequisite x prq (getId p) prin_u a)) -> 
                                              (trans_policy_positive x p prin_u a)) /\
                                             ((not (trans_prin x prin_u)) -> (trans_policy_negative x p a)))
                    
