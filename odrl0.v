@@ -1,6 +1,7 @@
 Module ODRL.
 
 Require Import Arith.
+Require Import Coq.Arith.EqNat.
 Require Import Coq.Strings.String.
 Require Import Coq.Lists.List.
 Require Import Coq.Init.Datatypes.
@@ -217,15 +218,34 @@ Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 "id3" Play.
 
 
 
-
-
-
 (******* Semantics ********)
 
 Section Sems.
 
 Parameter Permitted : subject -> act -> asset -> Prop.
-Parameter getCount : subject -> policyId -> nat.  
+Parameter getCount : subject -> policyId -> nat.
+
+
+(*** Environments: in odrl0 are simply a conjunction of positive ground literals of the form count(s, id)= n ***)
+
+
+Definition clause := Prop.
+(** A clause is a list (disjunction) of literals. *)
+
+Definition formula := list clause. (** conjuction *)
+(** A formula is a list (conjunction) of clauses. *)
+
+Check eq_nat.
+
+Definition eq_type := nat -> nat -> Prop.
+
+Check Twos.
+
+
+Check prod.
+
+
+
 
 
 (* is x in prin? *)
@@ -526,6 +546,106 @@ End A5.
 
 End Sems.
 
+Section Query.
 
+
+(*
+Definition env := list ((subject*policyId)*nat).
+
+
+Fixpoint getCountFromEnv (e : env) (s : subject) (id:policyId) : nat :=
+  match e with
+    | nil => 0
+    | cons first rest => (getCount s id) eq_nat (fst first) (snd first)) /\ (trans_env rest)
+  end.
+  getCount(.
+
+
+
+
+Fixpoint trans_env (e : env) : Prop :=
+  match e with
+    | nil => True
+    | cons first rest => (eq_nat (fst first) (snd first)) /\ (trans_env rest)
+  end.
+
+
+*)
+
+Set Impicit Arguments.
+Require Import Coq.Lists.List.
+Require Omega.
+
+
+(*
+
+Definition subject := nat.
+
+
+Check subject.
+Check nat.
+
+Definition Math := subject.
+
+Check Math.
+
+Definition A : Math := 7.
+
+Check A.
+
+*)
+
+Inductive count_equality : Set := 
+   | CountEquality : subject -> policyId -> nat -> count_equality.
+
+Check count_equality.
+
+
+Definition make_count_equality
+  (s:subject)(id:policyId)(n:nat): count_equality :=
+  CountEquality s id n.
+
+
+Definition environment := list count_equality.
+
+
+Definition f1:count_equality := make_count_equality "Alice" "4" 6.
+Definition f2:count_equality := make_count_equality "Alice" "4" 7.
+
+
+Definition inconsistent (f1 f2 : count_equality) : Prop :=
+   match f1 with (CountEquality s1 id1 n1) =>
+     match f2 with (CountEquality s2 id2 n2) =>       
+       s1 = s2 -> id1 = id2 -> n1 <> n2
+     end 
+   end.
+
+Eval compute in (inconsistent f1 f2).
+
+Eval compute in (6 <> 7).
+
+Definition E1 : environment := f1::f2::nil.
+
+
+
+Inductive query : Set := 
+   | Query : nonemptylist agreement -> subject -> act -> asset -> environment -> query.
+(* a query is a tuple: (agreement * subject * act * asset * environment)  *)
+
+
+Definition make_query 
+  (agrs:nonemptylist agreement)(s:subject)(myact:act)(a:asset)(e:environment) : query :=
+  Query agrs s myact a e.
+
+Definition q1: query := make_query (Single AgreeA5) Alice Display TheReport E1. 
+
+Check count_equality.
+
+(********* TODO *********)
+Example test_inconsistent: (inconsistent f1 f2) = (6<>7).
+(* Proof. unfold inconsistent. simpl. intuition. *) Admitted. 
+
+
+End Query.
 
 End ODRL.
