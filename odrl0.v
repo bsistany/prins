@@ -638,24 +638,56 @@ End Environment.
 
 Section Query.
 
+(* a query is a tuple: (agreements * subject * act * asset * environment)  *)
 Inductive query : Set := 
    | Query : nonemptylist agreement -> subject -> act -> asset -> environment -> query.
-(* a query is a tuple: (agreement * subject * act * asset * environment)  *)
-
 
 Definition make_query 
   (agrs:nonemptylist agreement)(s:subject)(myact:act)(a:asset)(e:environment) : query :=
   Query agrs s myact a e.
 
 Definition q1: query := make_query (Single AgreeA5) Alice Display TheReport e1. 
+End Query.
 
-Check count_equality.
+
+
+Section AAA.
+
+Fixpoint trans_agreements (agrs:nonemptylist agreement) : Prop :=
+  match agrs with
+    | Single agr => trans_agreement agr 
+    | NewList agr rest => trans_agreement agr  /\ (trans_agreements rest)
+  end.
+
+Definition make_fplus (q: query) : Prop := 
+  match q with 
+    Query agreements s action a e => trans_agreements agreements -> (Permitted s action a)
+  end.
+
+
+Definition make_fminus (q: query) : Prop := 
+  match q with 
+    Query agreements s action a e => trans_agreements agreements -> ~(Permitted s action a)
+  end.
+
+
+Definition fp1 : Prop := make_fplus q1.
+Definition fn1 : Prop := make_fminus q1.
+
+Eval compute in fp1.
+
+Eval compute in fn1.
+
+End AAA.
+
+
+
 
 (********* TODO *********)
 Example test_inconsistent: (inconsistent f1 f2) = (6<>7).
 (* Proof. unfold inconsistent. simpl. intuition. *) Admitted. 
 
 
-End Query.
+
 
 End ODRL.
