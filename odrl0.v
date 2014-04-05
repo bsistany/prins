@@ -111,7 +111,6 @@ Definition lst1 := process_two_lists (NewList 4 (NewList 8 (Single 8))) (NewList
 Eval compute in lst1.
 
 
-
 Definition subject := string.
 
 (* simplified *)
@@ -605,8 +604,14 @@ Definition make_count_equality
   (s:subject)(id:policyId)(n:nat): count_equality :=
   CountEquality s id n.
 
+Definition get_subject_id_pair (f : count_equality) : Twos subject policyId :=
+  match f with
+    | CountEquality s id n => mkTwos s id 
+  end.
 
-Definition environment := list count_equality.
+
+
+Definition environment := nonemptylist count_equality.
 
 
 Definition f1:count_equality := make_count_equality "Alice" "4" 6.
@@ -624,7 +629,55 @@ Eval compute in (inconsistent f1 f2).
 
 Eval compute in (6 <> 7).
 
-Definition E1 : environment := f1::f2::nil.
+
+(****************************************)
+(****************************************)
+(*
+Fixpoint env_consistent (e : environment) : Prop :=
+*)
+
+
+Fixpoint get_list_of_pairs_of_count_formulas (e : environment) : 
+  nonemptylist (Twos count_equality count_equality) := 
+    let nullCountFormula:count_equality := make_count_equality "Null" "0" 0 in
+      let list_of_pairs_of_null : nonemptylist (Twos count_equality count_equality) 
+        :=  Single (mkTwos nullCountFormula nullCountFormula) in
+  
+          match e with
+            | Single f => list_of_pairs_of_null
+            | NewList first (Single f) => Single (mkTwos first f)
+            | NewList first rest => 
+          
+              let twos := process_two_lists (Single first) rest in
+                app_nonempty twos (get_list_of_pairs_of_count_formulas rest)
+
+          end.
+
+(* test the first clause: single count formula should return a pair of null count formulas *)    
+Definition e1 : environment := 
+  (Single (make_count_equality "Alice" "1" 8)).
+Eval compute in (get_list_of_pairs_of_count_formulas e1).
+
+(* test the second clause: two count formulas should return a pair of the two count formulas *)    
+Definition e2 : environment := (NewList f1 (Single f2)).
+Eval compute in (get_list_of_pairs_of_count_formulas e2).
+
+(* test the third case: three count formulas should return a list of 3 pairs of count formulas *)    
+Definition e3 : environment := 
+  (NewList (make_count_equality "Alice" "1" 8) 
+     (NewList (make_count_equality "Bob" "2" 9) (Single (make_count_equality "Bahman" "3" 10)))).
+Eval compute in (get_list_of_pairs_of_count_formulas e3).
+
+(* test the third case with 4 count formulas: should return a list of 6 pairs of count formulas *)    
+Definition e4 : environment := 
+  (NewList (make_count_equality "Alice" "1" 8) 
+     (NewList (make_count_equality "Bob" "2" 9) 
+        (NewList (make_count_equality "Joe" "3" 10)
+          (Single (make_count_equality "Bahman" "4" 11))))).
+
+Eval compute in (get_list_of_pairs_of_count_formulas e4).
+
+
 
 
 
