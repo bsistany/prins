@@ -545,54 +545,8 @@ End A5.
 
 End Sems.
 
-Section Query.
+Section Environment.
 
-
-(*
-Definition env := list ((subject*policyId)*nat).
-
-
-Fixpoint getCountFromEnv (e : env) (s : subject) (id:policyId) : nat :=
-  match e with
-    | nil => 0
-    | cons first rest => (getCount s id) eq_nat (fst first) (snd first)) /\ (trans_env rest)
-  end.
-  getCount(.
-
-
-
-
-Fixpoint trans_env (e : env) : Prop :=
-  match e with
-    | nil => True
-    | cons first rest => (eq_nat (fst first) (snd first)) /\ (trans_env rest)
-  end.
-
-
-*)
-
-Set Impicit Arguments.
-Require Import Coq.Lists.List.
-Require Omega.
-
-
-(*
-
-Definition subject := nat.
-
-
-Check subject.
-Check nat.
-
-Definition Math := subject.
-
-Check Math.
-
-Definition A : Math := 7.
-
-Check A.
-
-*)
 
 Inductive count_equality : Set := 
    | CountEquality : subject -> policyId -> nat -> count_equality.
@@ -603,12 +557,6 @@ Check count_equality.
 Definition make_count_equality
   (s:subject)(id:policyId)(n:nat): count_equality :=
   CountEquality s id n.
-
-Definition get_subject_id_pair (f : count_equality) : Twos subject policyId :=
-  match f with
-    | CountEquality s id n => mkTwos s id 
-  end.
-
 
 
 Definition environment := nonemptylist count_equality.
@@ -629,12 +577,6 @@ Eval compute in (inconsistent f1 f2).
 
 Eval compute in (6 <> 7).
 
-
-(****************************************)
-(****************************************)
-(*
-Fixpoint env_consistent (e : environment) : Prop :=
-*)
 
 
 Fixpoint get_list_of_pairs_of_count_formulas (e : environment) : 
@@ -677,9 +619,24 @@ Definition e4 : environment :=
 
 Eval compute in (get_list_of_pairs_of_count_formulas e4).
 
+(****************************************)
+(****************************************)
 
+Fixpoint env_consistent (e : environment) : Prop :=
+  let pairs : nonemptylist (Twos count_equality count_equality) := (get_list_of_pairs_of_count_formulas e) in
+    let pairs_consistent := 
+      (fix pairs_consistent (pairs : nonemptylist (Twos count_equality count_equality)) : Prop :=
+        match pairs with
+          | Single p => inconsistent (left p) (right p) 
+          | NewList p rest =>  inconsistent (left p) (right p) /\ (pairs_consistent rest)
+        end) in 
+  pairs_consistent pairs.
 
+Eval compute in (env_consistent e2).
 
+End Environment.
+
+Section Query.
 
 Inductive query : Set := 
    | Query : nonemptylist agreement -> subject -> act -> asset -> environment -> query.
@@ -690,7 +647,7 @@ Definition make_query
   (agrs:nonemptylist agreement)(s:subject)(myact:act)(a:asset)(e:environment) : query :=
   Query agrs s myact a e.
 
-Definition q1: query := make_query (Single AgreeA5) Alice Display TheReport E1. 
+Definition q1: query := make_query (Single AgreeA5) Alice Display TheReport e1. 
 
 Check count_equality.
 
