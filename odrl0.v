@@ -111,7 +111,13 @@ Definition lst1 := process_two_lists (NewList 4 (NewList 8 (Single 8))) (NewList
 Eval compute in lst1.
 
 
-Definition subject := string.
+Definition subject := nat.
+Definition NullSubject:subject := 100.
+Definition Alice:subject := 101.
+Definition Bob:subject := 102.
+Definition Charlie:subject := 103.
+Definition Bahman:subject := 104.
+
 
 (* simplified *)
 Definition prin := nonemptylist subject.
@@ -129,11 +135,12 @@ Definition LoveAndPeace : asset := "LoveAndPeace".
 
 Definition money := string.
 
-Definition policyId := string.
-
-
-
-
+Definition policyId := nat.
+Definition NullId:subject := 200.
+Definition id1:policyId := 201.
+Definition id2:policyId := 202.
+Definition id3:policyId := 203.
+Definition id4:policyId := 204.
 
 Inductive constraint : Set :=
   | Principal : prin  -> constraint 
@@ -165,15 +172,13 @@ Inductive agreement : Set :=
   | Agreement : prin -> asset -> policySet -> agreement.
 
 (* Example 2.1 *)
-Definition Alice:subject := "Alice".
-Definition Bob:subject := "Bob".
 
 Definition TheReport:asset := "TheReport".
 
 Definition p1A1:policySet :=
   PrimitivePolicySet
     TruePrq
-    (PrimitivePolicy (Constraint (Count  5)) "id1" Print).
+    (PrimitivePolicy (Constraint (Count  5)) id1 Print).
 
 Definition p2A1prq1:preRequisite := (Constraint (Principal (Single Alice))).
 Definition p2A1prq2:preRequisite := (Constraint (Count 2)).
@@ -181,7 +186,7 @@ Definition p2A1prq2:preRequisite := (Constraint (Count 2)).
 Definition p2A1:policySet :=
   PrimitivePolicySet
     TruePrq
-    (PrimitivePolicy (AndPrqs (NewList p2A1prq1 (Single p2A1prq2))) "id2" Print).
+    (PrimitivePolicy (AndPrqs (NewList p2A1prq1 (Single p2A1prq2))) id2 Print).
 
 Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
                   (AndPolicySet (NewList p1A1 (Single p2A1))).
@@ -198,8 +203,8 @@ Check ForEachMember prins2_5 (Single fiveCount).
 Definition forEach_display:preRequisite := ForEachMember prins2_5 (Single fiveCount).
 Definition forEach_print:preRequisite := ForEachMember prins2_5 (Single oneCount).
 
-Definition primPolicy1:policy := PrimitivePolicy forEach_display "id1" Display.
-Definition primPolicy2:policy := PrimitivePolicy forEach_print "id2" Print.
+Definition primPolicy1:policy := PrimitivePolicy forEach_display id1 Display.
+Definition primPolicy2:policy := PrimitivePolicy forEach_print id2 Print.
 
 Definition policySet2_5:policySet :=
   PrimitivePolicySet tenCount (AndPolicy (NewList primPolicy1 (Single primPolicy2))).
@@ -209,11 +214,131 @@ Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
 
 (*** 2.6 ***)
 Definition prins2_6 := prins2_5.
-Definition Charlie:subject := "Charlie".
+
 (** Definition aliceCount10:preRequisite := Constraint (CountByPrin prins2_6 10). **)
 Definition aliceCount10:preRequisite := Constraint (CountByPrin (Single Alice) 10).
-Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 "id3" Play.
+Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 id3 Play.
 
+
+(****** Environments ******)
+Section Environment.
+
+  
+Inductive count_equality : Set := 
+   | CountEquality : subject -> policyId -> nat -> count_equality.
+
+Check count_equality.
+
+
+Definition make_count_equality
+  (s:subject)(id:policyId)(n:nat): count_equality :=
+  CountEquality s id n.
+
+
+Definition environment := nonemptylist count_equality.
+
+(** Looks for count of a (subject, id) pair.
+    Assumes e is consistent, so it returns the first count it sees for a (subject, id) pair.
+	If a count for a (subject, id) pair is not found it returns 0. **)
+	
+
+
+
+Fixpoint getCount 
+  (e:environment)(s:subject)(id: policyId): nat :=
+  match e with
+  | Single f  => 
+      match f with 
+	  | CountEquality s1 id1 n1 => 
+          if (beq_nat s s1) 
+          then if (beq_nat id id1) then n1 else 0 
+          else 0  
+      end			
+  | NewList f rest =>
+      match f with 
+	  | CountEquality s1 id1 n1 => 
+          if (beq_nat s s1)
+          then if (beq_nat id id1) then n1 else (getCount rest s id)  
+          else (getCount rest s id)
+      end
+  end.
+
+
+
+
+Definition f1:count_equality := make_count_equality Alice id2 6.
+Definition f2:count_equality := make_count_equality Alice id2 7.
+
+
+Definition inconsistent (f1 f2 : count_equality) : Prop :=
+   match f1 with (CountEquality s1 id1 n1) =>
+     match f2 with (CountEquality s2 id2 n2) =>       
+       s1 = s2 -> id1 = id2 -> n1 <> n2
+     end 
+   end.
+
+Eval compute in (inconsistent f1 f2).
+
+Eval compute in (6 <> 7).
+
+
+
+Fixpoint get_list_of_pairs_of_count_formulas (e : environment) : 
+  nonemptylist (Twos count_equality count_equality) := 
+    let nullCountFormula:count_equality := make_count_equality NullSubject NullId 0 in
+      let list_of_pairs_of_null : nonemptylist (Twos count_equality count_equality) 
+        :=  Single (mkTwos nullCountFormula nullCountFormula) in
+  
+          match e with
+            | Single f => list_of_pairs_of_null
+            | NewList first (Single f) => Single (mkTwos first f)
+            | NewList first rest => 
+          
+              let twos := process_two_lists (Single first) rest in
+                app_nonempty twos (get_list_of_pairs_of_count_formulas rest)
+
+          end.
+
+(* test the first clause: single count formula should return a pair of null count formulas *)    
+Definition e1 : environment := 
+  (Single (make_count_equality Alice id1 8)).
+Eval compute in (get_list_of_pairs_of_count_formulas e1).
+
+(* test the second clause: two count formulas should return a pair of the two count formulas *)    
+Definition e2 : environment := (NewList f1 (Single f2)).
+Eval compute in (get_list_of_pairs_of_count_formulas e2).
+
+(* test the third case: three count formulas should return a list of 3 pairs of count formulas *)    
+Definition e3 : environment := 
+  (NewList (make_count_equality Alice id1 8) 
+     (NewList (make_count_equality Bob id2 9) (Single (make_count_equality Charlie id3 10)))).
+Eval compute in (get_list_of_pairs_of_count_formulas e3).
+
+(* test the third case with 4 count formulas: should return a list of 6 pairs of count formulas *)    
+Definition e4 : environment := 
+  (NewList (make_count_equality Alice id1 8) 
+     (NewList (make_count_equality Bob id2 9) 
+        (NewList (make_count_equality Charlie id3 10)
+          (Single (make_count_equality Bahman id4 11))))).
+
+Eval compute in (get_list_of_pairs_of_count_formulas e4).
+
+(****************************************)
+(****************************************)
+
+Fixpoint env_consistent (e : environment) : Prop :=
+  let pairs : nonemptylist (Twos count_equality count_equality) := (get_list_of_pairs_of_count_formulas e) in
+    let pairs_consistent := 
+      (fix pairs_consistent (pairs : nonemptylist (Twos count_equality count_equality)) : Prop :=
+        match pairs with
+          | Single p => inconsistent (left p) (right p) 
+          | NewList p rest =>  inconsistent (left p) (right p) /\ (pairs_consistent rest)
+        end) in 
+  pairs_consistent pairs.
+
+Eval compute in (env_consistent e2).
+
+End Environment.
 
 
 
@@ -222,17 +347,18 @@ Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 "id3" Play.
 Section Sems.
 
 Parameter Permitted : subject -> act -> asset -> Prop.
-Parameter getCount : subject -> policyId -> nat.
+(* Parameter getCount : subject -> policyId -> nat. *)
 
 
 (*** Environments: in odrl0 are simply a conjunction of positive ground literals of the form count(s, id)= n ***)
 
-
-Definition clause := Prop.
 (** A clause is a list (disjunction) of literals. *)
+(* Definition formula := Prop. *)
 
-Definition formula := list clause. (** conjuction *)
+
 (** A formula is a list (conjunction) of clauses. *)
+(* Definition formula := list clause. *)(** conjuction *)
+
 
 Check eq_nat.
 
@@ -275,16 +401,16 @@ Fixpoint getId (p:policy) : nonemptylist policyId :=
 
 
 Fixpoint trans_count 
-  (n:nat)(IDs:nonemptylist policyId)
+  (e:environment)(n:nat)(IDs:nonemptylist policyId)
   (prin_u:prin)(a:asset) : Prop := 
 
   let trans_count_aux 
     := (fix trans_count_aux
          (ids_and_subjects : nonemptylist (Twos policyId subject)) : nat :=
      match ids_and_subjects with
-        | Single pair1 => getCount (right pair1) (left pair1)
+        | Single pair1 => getCount e (right pair1) (left pair1)
         | NewList pair1 rest_pairs =>
-            (getCount (right pair1)(left pair1)) +
+            (getCount e (right pair1)(left pair1)) +
             (trans_count_aux rest_pairs)
       end) in
   
@@ -294,16 +420,16 @@ Fixpoint trans_count
 
 
 Fixpoint trans_constraint 
-  (x:subject)(const:constraint)(IDs:nonemptylist policyId)
+  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)
   (prin_u:prin)(a:asset){struct const} : Prop := 
 (*************************************************)
 (*************************************************)
   match const with
     | Principal prn => trans_prin x prn
   
-    | Count n => trans_count n IDs prin_u a
+    | Count n => trans_count e n IDs prin_u a
 
-    | CountByPrin prn n => trans_count n IDs prn a
+    | CountByPrin prn n => trans_count e n IDs prn a
 
   end.
 
@@ -311,7 +437,7 @@ Fixpoint trans_constraint
 
 
 Fixpoint trans_forEachMember
-         (x:subject)(principals: nonemptylist subject)(const_list:nonemptylist constraint)
+         (e:environment)(x:subject)(principals: nonemptylist subject)(const_list:nonemptylist constraint)
          (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
 
 let trans_forEachMember_Aux   
@@ -320,9 +446,9 @@ let trans_forEachMember_Aux
          (IDs:nonemptylist policyId)(a:asset) {struct prins_and_constraints} : Prop :=
 
       match prins_and_constraints with
-        | Single pair1 => trans_constraint x (right pair1) IDs (Single (left pair1)) a
+        | Single pair1 => trans_constraint e x (right pair1) IDs (Single (left pair1)) a
         | NewList pair1 rest_pairs =>
-            (trans_constraint x (right pair1) IDs (Single (left pair1)) a) /\
+            (trans_constraint e x (right pair1) IDs (Single (left pair1)) a) /\
             (trans_forEachMember_Aux rest_pairs IDs a)
       end) in
 
@@ -344,46 +470,46 @@ ex Perm.
 
 
 Definition trans_notCons
-  (x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
-  ~ (trans_constraint x const IDs prin_u a).
+  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
+  ~ (trans_constraint e x const IDs prin_u a).
 
 Definition trans_preRequisite
-  (x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+  (e:environment)(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
 
   match prq with
     | TruePrq => True
-    | Constraint const => trans_constraint x const IDs prin_u a 
-    | ForEachMember prn const_list => trans_forEachMember x prn const_list IDs a
-    | NotCons const => trans_notCons x const IDs prin_u a
+    | Constraint const => trans_constraint e x const IDs prin_u a 
+    | ForEachMember prn const_list => trans_forEachMember e x prn const_list IDs a
+    | NotCons const => trans_notCons e x const IDs prin_u a
     | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
     | OrPrqs prqs => True (*trans_orPrqs x prq IDs prin_u a*)
     | XorPrqs prqs => True (*trans_xorPrqs x prq IDs prin_u a*)
   end.
 
 Fixpoint trans_policy_positive
-  (x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} : Prop :=
+  (e:environment)(x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} : Prop :=
 
 let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(a:asset){struct p_list}:=
                   match p_list with
-                    | Single p1 => trans_policy_positive x p1 prin_u a
+                    | Single p1 => trans_policy_positive e x p1 prin_u a
                     | NewList p p_list' => 
-                        ((trans_policy_positive x p prin_u a) /\ 
+                        ((trans_policy_positive e x p prin_u a) /\ 
                          (trans_p_list p_list' prin_u a))
                   end) in
 
 
   match p with
-    | PrimitivePolicy prq policyId action => ((trans_preRequisite x prq (Single policyId) prin_u a) ->
+    | PrimitivePolicy prq policyId action => ((trans_preRequisite e x prq (Single policyId) prin_u a) ->
                                               (Permitted x action a))
     | AndPolicy p_list => trans_p_list p_list prin_u a
   end.
 
 Fixpoint trans_policy_negative
-  (x:subject)(p:policy)(a:asset){struct p} : Prop :=
+  (e:environment)(x:subject)(p:policy)(a:asset){struct p} : Prop :=
 let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){struct p_list}:=
                   match p_list with
-                    | Single p1 => trans_policy_negative x p1 a
-                    | NewList p p_list' => ((trans_policy_negative x p a) /\ 
+                    | Single p1 => trans_policy_negative e x p1 a
+                    | NewList p p_list' => ((trans_policy_negative e x p a) /\ 
                                             (trans_p_list p_list' a))
                   end) in
 
@@ -396,40 +522,40 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){stru
 
 
 Fixpoint trans_ps
-  (ps:policySet)(prin_u:prin)(a:asset){struct ps} : Prop :=
+  (e:environment)(ps:policySet)(prin_u:prin)(a:asset){struct ps} : Prop :=
 
 let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:prin)(a:asset){struct ps_list}:=
                   match ps_list with
-                    | Single ps1 => trans_ps ps1 prin_u a
-                    | NewList ps ps_list' => ((trans_ps ps prin_u a) /\ (trans_ps_list ps_list' prin_u a))
+                    | Single ps1 => trans_ps e ps1 prin_u a
+                    | NewList ps ps_list' => ((trans_ps e ps prin_u a) /\ (trans_ps_list ps_list' prin_u a))
                   end) in
   match ps with
     | PrimitivePolicySet prq p => forall x, (((trans_prin x prin_u) /\ 
-                                   (trans_preRequisite x prq (getId p) prin_u a)) -> 
-                                   (trans_policy_positive x p prin_u a))  
+                                   (trans_preRequisite e x prq (getId p) prin_u a)) -> 
+                                   (trans_policy_positive e x p prin_u a))  
 
     | PrimitiveExclusivePolicySet prq p => forall x, ((((trans_prin x prin_u) /\ 
-                                              (trans_preRequisite x prq (getId p) prin_u a)) -> 
-                                             (trans_policy_positive x p prin_u a)) /\
-                                            ((not (trans_prin x prin_u)) -> (trans_policy_negative x p a)))
+                                              (trans_preRequisite e x prq (getId p) prin_u a)) -> 
+                                             (trans_policy_positive e x p prin_u a)) /\
+                                            ((not (trans_prin x prin_u)) -> (trans_policy_negative e x p a)))
                    
     | AndPolicySet ps_list => trans_ps_list ps_list prin_u a
   end.
 
 
 Fixpoint trans_agreement
-   (ag:agreement) : Prop :=
+   (e:environment)(ag:agreement) : Prop :=
    match ag with 
-   | Agreement prin_u a ps => trans_ps ps prin_u a
+   | Agreement prin_u a ps => trans_ps e ps prin_u a
    end.
 
   
 (***** 3.1 *****)
 
 
-Eval simpl in (trans_ps policySet2_5 prins2_5 ebook).
+Eval simpl in (trans_ps e1 policySet2_5 prins2_5 ebook).
 
-Eval compute in (trans_ps policySet2_5 prins2_5 ebook).
+Eval compute in (trans_ps e2 policySet2_5 prins2_5 ebook).
 
 
 
@@ -440,16 +566,18 @@ Section A1.
 Definition psA1:policySet :=
   PrimitivePolicySet
     TruePrq
-    (PrimitivePolicy (Constraint (Count  5)) "id1" Print).
+    (PrimitivePolicy (Constraint (Count  5)) id1 Print).
 
 Definition AgreeCan := Agreement (Single Alice) TheReport psA1.
+Definition eA1 : environment := 
+  (Single (make_count_equality Alice id1 2)).
 
-Eval compute in (trans_agreement AgreeCan).
+Eval compute in (trans_agreement eA1 AgreeCan).
 
-Hypothesis H: trans_agreement AgreeCan.
-Hypothesis AliceCount : getCount Alice "id1" = 2.
+Hypothesis H: trans_agreement eA1 AgreeCan.
+(* Hypothesis AliceCount : getCount Alice "id1" = 2. *)
 Theorem SSS: Permitted Alice Print TheReport.
-Proof. simpl in H. apply H. split. reflexivity. auto. rewrite AliceCount. auto. Qed.
+Proof. simpl in H. apply H. split. reflexivity. auto. omega. Qed.
 End A1.
 
 
@@ -457,26 +585,29 @@ End A1.
 Section A2.
 
 (**  getCount Alice "id1" = 5,  and see if you can prove ~(Permitted Alice ...). **)
+Definition eA2 : environment := 
+  (Single (make_count_equality Alice id1 5)).
 
 Definition psA2:policySet :=
   PrimitivePolicySet
     TruePrq
-    (PrimitivePolicy (Constraint (Count  5)) "id1" Print).
+    (PrimitivePolicy (Constraint (Count  5)) id1 Print).
 
 Definition AgreeA2 := Agreement (Single Alice) TheReport psA2.
 
-Eval compute in (trans_agreement AgreeA2).
+Eval compute in (trans_agreement eA2 AgreeA2).
 
-Hypothesis AliceCount : getCount Alice "id1" = 5.
-Hypothesis H: trans_agreement AgreeA2.
+(* Hypothesis AliceCount : getCount Alice "id1" = 5. *)
+Hypothesis H: trans_agreement eA2 AgreeA2.
 
-Theorem SS1: (getCount "Alice" "id1") < 5 -> (Permitted Alice Print TheReport).
+Theorem SS1: (getCount eA2 Alice id1) < 5 -> (Permitted Alice Print TheReport).
 Proof. simpl in H. apply H. split. reflexivity. apply I. Qed.
 
 Theorem SSS: ~(Permitted Alice Print TheReport).
-Proof. simpl in H. rewrite AliceCount in H. unfold not.   
-
+Proof. simpl in H. unfold not.  generalize H. Abort.
+(*
 intro H'. generalize H. Abort.
+*)
 
 End A2.
 
@@ -494,21 +625,33 @@ le_S : : forall n m : nat, n <= m -> n <= S m.
 
 
 Definition AgreeA3 := Agreement prins2_5 ebook policySet2_5.
-Eval compute in (trans_agreement AgreeA3).
+(**
+Definition eA3 : environment := 
+  (NewList (make_count_equality Alice id1 3) 
+     (NewList (make_count_equality Alice id2 11) 
+        (NewList (make_count_equality Bob id1 6) 
+          (Single (make_count_equality Bob id2 1))))).
+Eval compute in (trans_agreement eA3 AgreeA3).
 
-Hypothesis AliceDisplayCount : getCount Alice "id1" = 3.
-Hypothesis AlicePrintCount : getCount Alice "id2" = 0.
-Hypothesis BobDisplayCount : getCount Bob "id1" = 4.
-Hypothesis BobPrintCount : getCount Bob "id2" = 0.
-Hypothesis H: trans_agreement AgreeA3.
+forall x : nat,
+       (x = 101 \/ x = 102) /\ 22 <= 10 ->
+       (4 <= 5 /\ 7 <= 5 -> Permitted x "Display" "ebook") /\
+       (12 <= 1 /\ 2 <= 1 -> Permitted x "Print" "ebook")
+     : Prop
+
+**)
+Definition eA3 : environment := 
+  (NewList (make_count_equality Alice id1 3) 
+     (NewList (make_count_equality Alice id2 0) 
+        (NewList (make_count_equality Bob id1 4) 
+          (Single (make_count_equality Bob id2 0))))).
+
+Eval compute in (trans_agreement eA3 AgreeA3).
+
+Hypothesis H: trans_agreement eA3 AgreeA3.
 
 Theorem T1_A3: Permitted Alice Print ebook.
-Proof. simpl in H. 
-rewrite AliceDisplayCount in H.
-rewrite AlicePrintCount in H.
-rewrite BobDisplayCount in H.
-rewrite BobPrintCount in H. simpl in H. apply H. intuition. intuition. Qed.
-
+Proof. simpl in H. apply H. intuition. intuition. Qed.
 
 End A3.
 
@@ -517,26 +660,24 @@ End A3.
 Section A5.
 
 Definition prin_bob := (Single Bob).
-Definition pol:policy := PrimitivePolicy TruePrq "id3" Print.
+Definition pol:policy := PrimitivePolicy TruePrq id3 Print.
 Definition pol_set:policySet := PrimitiveExclusivePolicySet TruePrq pol.
 Definition AgreeA5 := Agreement prin_bob LoveAndPeace pol_set.
-Eval compute in (trans_agreement AgreeA5).
+Definition eA5 : environment := (Single (make_count_equality NullSubject NullId 0)).
+Eval compute in (trans_agreement eA5 AgreeA5).
 
-(* Not sure how to prove Alice<>Bob so for now, making it a hypo *)
-Hypothesis H0: Alice <> Bob.
-
-Hypothesis H: trans_agreement AgreeA5.
+Hypothesis H: trans_agreement eA5 AgreeA5.
 
 
 Theorem T1_A5: forall x, x<>Bob -> ~Permitted x Print LoveAndPeace.
 Proof. simpl in H. apply H. Qed.
 
 (*
-Theorem T2_A5: ~Permitted Alice Print LoveAndPeace.
-Proof. simpl in H. apply H. apply H0. Qed. 
+Theorem not_eq_S : forall n m:nat, n <> m -> S n <> S m.
 *)
 Theorem T2_A5: ~Permitted Alice Print LoveAndPeace.
-Proof. apply T1_A5. apply H0. Qed. 
+Proof. simpl in H. apply T1_A5. apply not_eq_S. omega. Qed.
+
 
 End A5.
 
@@ -545,96 +686,6 @@ End A5.
 
 End Sems.
 
-Section Environment.
-
-
-Inductive count_equality : Set := 
-   | CountEquality : subject -> policyId -> nat -> count_equality.
-
-Check count_equality.
-
-
-Definition make_count_equality
-  (s:subject)(id:policyId)(n:nat): count_equality :=
-  CountEquality s id n.
-
-
-Definition environment := nonemptylist count_equality.
-
-
-Definition f1:count_equality := make_count_equality "Alice" "4" 6.
-Definition f2:count_equality := make_count_equality "Alice" "4" 7.
-
-
-Definition inconsistent (f1 f2 : count_equality) : Prop :=
-   match f1 with (CountEquality s1 id1 n1) =>
-     match f2 with (CountEquality s2 id2 n2) =>       
-       s1 = s2 -> id1 = id2 -> n1 <> n2
-     end 
-   end.
-
-Eval compute in (inconsistent f1 f2).
-
-Eval compute in (6 <> 7).
-
-
-
-Fixpoint get_list_of_pairs_of_count_formulas (e : environment) : 
-  nonemptylist (Twos count_equality count_equality) := 
-    let nullCountFormula:count_equality := make_count_equality "Null" "0" 0 in
-      let list_of_pairs_of_null : nonemptylist (Twos count_equality count_equality) 
-        :=  Single (mkTwos nullCountFormula nullCountFormula) in
-  
-          match e with
-            | Single f => list_of_pairs_of_null
-            | NewList first (Single f) => Single (mkTwos first f)
-            | NewList first rest => 
-          
-              let twos := process_two_lists (Single first) rest in
-                app_nonempty twos (get_list_of_pairs_of_count_formulas rest)
-
-          end.
-
-(* test the first clause: single count formula should return a pair of null count formulas *)    
-Definition e1 : environment := 
-  (Single (make_count_equality "Alice" "1" 8)).
-Eval compute in (get_list_of_pairs_of_count_formulas e1).
-
-(* test the second clause: two count formulas should return a pair of the two count formulas *)    
-Definition e2 : environment := (NewList f1 (Single f2)).
-Eval compute in (get_list_of_pairs_of_count_formulas e2).
-
-(* test the third case: three count formulas should return a list of 3 pairs of count formulas *)    
-Definition e3 : environment := 
-  (NewList (make_count_equality "Alice" "1" 8) 
-     (NewList (make_count_equality "Bob" "2" 9) (Single (make_count_equality "Bahman" "3" 10)))).
-Eval compute in (get_list_of_pairs_of_count_formulas e3).
-
-(* test the third case with 4 count formulas: should return a list of 6 pairs of count formulas *)    
-Definition e4 : environment := 
-  (NewList (make_count_equality "Alice" "1" 8) 
-     (NewList (make_count_equality "Bob" "2" 9) 
-        (NewList (make_count_equality "Joe" "3" 10)
-          (Single (make_count_equality "Bahman" "4" 11))))).
-
-Eval compute in (get_list_of_pairs_of_count_formulas e4).
-
-(****************************************)
-(****************************************)
-
-Fixpoint env_consistent (e : environment) : Prop :=
-  let pairs : nonemptylist (Twos count_equality count_equality) := (get_list_of_pairs_of_count_formulas e) in
-    let pairs_consistent := 
-      (fix pairs_consistent (pairs : nonemptylist (Twos count_equality count_equality)) : Prop :=
-        match pairs with
-          | Single p => inconsistent (left p) (right p) 
-          | NewList p rest =>  inconsistent (left p) (right p) /\ (pairs_consistent rest)
-        end) in 
-  pairs_consistent pairs.
-
-Eval compute in (env_consistent e2).
-
-End Environment.
 
 Section Query.
 
@@ -653,36 +704,149 @@ End Query.
 
 Section AAA.
 
-Fixpoint trans_agreements (agrs:nonemptylist agreement) : Prop :=
+Fixpoint trans_agreements (e:environment)(agrs:nonemptylist agreement) : Prop :=
   match agrs with
-    | Single agr => trans_agreement agr 
-    | NewList agr rest => trans_agreement agr  /\ (trans_agreements rest)
+    | Single agr => trans_agreement e agr 
+    | NewList agr rest => trans_agreement e agr  /\ (trans_agreements e rest)
   end.
 
-Definition make_fplus (q: query) : Prop := 
+Definition make_fplus (e:environment)(q: query) : Prop := 
   match q with 
-    Query agreements s action a e => trans_agreements agreements -> (Permitted s action a)
+    Query agreements s action a e => trans_agreements e agreements -> (Permitted s action a)
   end.
 
 
-Definition make_fminus (q: query) : Prop := 
+Definition make_fminus (e:environment)(q: query) : Prop := 
   match q with 
-    Query agreements s action a e => trans_agreements agreements -> ~(Permitted s action a)
+    Query agreements s action a e => trans_agreements e agreements -> ~(Permitted s action a)
   end.
 
 
-Definition fp1 : Prop := make_fplus q1.
-Definition fn1 : Prop := make_fminus q1.
+Definition fp1 : Prop := make_fplus e1 q1.
+Definition fn1 : Prop := make_fminus e1 q1.
 
 Eval compute in fp1.
 
 Eval compute in fn1.
+
+
+Inductive answer : Set :=
+  | QueryInconsistent : answer
+  | PermissionGranted : answer
+  | PermissionDenied : answer
+  | PermissionUnregulated : answer.
+
+Check Permitted.
+
+(******
+http://adam.chlipala.net/cpdt/html/Predicates.html
+
+Note that definition isZero makes the predicate provable only when the argument is 0.
+
+Inductive isZero : nat -> Prop :=
+| IsZero : isZero 0.
+
+Theorem isZero_zero : isZero 0.
+  constructor.
+Qed.
+
+
+Inductive isPermitted : subject -> act -> asset -> Prop :=
+  | IsPermitted : 
+
+*******)
+
+
+Inductive prereqs : Set :=
+  | Prereqs : nonemptylist preRequisite -> prereqs.
+
+Inductive implication2 : Type :=
+  | Implication2 : (nonemptylist preRequisite) -> (subject -> act -> asset -> Prop) -> implication2.
+
+Definition imp2 := Implication2 (Single p2A1prq2) Permitted.
+
+
+
+Inductive implication1 : Type :=
+  | Implication1 : (subject -> (nonemptylist preRequisite) -> implication2) -> implication1.
+
+Definition imp1 := 
+  Implication1 (fun (x:subject)(prqs:nonemptylist preRequisite) => imp2).
+
+Inductive formula : Type :=
+  | Forall : (subject -> implication1) -> formula.
+
+Definition forall_refl : formula := Forall (fun x:subject => imp1).
+
+Print formula.
+
+
+
+(** E-relevant Models **)
+
+Parameter evalid: formula -> Prop.
+ 
+(***** TODO 
+Definition decision (q:query) : answer :=
+ (evalid (make_fplus q)) /\ (evalid (make_fminus q))  
+
+
+Fixpoint get_list_of_subject_id_pairs (agrs:nonemptylist agreement) : 
+  nonemptylist (Twos subject policyId) := 
+    let nullPair:Twos subject policyId := mkTwos "Null" "0" in
+    match agrs with
+      | Single agr => 
+          match agr with 
+            | Agreement prin_u a ps => 
+                match ps with                  
+                    | PrimitivePolicySet prq p => 
+                        match prq with                    
+                          | Constraint const => 
+                              match const with                                 
+                                | Principal prn => Single nullPair
+                                | Count n => trans_count n IDs prin_u a
+                                | CountByPrin prn n => *******
+                          | _ => Single nullPair   
+                    | PrimitiveExclusivePolicySet prq p => ************
+                    | AndPolicySet ps_list => ************
+                end
+          end
+      | NewList agr rest => trans_agreement agr  /\ (trans_agreements rest)
+    end.
+
+******)
+
+
+(** Theorem 4.6 **)
+Definition answer_query (q: query) : answer := QueryInconsistent.
 
 End AAA.
 
 
 
 
+(*
+
+Parameter even: nat -> Prop.
+Parameter divides: nat -> nat -> Prop.
+
+Theorem th1 : forall (x y: nat), 
+ (even x) -> (divides x y) -> (even y).
+
+Theorem th2 : forall (x y: nat), divides x (x * y).
+
+Check even.
+
+Check fun (x:nat) => fun (h: even x) => h.
+
+Definition evenn (x:nat) : Prop :=
+  forall (P: nat -> Prop), forall (y:nat), P(2*y)-> P x.
+
+Check evenn.
+
+Theorem th3: forall (x:nat), evenn 2.
+Proof. unfold evenn. intros. apply H.
+*)
 (********* TODO *********)
 Example test_inconsistent: (inconsistent f1 f2) = (6<>7).
 (* Proof. unfold inconsistent. simpl. intuition. *) Admitted. 
