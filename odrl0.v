@@ -122,10 +122,10 @@ Definition Bahman:subject := 104.
 (* simplified *)
 Definition prin := nonemptylist subject.
 
-Definition act := string.
-Definition Play : act := "Play".
-Definition Print : act := "Print".
-Definition Display : act := "Display".
+Definition act := nat.
+Definition Play : act := 301.
+Definition Print : act := 302.
+Definition Display : act := 303.
 
 Definition asset := string.
 Definition FindingNemo : asset := "FindingNemo".
@@ -819,6 +819,31 @@ Fixpoint get_list_of_subject_id_pairs (agrs:nonemptylist agreement) :
 
 (** Theorem 4.6 **)
 Definition answer_query (q: query) : answer := QueryInconsistent.
+
+Section TheSplus.
+
+  Record fiveTuple : Set := 
+  mkFiveTuple 
+  {
+    prq : preRequisite;
+    I   : nonemptylist policyId;
+    prq' : preRequisite;
+    id : policyId;
+    act' : act 
+  }.
+Inductive splus : Set :=
+  | Splus : nonemptylist fiveTuple -> splus.
+ 
+End TheSplus.
+
+Definition splus1:splus := Splus (Single (mkFiveTuple p2A1prq1 (Single id1) p2A1prq2 id1 Play)).
+
+                 
+
+Fixpoint buildSplus (ps: policySet) : splus :=
+ (**** TO Complete ****)
+  splus1.
+
 
 End AAA.
 
