@@ -831,9 +831,46 @@ Section TheSplus.
     id : policyId;
     act' : act 
   }.
+
 Inductive splus : Set :=
   | Splus : nonemptylist fiveTuple -> splus.
  
+Record threeTuple : Set := 
+  mkThreeTuple 
+  {
+    tt_prq' : preRequisite;
+    tt_id : policyId;
+    tt_act' : act 
+  }.
+
+Fixpoint getPrqPolicyTuple (ps : policySet) : nonemptylist (Twos preRequisite policy) :=
+
+  let process_ps_list := (fix process_ps_list (ps_list:nonemptylist policySet){struct ps_list}:=
+    match ps_list with
+      | Single ps1 => getPrqPolicyTuple ps1
+      | NewList ps ps_list' => app_nonempty (getPrqPolicyTuple ps) (process_ps_list ps_list')
+    end) in
+
+  match ps with
+    | PrimitivePolicySet prq p => Single (mkTwos prq p)
+    | PrimitiveExclusivePolicySet prq p => Single (mkTwos prq p)                  
+    | AndPolicySet ps_list => process_ps_list ps_list
+  end.
+
+Fixpoint getTriplePrqIdAct (p:policy): nonemptylist threeTuple := 
+  let process_policies := (fix process_policies (policies:nonemptylist policy){struct policies}:=
+    match policies with
+      | Single p1 => getTriplePrqIdAct p1
+      | NewList p1 rest => app_nonempty (getTriplePrqIdAct p1) (process_policies rest)
+    end) in
+
+  match p with
+    | PrimitivePolicy prq' id act' => Single (mkThreeTuple prq' id act')
+    | AndPolicy policies => process_policies policies
+  end.
+
+
+
 End TheSplus.
 
 Definition splus1:splus := Splus (Single (mkFiveTuple p2A1prq1 (Single id1) p2A1prq2 id1 Play)).
