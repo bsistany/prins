@@ -123,6 +123,7 @@ Definition Bahman:subject := 104.
 Definition prin := nonemptylist subject.
 
 Definition act := nat.
+Definition NullAct := 300.
 Definition Play : act := 301.
 Definition Print : act := 302.
 Definition Display : act := 303.
@@ -215,9 +216,9 @@ Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
 (*** 2.6 ***)
 Definition prins2_6 := prins2_5.
 
-(** Definition aliceCount10:preRequisite := Constraint (CountByPrin prins2_6 10). **)
 Definition aliceCount10:preRequisite := Constraint (CountByPrin (Single Alice) 10).
 Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 id3 Play.
+Definition policySet2_6_modified:= PrimitiveExclusivePolicySet TruePrq primPolicy2_6.
 
 
 (****** Environments ******)
@@ -821,65 +822,91 @@ Fixpoint get_list_of_subject_id_pairs (agrs:nonemptylist agreement) :
 Definition answer_query (q: query) : answer := QueryInconsistent.
 
 Section TheSplus.
-
-  Record fiveTuple : Set := 
-  mkFiveTuple 
-  {
-    prq : preRequisite;
-    I   : nonemptylist policyId;
-    prq' : preRequisite;
-    id : policyId;
-    act' : act 
-  }.
-
-Inductive splus : Set :=
-  | Splus : nonemptylist fiveTuple -> splus.
  
-Record threeTuple : Set := 
-  mkThreeTuple 
+Record fourTuple : Set := 
+  mkFourTuple 
   {
+    tt_I : nonemptylist policyId;
     tt_prq' : preRequisite;
     tt_id : policyId;
     tt_act' : act 
   }.
+Inductive splus : Set :=
+  | Splus : nonemptylist (Twos preRequisite fourTuple) -> splus.
 
-Fixpoint getPrqPolicyTuple (ps : policySet) : nonemptylist (Twos preRequisite policy) :=
 
-  let process_ps_list := (fix process_ps_list (ps_list:nonemptylist policySet){struct ps_list}:=
-    match ps_list with
-      | Single ps1 => getPrqPolicyTuple ps1
-      | NewList ps ps_list' => app_nonempty (getPrqPolicyTuple ps) (process_ps_list ps_list')
-    end) in
 
-  match ps with
-    | PrimitivePolicySet prq p => Single (mkTwos prq p)
-    | PrimitiveExclusivePolicySet prq p => Single (mkTwos prq p)                  
-    | AndPolicySet ps_list => process_ps_list ps_list
-  end.
-
-Fixpoint getTriplePrqIdAct (p:policy): nonemptylist threeTuple := 
+Fixpoint getIPrqIdAct (p:policy): nonemptylist fourTuple := 
   let process_policies := (fix process_policies (policies:nonemptylist policy){struct policies}:=
     match policies with
-      | Single p1 => getTriplePrqIdAct p1
-      | NewList p1 rest => app_nonempty (getTriplePrqIdAct p1) (process_policies rest)
+      | Single p1 => getIPrqIdAct p1
+      | NewList p1 rest => app_nonempty (getIPrqIdAct p1) (process_policies rest)
     end) in
 
   match p with
-    | PrimitivePolicy prq' id act' => Single (mkThreeTuple prq' id act')
+    | PrimitivePolicy prq' id act' => Single (mkFourTuple (getId p) prq' id act')
     | AndPolicy policies => process_policies policies
   end.
 
+Fixpoint getCrossProductOfprqAndFourTuple (prq:preRequisite)(fours:nonemptylist fourTuple): 
+  nonemptylist (Twos preRequisite fourTuple) :=
+  match fours with
+    | Single f1 => Single (mkTwos prq f1)
+    | NewList f1 rest => app_nonempty (Single (mkTwos prq f1)) (getCrossProductOfprqAndFourTuple prq rest)
+  end.
+
+Fixpoint getPrqAndTheRestTuple (ps : policySet) : nonemptylist (Twos preRequisite fourTuple) :=
+
+  let process_ps_list := (fix process_ps_list (ps_list:nonemptylist policySet){struct ps_list}:=
+    match ps_list with
+      | Single ps1 => getPrqAndTheRestTuple ps1
+      | NewList ps ps_list' => app_nonempty (getPrqAndTheRestTuple ps) (process_ps_list ps_list')
+    end) in
+
+  match ps with
+    | PrimitivePolicySet prq p => getCrossProductOfprqAndFourTuple prq (getIPrqIdAct p)
+    | PrimitiveExclusivePolicySet prq p => getCrossProductOfprqAndFourTuple prq (getIPrqIdAct p)                 
+    | AndPolicySet ps_list => process_ps_list ps_list
+  end.
 
 
 End TheSplus.
 
-Definition splus1:splus := Splus (Single (mkFiveTuple p2A1prq1 (Single id1) p2A1prq2 id1 Play)).
+Section TheSminus.
 
-                 
+Fixpoint getActionsFromPolicy (p:policy): nonemptylist act := 
+  let process_policies := (fix process_policies (policies:nonemptylist policy){struct policies}:=
+    match policies with
+      | Single p1 => getActionsFromPolicy p1
+      | NewList p1 rest => app_nonempty (getActionsFromPolicy p1) (process_policies rest)
+    end) in
 
-Fixpoint buildSplus (ps: policySet) : splus :=
- (**** TO Complete ****)
-  splus1.
+  match p with
+    | PrimitivePolicy prq id act => Single act
+    | AndPolicy policies => process_policies policies
+  end.
+
+Fixpoint getSminus (ps : policySet) : nonemptylist act :=
+  let process_ps_list := (fix process_ps_list (ps_list:nonemptylist policySet){struct ps_list}:=
+    match ps_list with
+      | Single ps1 => getSminus ps1
+      | NewList ps ps_list' => app_nonempty (getSminus ps) (process_ps_list ps_list')
+    end) in
+
+  match ps with
+    | PrimitivePolicySet prq p => Single NullAct
+    | PrimitiveExclusivePolicySet prq p => getActionsFromPolicy p                 
+    | AndPolicySet ps_list => process_ps_list ps_list
+  end.
+
+End TheSminus.
+
+Eval compute in (getIPrqIdAct pol).
+Eval compute in (getPrqAndTheRestTuple pol_set).
+Eval compute in (getPrqAndTheRestTuple policySet2_5).
+Eval compute in (getIPrqIdAct (AndPolicy (NewList primPolicy1 (Single primPolicy2)))).
+
+Eval compute in (getSminus policySet2_6_modified).
 
 
 End AAA.
