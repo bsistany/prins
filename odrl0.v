@@ -128,11 +128,14 @@ Definition Play : act := 301.
 Definition Print : act := 302.
 Definition Display : act := 303.
 
-Definition asset := string.
-Definition FindingNemo : asset := "FindingNemo".
-Definition Alien : asset := "Alien".
-Definition Beatles : asset := "Beatles".
-Definition LoveAndPeace : asset := "LoveAndPeace".
+Definition asset := nat.
+Definition NullAsset := 900.
+Definition FindingNemo : asset := 901.
+Definition Alien : asset := 902.
+Definition Beatles : asset := 903.
+Definition LoveAndPeace : asset := 904.
+Definition TheReport:asset := 905.
+Definition ebook:asset := 906.
 
 Definition money := string.
 
@@ -174,7 +177,6 @@ Inductive agreement : Set :=
 
 (* Example 2.1 *)
 
-Definition TheReport:asset := "TheReport".
 
 Definition p1A1:policySet :=
   PrimitivePolicySet
@@ -193,7 +195,7 @@ Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
                   (AndPolicySet (NewList p1A1 (Single p2A1))).
 
 (* Example 2.5 *)
-Definition ebook:asset := "ebook".
+
 Definition tenCount:preRequisite := (Constraint (Count 10)).
 Definition fiveCount:constraint := (Count 5).
 Definition oneCount:constraint := (Count 1).
@@ -338,6 +340,7 @@ Fixpoint env_consistent (e : environment) : Prop :=
   pairs_consistent pairs.
 
 Eval compute in (env_consistent e2).
+
 
 End Environment.
 
@@ -692,11 +695,15 @@ Section Query.
 
 (* a query is a tuple: (agreements * subject * act * asset * environment)  *)
 Inductive query : Set := 
-   | Query : nonemptylist agreement -> subject -> act -> asset -> environment -> query.
+   | SingletonQuery : agreement -> subject -> act -> asset -> environment -> query
+   | GeneralQuery : nonemptylist agreement -> subject -> act -> asset -> environment -> query.
 
 Definition make_query 
   (agrs:nonemptylist agreement)(s:subject)(myact:act)(a:asset)(e:environment) : query :=
-  Query agrs s myact a e.
+  match agrs with
+  | Single agr  => SingletonQuery agr s myact a e
+  | _ => GeneralQuery agrs s myact a e
+  end.
 
 Definition q1: query := make_query (Single AgreeA5) Alice Display TheReport e1. 
 End Query.
@@ -712,14 +719,16 @@ Fixpoint trans_agreements (e:environment)(agrs:nonemptylist agreement) : Prop :=
   end.
 
 Definition make_fplus (e:environment)(q: query) : Prop := 
-  match q with 
-    Query agreements s action a e => trans_agreements e agreements -> (Permitted s action a)
+  match q with
+    | GeneralQuery agreements s action a e => trans_agreements e agreements -> (Permitted s action a)
+    | SingletonQuery agr s action a e => trans_agreements e (Single agr) -> (Permitted s action a)
   end.
 
 
 Definition make_fminus (e:environment)(q: query) : Prop := 
   match q with 
-    Query agreements s action a e => trans_agreements e agreements -> ~(Permitted s action a)
+    | GeneralQuery agreements s action a e => trans_agreements e agreements -> ~(Permitted s action a)
+    | SingletonQuery agr s action a e => trans_agreements e (Single agr) -> ~(Permitted s action a)
   end.
 
 
@@ -738,6 +747,13 @@ Inductive answer : Set :=
   | PermissionUnregulated : answer.
 
 Check Permitted.
+
+Fixpoint is_subject_in_prin (s:subject)(p:prin): Prop :=
+  match p with
+  | Single s'  => s=s'
+  | NewList s' rest => s=s' \/ (is_subject_in_prin s rest)
+  end.
+
 
 (******
 http://adam.chlipala.net/cpdt/html/Predicates.html
@@ -849,11 +865,21 @@ Fixpoint getIPrqIdAct (p:policy): nonemptylist fourTuple :=
   end.
 
 Fixpoint getCrossProductOfprqAndFourTuple (prq:preRequisite)(fours:nonemptylist fourTuple): 
-  nonemptylist (Twos preRequisite fourTuple) :=
+  nonemptylist (Twos preRequisite fourTuple) := 
   match fours with
     | Single f1 => Single (mkTwos prq f1)
-    | NewList f1 rest => app_nonempty (Single (mkTwos prq f1)) (getCrossProductOfprqAndFourTuple prq rest)
+    | NewList f1 rest => app_nonempty (Single (mkTwos prq f1)) 
+                                             (getCrossProductOfprqAndFourTuple prq rest)
   end.
+
+
+
+Fixpoint getSplusFromList (tuples: nonemptylist (Twos preRequisite fourTuple)) : splus :=
+  match tuples with
+    | Single tuple => Splus (Single tuple)
+    | NewList tuple rest => Splus (app_nonempty (Single tuple) rest)                                             
+  end.
+
 
 Fixpoint getPrqAndTheRestTuple (ps : policySet) : nonemptylist (Twos preRequisite fourTuple) :=
 
@@ -869,6 +895,9 @@ Fixpoint getPrqAndTheRestTuple (ps : policySet) : nonemptylist (Twos preRequisit
     | AndPolicySet ps_list => process_ps_list ps_list
   end.
 
+Fixpoint getSplus (ps : policySet) : splus :=
+  let prqAndTheRestTuples := getPrqAndTheRestTuple ps in 
+    getSplusFromList prqAndTheRestTuples.
 
 End TheSplus.
 
@@ -902,11 +931,65 @@ Fixpoint getSminus (ps : policySet) : nonemptylist act :=
 End TheSminus.
 
 Eval compute in (getIPrqIdAct pol).
-Eval compute in (getPrqAndTheRestTuple pol_set).
+Eval compute in (getSplus pol_set).
 Eval compute in (getPrqAndTheRestTuple policySet2_5).
+Eval compute in (getSplus policySet2_5).
 Eval compute in (getIPrqIdAct (AndPolicy (NewList primPolicy1 (Single primPolicy2)))).
 
 Eval compute in (getSminus policySet2_6_modified).
+
+
+Fixpoint isPrqs_evalid (e:environment)(s:subject)(pr: prin)(a:asset)(tups:nonemptylist (Twos preRequisite fourTuple)) : Prop :=
+  let isPrqAndPrq'_evalid 
+    := (fix isPrqAndPrq'_evalid 
+            (e:environment)(s:subject)(t:Twos preRequisite fourTuple)(pr: prin)(a:asset): Prop :=
+          (trans_preRequisite e s (left t)            (tt_I (right t))           pr a) /\
+          (trans_preRequisite e s (tt_prq' (right t)) (Single (tt_id (right t))) pr a) 
+          ) in
+  match tups with
+    | Single t =>  isPrqAndPrq'_evalid e s t pr a 
+    | NewList t lst' => (isPrqAndPrq'_evalid e s t pr a) \/ (isPrqs_evalid e s pr a lst')
+  end.
+
+Definition is_fplusq_evalid (q: query) : Prop :=  
+  match q with    
+    | SingletonQuery agr s action a e => 
+      match agr with 
+        | Agreement prn a' ps => 
+            (env_consistent e) \/
+            ((is_subject_in_prin s prn) /\ (a=a') /\ 
+              (* There is a Tuple in Splus s.t. is_evalid (prq/\prq') *)
+              let sp := getSplus ps in
+                match sp with
+                  | Splus lst => isPrqs_evalid e s prn Beatles lst
+                end)
+      end
+                
+    | GeneralQuery agreements s action a e => True (*** TODO ***)
+  end.
+
+(*** 
+     Agreement says that TheReport may be printed a total of 5 times by Alice
+     The Env says that Alice has already printed TheReport 2 times.
+     So the answer to query: May Alice print TheReport should be YES or another 
+     way of saying that is that fqplus is evalid (well not quite, as we need to 
+     follow the whole algorithms and look at fqminus as well) 
+***)
+Definition q2: query := make_query (Single AgreeCan) Alice Print TheReport eA1.
+Eval compute in (eA1). 
+Eval compute in (env_consistent eA1).
+Eval compute in (is_fplusq_evalid q2).
+
+
+
+
+
+   
+
+
+
+
+
 
 
 End AAA.
