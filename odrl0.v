@@ -941,16 +941,17 @@ Eval compute in (getIPrqIdAct (AndPolicy (NewList primPolicy1 (Single primPolicy
 Eval compute in (getSminus policySet2_6_modified).
 
 
-Fixpoint isPrqs_evalid (e:environment)(s:subject)(pr: prin)(a:asset)(tups:nonemptylist (Twos preRequisite fourTuple)) : Prop :=
+Fixpoint isPrqs_evalid (e:environment)(s:subject)(pr: prin)
+                       (tups:nonemptylist (Twos preRequisite fourTuple)) : Prop :=
   let isPrqAndPrq'_evalid 
     := (fix isPrqAndPrq'_evalid 
-            (e:environment)(s:subject)(t:Twos preRequisite fourTuple)(pr: prin)(a:asset): Prop :=
+            (e:environment)(s:subject)(t:Twos preRequisite fourTuple)(pr: prin): Prop :=
           (trans_preRequisite e s (left t)            (tt_I (right t))           pr) /\
           (trans_preRequisite e s (tt_prq' (right t)) (Single (tt_id (right t))) pr) 
           ) in
   match tups with
-    | Single t =>  isPrqAndPrq'_evalid e s t pr a 
-    | NewList t lst' => (isPrqAndPrq'_evalid e s t pr a) \/ (isPrqs_evalid e s pr a lst')
+    | Single t =>  isPrqAndPrq'_evalid e s t pr
+    | NewList t lst' => (isPrqAndPrq'_evalid e s t pr) \/ (isPrqs_evalid e s pr lst')
   end.
 
 Definition is_fplusq_evalid (q: query) : Prop :=  
@@ -963,7 +964,7 @@ Definition is_fplusq_evalid (q: query) : Prop :=
               (* There is a Tuple in Splus s.t. is_evalid (prq/\prq') *)
               let sp := getSplus ps in
                 match sp with
-                  | Splus lst => isPrqs_evalid e s prn Beatles lst
+                  | Splus lst => isPrqs_evalid e s prn lst
                 end)
       end
                 
