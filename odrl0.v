@@ -425,7 +425,7 @@ Fixpoint trans_count
 
 Fixpoint trans_constraint 
   (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)
-  (prin_u:prin)(a:asset){struct const} : Prop := 
+  (prin_u:prin){struct const} : Prop := 
 (*************************************************)
 (*************************************************)
   match const with
@@ -442,22 +442,22 @@ Fixpoint trans_constraint
 
 Fixpoint trans_forEachMember
          (e:environment)(x:subject)(principals: nonemptylist subject)(const_list:nonemptylist constraint)
-         (IDs:nonemptylist policyId)(a:asset){struct const_list} : Prop := 
+         (IDs:nonemptylist policyId){struct const_list} : Prop := 
 
 let trans_forEachMember_Aux   
   := (fix trans_forEachMember_Aux
          (prins_and_constraints : nonemptylist (Twos subject constraint))
-         (IDs:nonemptylist policyId)(a:asset) {struct prins_and_constraints} : Prop :=
+         (IDs:nonemptylist policyId){struct prins_and_constraints} : Prop :=
 
       match prins_and_constraints with
-        | Single pair1 => trans_constraint e x (right pair1) IDs (Single (left pair1)) a
+        | Single pair1 => trans_constraint e x (right pair1) IDs (Single (left pair1)) 
         | NewList pair1 rest_pairs =>
-            (trans_constraint e x (right pair1) IDs (Single (left pair1)) a) /\
-            (trans_forEachMember_Aux rest_pairs IDs a)
+            (trans_constraint e x (right pair1) IDs (Single (left pair1))) /\
+            (trans_forEachMember_Aux rest_pairs IDs)
       end) in
 
       let prins_and_constraints := process_two_lists principals const_list in
-      trans_forEachMember_Aux prins_and_constraints IDs a.
+      trans_forEachMember_Aux prins_and_constraints IDs.
 
 
 (*************
@@ -474,17 +474,17 @@ ex Perm.
 
 
 Definition trans_notCons
-  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop :=
-  ~ (trans_constraint e x const IDs prin_u a).
+  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin) : Prop :=
+  ~ (trans_constraint e x const IDs prin_u).
 
 Definition trans_preRequisite
   (e:environment)(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
 
   match prq with
     | TruePrq => True
-    | Constraint const => trans_constraint e x const IDs prin_u a 
-    | ForEachMember prn const_list => trans_forEachMember e x prn const_list IDs a
-    | NotCons const => trans_notCons e x const IDs prin_u a
+    | Constraint const => trans_constraint e x const IDs prin_u 
+    | ForEachMember prn const_list => trans_forEachMember e x prn const_list IDs 
+    | NotCons const => trans_notCons e x const IDs prin_u 
     | AndPrqs prqs => True (*trans_andPrqs x prq IDs prin_u a*)
     | OrPrqs prqs => True (*trans_orPrqs x prq IDs prin_u a*)
     | XorPrqs prqs => True (*trans_xorPrqs x prq IDs prin_u a*)
