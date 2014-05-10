@@ -478,7 +478,7 @@ Definition trans_notCons
   ~ (trans_constraint e x const IDs prin_u).
 
 Definition trans_preRequisite
-  (e:environment)(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin)(a:asset) : Prop := 
+  (e:environment)(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin) : Prop := 
 
   match prq with
     | TruePrq => True
@@ -503,7 +503,7 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(
 
 
   match p with
-    | PrimitivePolicy prq policyId action => ((trans_preRequisite e x prq (Single policyId) prin_u a) ->
+    | PrimitivePolicy prq policyId action => ((trans_preRequisite e x prq (Single policyId) prin_u) ->
                                               (Permitted x action a))
     | AndPolicy p_list => trans_p_list p_list prin_u a
   end.
@@ -535,11 +535,11 @@ let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:
                   end) in
   match ps with
     | PrimitivePolicySet prq p => forall x, (((trans_prin x prin_u) /\ 
-                                   (trans_preRequisite e x prq (getId p) prin_u a)) -> 
+                                   (trans_preRequisite e x prq (getId p) prin_u)) -> 
                                    (trans_policy_positive e x p prin_u a))  
 
     | PrimitiveExclusivePolicySet prq p => forall x, ((((trans_prin x prin_u) /\ 
-                                              (trans_preRequisite e x prq (getId p) prin_u a)) -> 
+                                              (trans_preRequisite e x prq (getId p) prin_u)) -> 
                                              (trans_policy_positive e x p prin_u a)) /\
                                             ((not (trans_prin x prin_u)) -> (trans_policy_negative e x p a)))
                    
@@ -943,8 +943,8 @@ Fixpoint isPrqs_evalid (e:environment)(s:subject)(pr: prin)(a:asset)(tups:nonemp
   let isPrqAndPrq'_evalid 
     := (fix isPrqAndPrq'_evalid 
             (e:environment)(s:subject)(t:Twos preRequisite fourTuple)(pr: prin)(a:asset): Prop :=
-          (trans_preRequisite e s (left t)            (tt_I (right t))           pr a) /\
-          (trans_preRequisite e s (tt_prq' (right t)) (Single (tt_id (right t))) pr a) 
+          (trans_preRequisite e s (left t)            (tt_I (right t))           pr) /\
+          (trans_preRequisite e s (tt_prq' (right t)) (Single (tt_id (right t))) pr) 
           ) in
   match tups with
     | Single t =>  isPrqAndPrq'_evalid e s t pr a 
