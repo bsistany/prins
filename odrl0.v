@@ -406,7 +406,7 @@ Fixpoint getId (p:policy) : nonemptylist policyId :=
 
 Fixpoint trans_count 
   (e:environment)(n:nat)(IDs:nonemptylist policyId)
-  (prin_u:prin)(a:asset) : Prop := 
+  (prin_u:prin) : Prop := 
 
   let trans_count_aux 
     := (fix trans_count_aux
@@ -431,9 +431,9 @@ Fixpoint trans_constraint
   match const with
     | Principal prn => trans_prin x prn
   
-    | Count n => trans_count e n IDs prin_u a
+    | Count n => trans_count e n IDs prin_u 
 
-    | CountByPrin prn n => trans_count e n IDs prn a
+    | CountByPrin prn n => trans_count e n IDs prn 
 
   end.
 
