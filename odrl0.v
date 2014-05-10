@@ -329,6 +329,8 @@ Eval compute in (get_list_of_pairs_of_count_formulas e4).
 (****************************************)
 (****************************************)
 
+(*** set of E-relevant models is Empty <=> e is inconsistent ***)
+(*** set of E-relevant models is Non-Empty <=> e is consistent ***)
 Fixpoint env_consistent (e : environment) : Prop :=
   let pairs : nonemptylist (Twos count_equality count_equality) := (get_list_of_pairs_of_count_formulas e) in
     let pairs_consistent := 
@@ -956,7 +958,7 @@ Definition is_fplusq_evalid (q: query) : Prop :=
     | SingletonQuery agr s action a e => 
       match agr with 
         | Agreement prn a' ps => 
-            (env_consistent e) \/
+            (~env_consistent e) \/
             ((is_subject_in_prin s prn) /\ (a=a') /\ 
               (* There is a Tuple in Splus s.t. is_evalid (prq/\prq') *)
               let sp := getSplus ps in
@@ -965,6 +967,39 @@ Definition is_fplusq_evalid (q: query) : Prop :=
                 end)
       end
                 
+    | GeneralQuery agreements s action a e => True (*** TODO ***)
+  end.
+
+
+
+
+
+Definition is_fminusq_evalid (q: query) : Prop :=  
+
+  let getExclusivePolicySet := 
+    (fix getExclusivePolicySet (agr: agreement) : Prop :=
+      match agr with
+        | Agreement prin_u a ps => 
+            match ps with                                               
+              | PrimitiveExclusivePolicySet prq p => 
+                  match p with
+                    | PrimitivePolicy prereq pid action => True
+                    | _ => False
+                  end
+              | _ => False
+            end
+      end) in
+
+  match q with    
+    | SingletonQuery agr s action a e => 
+      match agr with 
+        | Agreement prn a' ps => 
+            (** Note that X -> False is the same as ~X **)
+            (~env_consistent e) \/
+            (~(is_subject_in_prin s prn) /\ (a=a') /\ 
+              (* agr includes an exclusive policy set that mentions a policy of the form prq=>act *)
+              (getExclusivePolicySet agr))
+      end                              
     | GeneralQuery agreements s action a e => True (*** TODO ***)
   end.
 
@@ -981,6 +1016,29 @@ Eval compute in (env_consistent eA1).
 Eval compute in (is_fplusq_evalid q2).
 
 
+Definition q_May_Bob_Print_LoveAndPeace: query := 
+  make_query (Single AgreeA5) Bob Print LoveAndPeace eA5.
+
+Definition q_May_Alice_Print_LoveAndPeace: query := 
+  make_query (Single AgreeA5) Alice Print LoveAndPeace eA5.
+
+Definition q_May_Bob_Print_FindingNemo: query := 
+  make_query (Single AgreeA5) Bob Print FindingNemo eA5.
+
+
+Eval compute in (eA5).
+Eval compute in (env_consistent eA5).
+(* fminusq is NOT evalid *)
+Eval compute in (is_fminusq_evalid q_May_Bob_Print_LoveAndPeace). 
+
+(* fminusq is evalid *)
+Eval compute in (is_fminusq_evalid q_May_Alice_Print_LoveAndPeace). 
+
+(**** since both fminusq and fplusq are NOT evalid, permission is UNREGULATED ***)
+(* fminusq is NOT evalid  *)
+Eval compute in (is_fminusq_evalid q_May_Bob_Print_FindingNemo). 
+(* fplusq is NOT evalid  *)
+Eval compute in (is_fplusq_evalid q_May_Bob_Print_FindingNemo). 
 
 
 
