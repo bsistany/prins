@@ -285,18 +285,17 @@ Eval compute in (inconsistent f1 f2).
 Eval compute in (6 <> 7).
 
 
-
 Fixpoint get_list_of_pairs_of_count_formulas (e : environment) : 
   nonemptylist (Twos count_equality count_equality) := 
+
     let nullCountFormula:count_equality := make_count_equality NullSubject NullId 0 in
       let list_of_pairs_of_null : nonemptylist (Twos count_equality count_equality) 
-        :=  Single (mkTwos nullCountFormula nullCountFormula) in
+        :=  Single (mkTwos nullCountFormula nullCountFormula) in 
   
           match e with
             | Single f => list_of_pairs_of_null
-            | NewList first (Single f) => Single (mkTwos first f)
-            | NewList first rest => 
-          
+            | NewList first (Single f) => Single (mkTwos first f)              
+            | NewList first rest =>           
               let twos := process_two_lists (Single first) rest in
                 app_nonempty twos (get_list_of_pairs_of_count_formulas rest)
 
@@ -901,6 +900,12 @@ Fixpoint getSplus (ps : policySet) : splus :=
   let prqAndTheRestTuples := getPrqAndTheRestTuple ps in 
     getSplusFromList prqAndTheRestTuples.
 
+Definition getSplusAsList(ps: policySet) : nonemptylist (Twos preRequisite fourTuple) :=
+  let sp := (getSplus ps) in 
+    match sp with
+      | Splus list_of_prqAndFourTyples => list_of_prqAndFourTyples
+    end.
+
 End TheSplus.
 
 Section TheSminus.
@@ -940,6 +945,114 @@ Eval compute in (getIPrqIdAct (AndPolicy (NewList primPolicy1 (Single primPolicy
 
 Eval compute in (getSminus policySet2_6_modified).
 
+Section Lemma45.
+
+(** This is a partial function in that to make a pair of agreements we need at least
+    two agreements: [agr1 agr2] -> [(agr1 agr2)]. However it is possible that 
+    this function recevies a list of agreements of length 1. In that case, we make
+    a trivial/null list_of_pairs where we repeat the agr. So:
+    [agr1] -> [(agr1 agr1)]. The calling function must either call this function 
+    and then check for this case or check the length of the list of agreements
+    and don't call this function.
+    We had a similat case eailer (function get_list_of_pairs_of_count_formulas) 
+    where we would make a list of pair of null count formulas...
+    ultimately these are ugly solutions and we will eventually use one of:
+    option type, subset type, use a relation instead of a function 
+    (x->y->Prop instead of x->y), dependent types, etc
+
+Update: May 30, 2014. See my email to Amy...turns out we need all pairs of 
+                      agreements starting from length 1.
+We have(size of A)^2 pairs of agreements. 
+
+So we get the following for lists of size 1 and 2:  
+
+[a1] --> (a1 a1)
+[a1 a2] -> (a1 a1)(a1 a2)(a2 a1)(a2 a2)
+
+In practice, the way I have it (and I think this is correct), the first case can never happen.
+Since SingletonQuery case in Theorem 4.6 will  take care of the case where we only have 1 agreement.
+So the very first case of GeneralQuery is [a1 a2] which will result in 4 pairs as outlined above
+**)
+    
+Fixpoint get_list_of_pairs_of_agreements (agrs:nonemptylist agreement) : 
+  nonemptylist (Twos agreement agreement) :=   
+    process_two_lists agrs agrs.
+          
+
+(** Usual problem: the difference could be empty but have to use nonemptylist 
+    to be compatible with all other functions. We will use NullSubject which 
+    the caller needs to filter out or ignore somehow
+**)
+
+Fixpoint getPrinsSetDifference (p p':prin){struct p}: nonemptylist subject :=
+
+  let process_element_list := (fix process_element_list (s : subject) (p' : nonemptylist subject) :  nonemptylist subject :=
+    match p' with
+    | Single s' => if beq_nat s s' then Single NullSubject else Single s
+    | NewList s' rest' => 
+      app_nonempty (if beq_nat s s' then Single NullSubject else Single s) 
+                   (process_element_list s rest') 
+  end) in
+
+  match p with
+  | Single s => process_element_list s p' 
+  | NewList s rest => app_nonempty (process_element_list s p') (getPrinsSetDifference rest p') 
+  end.
+
+
+Fixpoint process_act_tuple_subject_pairs 
+        (e:environment)
+        (prin_u': prin)
+        (act_tuple_subject_pairs : nonemptylist (Twos act (Twos (Twos preRequisite fourTuple) subject))) : Prop :=
+
+  let isPrqAndPrq'_evalid 
+    := (fix isPrqAndPrq'_evalid 
+            (e:environment)(s:subject)(t:Twos preRequisite fourTuple)(pr: prin): Prop :=
+          (trans_preRequisite e s (left t)            (tt_I (right t))           pr) /\
+          (trans_preRequisite e s (tt_prq' (right t)) (Single (tt_id (right t))) pr) 
+          ) in
+
+  match act_tuple_subject_pairs with
+    | Single f => isPrqAndPrq'_evalid e (right (right f)) (left (right f)) prin_u'
+    | NewList f rest => (isPrqAndPrq'_evalid e (right (right f)) (left (right f)) prin_u') \/
+                            (process_act_tuple_subject_pairs e prin_u' rest)
+  end.
+
+
+Definition process_pair_of_agreements (e:environment)(agr1 agr2: agreement) : Prop :=
+
+  match agr1 with
+  | Agreement prin_u a ps => 
+      match agr2 with
+      | Agreement prin_u' a' ps' => 
+          (a<>a') \/ 
+      let acts : nonemptylist act := getSminus ps in
+      let sp_tuples : nonemptylist (Twos preRequisite fourTuple) := getSplusAsList ps' in
+      let prin_diff : nonemptylist subject := getPrinsSetDifference prin_u' prin_u in   
+      let sp_tuples_prin_u_list := process_two_lists sp_tuples prin_diff in
+      let act_sp_tuples_prin_u_list := process_two_lists acts sp_tuples_prin_u_list in
+
+      process_act_tuple_subject_pairs e prin_u' act_sp_tuples_prin_u_list
+
+      end
+  end.
+
+Fixpoint agreements_hold_in_at_least_one_E_relevant_model 
+           (e:environment)
+           (pairs_of_agreements : nonemptylist (Twos agreement agreement))
+           (s:subject)(myact:act)(a:asset) : Prop :=
+
+  (env_consistent e) /\
+
+  match pairs_of_agreements with 
+    | Single agr_pair  => process_pair_of_agreements e (left agr_pair) (right agr_pair)
+    | NewList agr_pair rest_pairs => (process_pair_of_agreements e (left agr_pair) (right agr_pair) \/
+                                      agreements_hold_in_at_least_one_E_relevant_model e rest_pairs s myact a)
+  end.
+
+
+End Lemma45.
+
 
 Fixpoint isPrqs_evalid (e:environment)(s:subject)(pr: prin)
                        (tups:nonemptylist (Twos preRequisite fourTuple)) : Prop :=
@@ -954,6 +1067,13 @@ Fixpoint isPrqs_evalid (e:environment)(s:subject)(pr: prin)
     | NewList t lst' => (isPrqAndPrq'_evalid e s t pr) \/ (isPrqs_evalid e s pr lst')
   end.
 
+
+(** Use Lemma 4.2 to decide evalidity when there is on agreement only (the SingletonQuery case)
+    Otherwise, we fall into Theorem 4.6: Run Lemma 4.5. If set of agreememnts do not hold 
+    in any E-relevant model, return "Query Inconsistent". If they do, then run Lemma 4.2 recursively 
+    for each agreement until either fplus is evalid for SOME agreement or NONE is evalid in which
+    case, fplusq for A is not evalid
+**)
 Definition is_fplusq_evalid (q: query) : Prop :=  
   match q with    
     | SingletonQuery agr s action a e => 
@@ -968,7 +1088,8 @@ Definition is_fplusq_evalid (q: query) : Prop :=
                 end)
       end
                 
-    | GeneralQuery agreements s action a e => True (*** TODO ***)
+    | GeneralQuery agreements s action a e => 
+        agreements_hold_in_at_least_one_E_relevant_model e (get_list_of_pairs_of_agreements agreements) s action a
   end.
 
 
@@ -1081,7 +1202,6 @@ Proof. unfold evenn. intros. apply H.
 (********* TODO *********)
 Example test_inconsistent: (inconsistent f1 f2) = (6<>7).
 (* Proof. unfold inconsistent. simpl. intuition. *) Admitted. 
-
 
 
 
