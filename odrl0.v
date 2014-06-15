@@ -695,18 +695,25 @@ End Sems.
 Section Query.
 
 (* a query is a tuple: (agreements * subject * act * asset * environment)  *)
-Inductive query : Set := 
-   | SingletonQuery : agreement -> subject -> act -> asset -> environment -> query
-   | GeneralQuery : nonemptylist agreement -> subject -> act -> asset -> environment -> query.
 
-Definition make_query 
-  (agrs:nonemptylist agreement)(s:subject)(myact:act)(a:asset)(e:environment) : query :=
-  match agrs with
-  | Single agr  => SingletonQuery agr s myact a e
-  | _ => GeneralQuery agrs s myact a e
-  end.
+Inductive single_query : Set := 
+   | SingletonQuery : agreement -> subject -> act -> asset -> environment -> single_query.
+   
 
-Definition q1: query := make_query (Single AgreeA5) Alice Display TheReport e1. 
+Inductive general_query : Set := 
+   | GeneralQuery : nonemptylist agreement -> subject -> act -> asset -> environment -> general_query.
+
+
+Definition make_general_query 
+  (agrs:nonemptylist agreement)(s:subject)(myact:act)(a:asset)(e:environment) : general_query :=
+  GeneralQuery agrs s myact a e.
+  
+Definition make_single_query 
+  (agr: agreement)(s:subject)(myact:act)(a:asset)(e:environment) : single_query :=
+  SingletonQuery agr s myact a e.
+
+Definition general_q1: general_query := make_general_query (Single AgreeA5) Alice Display TheReport e1. 
+Definition single_q1: single_query := make_single_query AgreeA5 Alice Display TheReport e1. 
 End Query.
 
 
@@ -719,22 +726,21 @@ Fixpoint trans_agreements (e:environment)(agrs:nonemptylist agreement) : Prop :=
     | NewList agr rest => trans_agreement e agr  /\ (trans_agreements e rest)
   end.
 
-Definition make_fplus (e:environment)(q: query) : Prop := 
+
+Definition make_fplus (e:environment)(q: general_query) : Prop := 
   match q with
     | GeneralQuery agreements s action a e => trans_agreements e agreements -> (Permitted s action a)
-    | SingletonQuery agr s action a e => trans_agreements e (Single agr) -> (Permitted s action a)
   end.
 
 
-Definition make_fminus (e:environment)(q: query) : Prop := 
+Definition make_fminus (e:environment)(q: general_query) : Prop := 
   match q with 
     | GeneralQuery agreements s action a e => trans_agreements e agreements -> ~(Permitted s action a)
-    | SingletonQuery agr s action a e => trans_agreements e (Single agr) -> ~(Permitted s action a)
   end.
 
 
-Definition fp1 : Prop := make_fplus e1 q1.
-Definition fn1 : Prop := make_fminus e1 q1.
+Definition fp1 : Prop := make_fplus e1 general_q1.
+Definition fn1 : Prop := make_fminus e1 general_q1.
 
 Eval compute in fp1.
 
@@ -836,7 +842,7 @@ Fixpoint get_list_of_subject_id_pairs (agrs:nonemptylist agreement) :
 
 
 (** Theorem 4.6 **)
-Definition answer_query (q: query) : answer := QueryInconsistent.
+Definition answer_query (q: general_query) : answer := QueryInconsistent.
 
 Section TheSplus.
  
@@ -1068,13 +1074,15 @@ Fixpoint isPrqs_evalid (e:environment)(s:subject)(pr: prin)
   end.
 
 
-(** Use Lemma 4.2 to decide evalidity when there is on agreement only (the SingletonQuery case)
+(** Use Lemma 4.2 to decide evalidity when there is one agreement only (the SingletonQuery case)
     Otherwise, we fall into Theorem 4.6: Run Lemma 4.5. If set of agreememnts do not hold 
     in any E-relevant model, return "Query Inconsistent". If they do, then run Lemma 4.2 recursively 
     for each agreement until either fplus is evalid for SOME agreement or NONE is evalid in which
     case, fplusq for A is not evalid
 **)
-Definition is_fplusq_evalid (q: query) : Prop :=  
+
+
+Definition is_fplus_single_query_evalid (q: single_query) : Prop :=  
   match q with    
     | SingletonQuery agr s action a e => 
       match agr with 
@@ -1086,17 +1094,13 @@ Definition is_fplusq_evalid (q: query) : Prop :=
                 match sp with
                   | Splus lst => isPrqs_evalid e s prn lst
                 end)
-      end
-                
-    | GeneralQuery agreements s action a e => 
-        agreements_hold_in_at_least_one_E_relevant_model e (get_list_of_pairs_of_agreements agreements) s action a
+      end                
   end.
 
 
 
 
-
-Definition is_fminusq_evalid (q: query) : Prop :=  
+Definition is_fminus_single_query_evalid (q: single_query) : Prop :=  
 
   let getExclusivePolicySet := 
     (fix getExclusivePolicySet (agr: agreement) : Prop :=
@@ -1122,7 +1126,6 @@ Definition is_fminusq_evalid (q: query) : Prop :=
               (* agr includes an exclusive policy set that mentions a policy of the form prq=>act *)
               (getExclusivePolicySet agr))
       end                              
-    | GeneralQuery agreements s action a e => True (*** TODO ***)
   end.
 
 (*** 
@@ -1132,45 +1135,106 @@ Definition is_fminusq_evalid (q: query) : Prop :=
      way of saying that is that fqplus is evalid (well not quite, as we need to 
      follow the whole algorithms and look at fqminus as well) 
 ***)
-Definition q2: query := make_query (Single AgreeCan) Alice Print TheReport eA1.
+
+
+Definition single_q2: single_query := make_single_query AgreeCan Alice Print TheReport eA1.
 Eval compute in (eA1). 
 Eval compute in (env_consistent eA1).
-Eval compute in (is_fplusq_evalid q2).
+Eval compute in (is_fplus_single_query_evalid single_q2).
 
 
-Definition q_May_Bob_Print_LoveAndPeace: query := 
-  make_query (Single AgreeA5) Bob Print LoveAndPeace eA5.
+Definition q_May_Bob_Print_LoveAndPeace: single_query := 
+  make_single_query AgreeA5 Bob Print LoveAndPeace eA5.
 
-Definition q_May_Alice_Print_LoveAndPeace: query := 
-  make_query (Single AgreeA5) Alice Print LoveAndPeace eA5.
+Definition q_May_Alice_Print_LoveAndPeace: single_query := 
+  make_single_query AgreeA5 Alice Print LoveAndPeace eA5.
 
-Definition q_May_Bob_Print_FindingNemo: query := 
-  make_query (Single AgreeA5) Bob Print FindingNemo eA5.
+Definition q_May_Bob_Print_FindingNemo: single_query := 
+  make_single_query AgreeA5 Bob Print FindingNemo eA5.
 
 
 Eval compute in (eA5).
 Eval compute in (env_consistent eA5).
 (* fminusq is NOT evalid *)
-Eval compute in (is_fminusq_evalid q_May_Bob_Print_LoveAndPeace). 
+Eval compute in (is_fminus_single_query_evalid q_May_Bob_Print_LoveAndPeace). 
 
 (* fminusq is evalid *)
-Eval compute in (is_fminusq_evalid q_May_Alice_Print_LoveAndPeace). 
+Eval compute in (is_fminus_single_query_evalid q_May_Alice_Print_LoveAndPeace). 
 
 (**** since both fminusq and fplusq are NOT evalid, permission is UNREGULATED ***)
 (* fminusq is NOT evalid  *)
-Eval compute in (is_fminusq_evalid q_May_Bob_Print_FindingNemo). 
+Eval compute in (is_fminus_single_query_evalid q_May_Bob_Print_FindingNemo). 
 (* fplusq is NOT evalid  *)
-Eval compute in (is_fplusq_evalid q_May_Bob_Print_FindingNemo). 
+Eval compute in (is_fplus_single_query_evalid q_May_Bob_Print_FindingNemo). 
+
+
+Definition queryInconsistent (e:environment)
+                               (agrs: nonemptylist agreement)
+                               (s:subject)(action:act)(a:asset) : Prop :=
+  ~agreements_hold_in_at_least_one_E_relevant_model e (get_list_of_pairs_of_agreements agrs) s action a.
+
+(** 
+ permissionGranted and permissionDenied are very inefficient right now 
+ since they do the same computation but it is ok for now as efficiency 
+ is the not the main point
+**)
+
+Fixpoint permissionGranted (e:environment)
+                           (agrs: nonemptylist agreement)
+                           (s:subject)(action:act)(a:asset) : Prop :=
+      let get_fp := 
+           match agrs with
+           | Single agr  => is_fplus_single_query_evalid (SingletonQuery agr s action a e)
+           | NewList agr rest => 
+              is_fplus_single_query_evalid (SingletonQuery agr s action a e) \/ 
+              permissionGranted e rest s action a 
+           end in
+        
+      let get_fm := 
+           match agrs with
+           | Single agr  => is_fminus_single_query_evalid (SingletonQuery agr s action a e)
+           | NewList agr rest => 
+              is_fminus_single_query_evalid (SingletonQuery agr s action a e) \/
+              permissionGranted e rest s action a
+           end in
+        
+      get_fp /\ ~get_fm.
+    
+Fixpoint permissionDenied (e:environment)
+                          (agrs: nonemptylist agreement)
+                          (s:subject)(action:act)(a:asset) : Prop :=
+      let get_fp := 
+           match agrs with
+           | Single agr  => is_fplus_single_query_evalid (SingletonQuery agr s action a e)
+           | NewList agr rest => 
+              is_fplus_single_query_evalid (SingletonQuery agr s action a e) \/ 
+              permissionDenied e rest s action a
+           end in
+        
+      let get_fm := 
+           match agrs with
+           | Single agr  => is_fminus_single_query_evalid (SingletonQuery agr s action a e)
+           | NewList agr rest => 
+              is_fminus_single_query_evalid (SingletonQuery agr s action a e) \/
+              permissionDenied e rest s action a
+           end in
+        
+      ~get_fp /\ get_fm.
 
 
 
-   
+Definition permissionUnregulated (e:environment)
+                                 (agrs: nonemptylist agreement)
+                                 (s:subject)(action:act)(a:asset) : Prop :=
 
+~((queryInconsistent e agrs s action a) \/
+  (permissionGranted e agrs s action a) \/
+  (permissionDenied e agrs s action a)).
 
-
-
-
-
+(** 
+Now for the real hard stuff:
+We can start theorems like : query q56 results in permissionUnregulated or permissionGranted
+**)   
 
 End AAA.
 
