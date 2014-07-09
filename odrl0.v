@@ -8,6 +8,7 @@ Require Import Coq.Init.Datatypes.
 Require Import Coq.Strings.Ascii.
 Require Import Omega.
 
+
 Set Implicit Arguments.
 
 Open Scope string_scope.
@@ -41,6 +42,7 @@ Fixpoint length_nonempty (l1 : nonemptylist) : nat :=
   | Single s  => 1
   | NewList s rest => 1 + (length_nonempty rest)
   end.
+
 
 End nonemptylist.
 
@@ -238,26 +240,30 @@ Definition make_count_equality
   CountEquality s id n.
 
 
+
+Inductive environment : Set := 
+  | SingleEnv : count_equality -> environment
+  | ConsEnv :  count_equality ->  environment -> environment.
+
+(*
 Definition environment := nonemptylist count_equality.
+*)
 
 (** Looks for count of a (subject, id) pair.
     Assumes e is consistent, so it returns the first count it sees for a (subject, id) pair.
 	If a count for a (subject, id) pair is not found it returns 0. **)
-	
-
-
 
 Fixpoint getCount 
   (e:environment)(s:subject)(id: policyId): nat :=
   match e with
-  | Single f  => 
+  | SingleEnv f  => 
       match f with 
 	  | CountEquality s1 id1 n1 => 
           if (beq_nat s s1) 
           then if (beq_nat id id1) then n1 else 0 
           else 0  
       end			
-  | NewList f rest =>
+  | ConsEnv f rest =>
       match f with 
 	  | CountEquality s1 id1 n1 => 
           if (beq_nat s s1)
@@ -280,11 +286,38 @@ Definition inconsistent (f1 f2 : count_equality) : Prop :=
      end 
    end.
 
+Check inconsistent.
+
 Eval compute in (inconsistent f1 f2).
 
+
 Eval compute in (6 <> 7).
+(*
+Inductive sorted : list nat -> Prop :=
+  snil : sorted nil
+| s1 : forall x, sorted (x::nil)
+| s2 : forall x y l, sorted (y::l) -> x <= y ->
+    sorted (x::y::l).
+*)
 
 
+Fixpoint formula_inconsistent_with_env (f: count_equality)
+                          (e : environment) : Prop :=
+  match e with
+    | SingleEnv g =>  inconsistent f g
+    | ConsEnv g rest => (inconsistent f g) \/ (formula_inconsistent_with_env f rest)
+  end.
+
+
+
+Inductive env_consistent : environment -> Prop :=
+| consis_1 : forall f, env_consistent (SingleEnv f)
+| consis_2 : forall f g, ~(inconsistent f g) -> env_consistent (ConsEnv f (SingleEnv g))
+| consis_more : forall f e, 
+   env_consistent e -> ~(formula_inconsistent_with_env f e) -> env_consistent (ConsEnv f e). 
+
+
+(*
 Fixpoint get_list_of_pairs_of_count_formulas (e : environment) : 
   nonemptylist (Twos count_equality count_equality) := 
 
@@ -300,37 +333,43 @@ Fixpoint get_list_of_pairs_of_count_formulas (e : environment) :
                 app_nonempty twos (get_list_of_pairs_of_count_formulas rest)
 
           end.
-
+*)
 (* test the first clause: single count formula should return a pair of null count formulas *)    
 Definition e1 : environment := 
-  (Single (make_count_equality Alice id1 8)).
+  (SingleEnv (make_count_equality Alice id1 8)).
+(*
 Eval compute in (get_list_of_pairs_of_count_formulas e1).
+*)
 
 (* test the second clause: two count formulas should return a pair of the two count formulas *)    
-Definition e2 : environment := (NewList f1 (Single f2)).
+Definition e2 : environment := (ConsEnv f1 (SingleEnv f2)).
+(*
 Eval compute in (get_list_of_pairs_of_count_formulas e2).
+*)
 
 (* test the third case: three count formulas should return a list of 3 pairs of count formulas *)    
 Definition e3 : environment := 
-  (NewList (make_count_equality Alice id1 8) 
-     (NewList (make_count_equality Bob id2 9) (Single (make_count_equality Charlie id3 10)))).
+  (ConsEnv (make_count_equality Alice id1 8) 
+     (ConsEnv (make_count_equality Bob id2 9) (SingleEnv (make_count_equality Charlie id3 10)))).
+(*
 Eval compute in (get_list_of_pairs_of_count_formulas e3).
-
+*)
 (* test the third case with 4 count formulas: should return a list of 6 pairs of count formulas *)    
 Definition e4 : environment := 
-  (NewList (make_count_equality Alice id1 8) 
-     (NewList (make_count_equality Bob id2 9) 
-        (NewList (make_count_equality Charlie id3 10)
-          (Single (make_count_equality Bahman id4 11))))).
-
+  (ConsEnv (make_count_equality Alice id1 8) 
+     (ConsEnv (make_count_equality Bob id2 9) 
+        (ConsEnv (make_count_equality Charlie id3 10)
+          (SingleEnv (make_count_equality Bahman id4 11))))).
+(*
 Eval compute in (get_list_of_pairs_of_count_formulas e4).
-
+*)
 (****************************************)
 (****************************************)
 
 (*** set of E-relevant models is Empty <=> e is inconsistent ***)
 (*** set of E-relevant models is Non-Empty <=> e is consistent ***)
-Fixpoint env_consistent (e : environment) : Prop :=
+(*
+Fixpoint env_consistent_old (e : environment) : Prop :=
   let pairs : nonemptylist (Twos count_equality count_equality) := (get_list_of_pairs_of_count_formulas e) in
     let pairs_consistent := 
       (fix pairs_consistent (pairs : nonemptylist (Twos count_equality count_equality)) : Prop :=
@@ -339,9 +378,13 @@ Fixpoint env_consistent (e : environment) : Prop :=
           | NewList p rest =>  inconsistent (left p) (right p) /\ (pairs_consistent rest)
         end) in 
   pairs_consistent pairs.
+*)
+
 
 Eval compute in (env_consistent e2).
 
+
+ 
 
 End Environment.
 
@@ -575,7 +618,7 @@ Definition psA1:policySet :=
 
 Definition AgreeCan := Agreement (Single Alice) TheReport psA1.
 Definition eA1 : environment := 
-  (Single (make_count_equality Alice id1 2)).
+  (SingleEnv (make_count_equality Alice id1 2)).
 
 Eval compute in (trans_agreement eA1 AgreeCan).
 
@@ -591,7 +634,7 @@ Section A2.
 
 (**  getCount Alice "id1" = 5,  and see if you can prove ~(Permitted Alice ...). **)
 Definition eA2 : environment := 
-  (Single (make_count_equality Alice id1 5)).
+  (SingleEnv (make_count_equality Alice id1 5)).
 
 Definition psA2:policySet :=
   PrimitivePolicySet
@@ -646,10 +689,10 @@ forall x : nat,
 
 **)
 Definition eA3 : environment := 
-  (NewList (make_count_equality Alice id1 3) 
-     (NewList (make_count_equality Alice id2 0) 
-        (NewList (make_count_equality Bob id1 4) 
-          (Single (make_count_equality Bob id2 0))))).
+  (ConsEnv (make_count_equality Alice id1 3) 
+     (ConsEnv (make_count_equality Alice id2 0) 
+        (ConsEnv (make_count_equality Bob id1 4) 
+          (SingleEnv (make_count_equality Bob id2 0))))).
 
 Eval compute in (trans_agreement eA3 AgreeA3).
 
@@ -668,7 +711,7 @@ Definition prin_bob := (Single Bob).
 Definition pol:policy := PrimitivePolicy TruePrq id3 Print.
 Definition pol_set:policySet := PrimitiveExclusivePolicySet TruePrq pol.
 Definition AgreeA5 := Agreement prin_bob LoveAndPeace pol_set.
-Definition eA5 : environment := (Single (make_count_equality NullSubject NullId 0)).
+Definition eA5 : environment := (SingleEnv (make_count_equality NullSubject NullId 0)).
 Eval compute in (trans_agreement eA5 AgreeA5).
 
 Hypothesis H: trans_agreement eA5 AgreeA5.
@@ -1268,5 +1311,135 @@ Example test_inconsistent: (inconsistent f1 f2) = (6<>7).
 (* Proof. unfold inconsistent. simpl. intuition. *) Admitted. 
 
 
+
+Section Sanity1.
+
+Theorem f1_and_f2_are_inconsistent: inconsistent f1 f2.
+Proof. unfold inconsistent. simpl. omega. Qed.
+
+Theorem f1_and___env_of_f2_inconsistent: formula_inconsistent_with_env f1 (SingleEnv f2).
+Proof. unfold formula_inconsistent_with_env. apply f1_and_f2_are_inconsistent. Qed.
+
+
+Theorem two_inconsistent_formulas_imply_env_inconsistent: 
+  forall f g, inconsistent f g -> ~env_consistent (ConsEnv f (SingleEnv g)).
+Proof. intros. unfold not. intros H'. 
+inversion H'. intuition. intuition. Qed.
+
+
+Theorem e2_is_inconsistent: ~env_consistent e2.
+Proof.
+
+apply two_inconsistent_formulas_imply_env_inconsistent. 
+apply f1_and_f2_are_inconsistent. Qed.
+
+Lemma NPeirce : forall (P : Prop), (P -> ~P) -> ~P.
+auto. 
+Qed.
+
+Theorem env_consistent_implies_two_consistent_formulas: 
+  forall (f g: count_equality), 
+    env_consistent (ConsEnv f (SingleEnv g))-> ~inconsistent f g.
+Proof. intros. inversion H. exact H1. intuition. Qed.
+
+Theorem two_consistent_formulas_imply_env_consistent: 
+  forall (f g: count_equality), 
+    ~inconsistent f g -> env_consistent (ConsEnv f (SingleEnv g)).
+Proof. intros. apply consis_2. exact H. Qed.
+
+Theorem env_inconsistent_implies_two_inconsistent_formulas: 
+  forall (f g: count_equality), 
+    ~env_consistent (ConsEnv f (SingleEnv g))-> inconsistent f g.
+(** using elim on an hypothesis of the shape ~ P, 
+    you say to Coq "I know that P holds, so using P -> False, 
+    I can derive a proof of False" which closes the goal by contradiction. 
+    That's why each time you elim a ~ P, Coq asks you to provide a proof of P.
+**)
+
+(**
+Proof. intros.  elim H. unfold not in H.  
+**)Admitted.
+
+
+Theorem theo1 : forall (s1 s2: subject),
+                forall (id1 id2: policyId),
+                forall (n1 n2: nat),
+
+  (s1 = s2 /\ id1 = id2 /\ n1 <> n2) -> 
+  inconsistent (CountEquality s1 id1 n1) (CountEquality s2 id2 n2).
+
+Proof. intros. unfold inconsistent. intros. intuition. Qed.
+
+Fixpoint app_envs (e e' : environment) : environment := 
+  match e with
+  | SingleEnv f  => ConsEnv f e'
+  | ConsEnv f rest_env => ConsEnv f (app_envs rest_env e')
+  end.
+
+Definition count_equality_equal (f1 f2:count_equality) : Prop :=
+  match f1 with (CountEquality s1 id1 n1) =>
+     match f2 with (CountEquality s2 id2 n2) =>       
+       s1 = s2 -> id1 = id2 -> n1 = n2
+     end 
+   end.
+    
+
+Theorem count_equality_equal_refl: forall (a : count_equality), count_equality_equal a a.
+Proof. intros. destruct a. simpl. intuition. Qed. 
+
+
+
+Fixpoint mem_countform_in_env (a:count_equality)(e : environment) : Prop :=
+ match e with
+  | SingleEnv f  => count_equality_equal f a
+  | ConsEnv f rest_env => (count_equality_equal f a) \/ 
+                          (mem_countform_in_env a rest_env)
+  end.
+  
+SearchAbout env_consistent.
+
+Theorem theo4: forall (e : environment),
+               forall (a : count_equality),
+               ~(env_consistent (ConsEnv a e)) -> 
+                exists (f g: count_equality),
+                  (mem_countform_in_env f (ConsEnv a e)) /\ 
+                  (mem_countform_in_env g (ConsEnv a e)) /\
+                  (inconsistent g f).
+Proof. intros. induction e. exists a. exists c. split. simpl. left. apply count_equality_equal_refl.
+split. simpl. right. apply count_equality_equal_refl.  
+unfold not in H. Abort.
+
+
+
+Theorem theo5: forall (e e': environment),
+               ~(env_consistent e) ->
+               ~(env_consistent (app_envs e e')).
+
+Proof. intros e. induction e'. intros H. Abort.
+
+
+Theorem theo6: forall (f g: count_equality),
+               forall (e: environment), 
+inconsistent f g -> ~env_consistent (ConsEnv f ((ConsEnv g) e)).
+
+Proof. intros. unfold not. intros H'. 
+
+inversion H'. intuition. intuition. Abort.
+
+
+
+
+Theorem theo10 : forall (e:environment), 
+                forall (agrs: nonemptylist agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+ 
+(permissionGranted e agrs s action a) -> ~(permissionDenied e agrs s action a).
+
+Proof. intros. unfold permissionDenied. Abort.
+
+
+End Sanity1.
 
 End ODRL.
