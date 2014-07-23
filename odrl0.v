@@ -7,6 +7,7 @@ Require Import Coq.Lists.List.
 Require Import Coq.Init.Datatypes.
 Require Import Coq.Strings.Ascii.
 Require Import Omega.
+Require Import Coq.Logic.Classical_Prop.
 
 
 Set Implicit Arguments.
@@ -1130,13 +1131,13 @@ Definition is_fplus_single_query_evalid (q: single_query) : Prop :=
     | SingletonQuery agr s action a e => 
       match agr with 
         | Agreement prn a' ps => 
-            (~env_consistent e) \/
-            ((is_subject_in_prin s prn) /\ (a=a') /\ 
+            ((~env_consistent e) \/
+             ((is_subject_in_prin s prn) /\ (a=a') /\ 
               (* There is a Tuple in Splus s.t. is_evalid (prq/\prq') *)
               let sp := getSplus ps in
                 match sp with
-                  | Splus lst => isPrqs_evalid e s prn lst
-                end)
+                  | Splus lst => (isPrqs_evalid e s prn lst)
+                end))
       end                
   end.
 
@@ -1229,19 +1230,19 @@ Fixpoint permissionGranted (e:environment)
            match agrs with
            | Single agr  => is_fplus_single_query_evalid (SingletonQuery agr s action a e)
            | NewList agr rest => 
-              is_fplus_single_query_evalid (SingletonQuery agr s action a e) \/ 
-              permissionGranted e rest s action a 
+              (is_fplus_single_query_evalid (SingletonQuery agr s action a e)) \/ 
+              (permissionGranted e rest s action a) 
            end in
         
       let get_fm := 
            match agrs with
            | Single agr  => is_fminus_single_query_evalid (SingletonQuery agr s action a e)
            | NewList agr rest => 
-              is_fminus_single_query_evalid (SingletonQuery agr s action a e) \/
-              permissionGranted e rest s action a
+              (is_fminus_single_query_evalid (SingletonQuery agr s action a e)) \/
+              (permissionGranted e rest s action a)
            end in
         
-      get_fp /\ ~get_fm.
+      (get_fp) /\ (~get_fm).
     
 Fixpoint permissionDenied (e:environment)
                           (agrs: nonemptylist agreement)
@@ -1250,21 +1251,21 @@ Fixpoint permissionDenied (e:environment)
            match agrs with
            | Single agr  => is_fplus_single_query_evalid (SingletonQuery agr s action a e)
            | NewList agr rest => 
-              is_fplus_single_query_evalid (SingletonQuery agr s action a e) \/ 
-              permissionDenied e rest s action a
+              (is_fplus_single_query_evalid (SingletonQuery agr s action a e)) \/ 
+              (permissionDenied e rest s action a)
            end in
         
       let get_fm := 
            match agrs with
            | Single agr  => is_fminus_single_query_evalid (SingletonQuery agr s action a e)
            | NewList agr rest => 
-              is_fminus_single_query_evalid (SingletonQuery agr s action a e) \/
-              permissionDenied e rest s action a
+              (is_fminus_single_query_evalid (SingletonQuery agr s action a e)) \/
+              (permissionDenied e rest s action a)
            end in
         
-      ~get_fp /\ get_fm.
+      (~get_fp) /\ (get_fm).
 
-
+Functional Scheme permissionDenied_ind := Induction for permissionDenied Sort Prop.
 
 Definition permissionUnregulated (e:environment)
                                  (agrs: nonemptylist agreement)
@@ -1347,6 +1348,10 @@ Theorem two_consistent_formulas_imply_env_consistent:
     ~inconsistent f g -> env_consistent (ConsEnv f (SingleEnv g)).
 Proof. intros. apply consis_2. exact H. Qed.
 
+SearchAbout count_equality.
+
+Check count_equality_ind.
+
 Theorem env_inconsistent_implies_two_inconsistent_formulas: 
   forall (f g: count_equality), 
     ~env_consistent (ConsEnv f (SingleEnv g))-> inconsistent f g.
@@ -1355,10 +1360,25 @@ Theorem env_inconsistent_implies_two_inconsistent_formulas:
     I can derive a proof of False" which closes the goal by contradiction. 
     That's why each time you elim a ~ P, Coq asks you to provide a proof of P.
 **)
-
-(**
-Proof. intros.  elim H. unfold not in H.  
-**)Admitted.
+Proof.
+induction f.
+induction g.
+unfold inconsistent.
+intros.
+subst.
+generalize (dec_eq_nat n n0).
+intro h; elim h.
+intro; subst.
+elim H.
+apply consis_2.
+unfold inconsistent.
+intro.
+assert (s0=s0); auto.
+assert (p0=p0); auto.
+specialize H0 with (1:=H1) (2:=H2).
+elim H0; auto.
+auto.
+Qed.
 
 
 Theorem theo1 : forall (s1 s2: subject),
@@ -1398,14 +1418,41 @@ Fixpoint mem_countform_in_env (a:count_equality)(e : environment) : Prop :=
   
 SearchAbout env_consistent.
 
+
+Theorem theo4_1: forall (c: count_equality), mem_countform_in_env c (SingleEnv c).
+Proof. induction c. unfold mem_countform_in_env. apply count_equality_equal_refl. Qed.
+
+(***
+Theorem theo4_2: forall (e : environment),
+                 forall (a : count_equality), mem_countform_in_env a (ConsEnv a e).
+Proof. Abort.
+
 Theorem theo4: forall (e : environment),
-               forall (a : count_equality),
+               forall (a: count_equality),
                ~(env_consistent (ConsEnv a e)) -> 
-                exists (f g: count_equality),
-                  (mem_countform_in_env f (ConsEnv a e)) /\ 
-                  (mem_countform_in_env g (ConsEnv a e)) /\
-                  (inconsistent g f).
-Proof. intros. induction e. exists a. exists c. split. simpl. left. apply count_equality_equal_refl.
+                (env_consistent e) \/ (~(env_consistent e)).
+
+Proof. induction e. intros. 
+
+left. apply consis_1. intros. right. case 
+
+
+left. specialize (IHe c). 
+apply consis_more. generalize H. apply H. 
+
+apply env_inconsistent_implies_two_inconsistent_formulas in H.  
+
+exists c. intuition. intros. left. exists c. induction e in IHe. 
+
+apply .
+
+
+destruct H. apply consis_more. .
+
+apply env_inconsistent_implies_two_inconsistent_formulas in H. 
+apply theo4_1. 
+
+split. simpl. left. apply count_equality_equal_refl.
 split. simpl. right. apply count_equality_equal_refl.  
 unfold not in H. Abort.
 
@@ -1427,7 +1474,32 @@ Proof. intros. unfold not. intros H'.
 inversion H'. intuition. intuition. Abort.
 
 
+*)
 
+Axiom e_is_consistent: forall (e:environment), env_consistent e.
+
+
+Theorem theo9_1 : forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+(is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\
+~is_fminus_single_query_evalid (SingletonQuery agr s action a e)) ->
+
+(is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\
+~is_fminus_single_query_evalid (SingletonQuery agr s action a e)).
+
+Proof. intros. exact H. Qed.
+
+
+Check permissionDenied_ind.
+
+
+
+Functional Scheme is_subject_in_prin_ind := Induction for is_subject_in_prin Sort Prop. 
+Functional Scheme permissionGranted_ind := Induction for permissionGranted Sort Prop.
 
 Theorem theo10 : forall (e:environment), 
                 forall (agrs: nonemptylist agreement),
@@ -1437,7 +1509,32 @@ Theorem theo10 : forall (e:environment),
  
 (permissionGranted e agrs s action a) -> ~(permissionDenied e agrs s action a).
 
-Proof. intros. unfold permissionDenied. Abort.
+Proof. 
+
+
+intros e agrs s action a.
+functional induction permissionGranted e agrs s action a.
+
+intros.
+
+inversion e5. rewrite <- H1 in H. rewrite <- H1.
+
+functional induction permissionDenied e [agr] s action a. inversion e6. rewrite <- H2. inversion e5. 
+rewrite <- H1 in H3. rewrite <- H2 in H3. rewrite -> H3. 
+
+unfold not. destruct H as [H11 H12]. intro. destruct H as [H21 H22]. elim H21. exact H11.
+
+unfold not. intro. destruct H0 as [H01 H02]. elim H01. inversion e6.
+
+unfold not. intro. destruct H0 as [H01 H02]. apply H01. inversion e6.
+
+unfold not. intro. destruct H0 as [H01 H02]. apply H01. inversion e5.
+
+intro. inversion e5. 
+
+intro. inversion e5.
+
+intro. inversion e5. destruct H as [H11 H12]. Admitted.
 
 
 End Sanity1.
