@@ -1223,49 +1223,52 @@ Definition queryInconsistent (e:environment)
  is the not the main point
 **)
 
+(**
+
+Single agr => fplus /\ ~fminus
+Newlist agr rest => (fplus \/ Granted) /\ (~(fminus \/ Granted))
+
+**)
 Fixpoint permissionGranted (e:environment)
                            (agrs: nonemptylist agreement)
                            (s:subject)(action:act)(a:asset) : Prop :=
-      let get_fp := 
-           match agrs with
-           | Single agr  => is_fplus_single_query_evalid (SingletonQuery agr s action a e)
+      match agrs with
+           | Single agr  =>  
+		       is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+			  (~is_fminus_single_query_evalid (SingletonQuery agr s action a e))
+			  
            | NewList agr rest => 
-              (is_fplus_single_query_evalid (SingletonQuery agr s action a e)) \/ 
-              (permissionGranted e rest s action a) 
-           end in
-        
-      let get_fm := 
-           match agrs with
-           | Single agr  => is_fminus_single_query_evalid (SingletonQuery agr s action a e)
-           | NewList agr rest => 
-              (is_fminus_single_query_evalid (SingletonQuery agr s action a e)) \/
-              (permissionGranted e rest s action a)
-           end in
-        
-      (get_fp) /\ (~get_fm).
-    
+		       (((is_fplus_single_query_evalid (SingletonQuery agr s action a e)) \/ 
+                         (permissionGranted e rest s action a)) /\
+			~((is_fminus_single_query_evalid (SingletonQuery agr s action a e)) \/
+                         (permissionGranted e rest s action a)))
+      end.    
+
+(**
+
+Single agr => ~fplus /\ fminus
+Newlist agr rest => (~(fplus \/ Denied)) /\ (fminus \/ Denied)
+
+**)
+
 Fixpoint permissionDenied (e:environment)
                           (agrs: nonemptylist agreement)
                           (s:subject)(action:act)(a:asset) : Prop :=
-      let get_fp := 
-           match agrs with
-           | Single agr  => is_fplus_single_query_evalid (SingletonQuery agr s action a e)
+      match agrs with
+           | Single agr  =>  
+		       (~is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+			 is_fminus_single_query_evalid (SingletonQuery agr s action a e))
+			  
            | NewList agr rest => 
-              (is_fplus_single_query_evalid (SingletonQuery agr s action a e)) \/ 
-              (permissionDenied e rest s action a)
-           end in
-        
-      let get_fm := 
-           match agrs with
-           | Single agr  => is_fminus_single_query_evalid (SingletonQuery agr s action a e)
-           | NewList agr rest => 
-              (is_fminus_single_query_evalid (SingletonQuery agr s action a e)) \/
-              (permissionDenied e rest s action a)
-           end in
-        
-      (~get_fp) /\ (get_fm).
+		       (~((is_fplus_single_query_evalid (SingletonQuery agr s action a e)) \/ 
+                         (permissionDenied e rest s action a)) /\
+			((is_fminus_single_query_evalid (SingletonQuery agr s action a e)) \/
+                         (permissionDenied e rest s action a)))
+      end.    
 
-Functional Scheme permissionDenied_ind := Induction for permissionDenied Sort Prop.
+
+
+
 
 Definition permissionUnregulated (e:environment)
                                  (agrs: nonemptylist agreement)
@@ -1488,18 +1491,162 @@ Theorem theo9_1 : forall (e:environment),
 (is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\
 ~is_fminus_single_query_evalid (SingletonQuery agr s action a e)) ->
 
-(is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\
-~is_fminus_single_query_evalid (SingletonQuery agr s action a e)).
-
-Proof. intros. exact H. Qed.
-
-
-Check permissionDenied_ind.
+~
+(~ is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\
+ is_fminus_single_query_evalid (SingletonQuery agr s action a e)).
 
 
+Proof. intros. unfold not. intro. 
+destruct H as [H11 H12]. destruct H0 as [H01 H02]. unfold not in H12. elim H12. exact H02. Qed.
+
+
+(***
+
+'Functional Scheme' is used with 
+'functional induction' in a proof script as in
+
+Functional Scheme permissionGranted_ind := Induction for permissionGranted Sort Prop.
+
+Proof.
+...
+functional induction permissionGranted e agrs s action a.
+...
+Qed.
+
+***)
 
 Functional Scheme is_subject_in_prin_ind := Induction for is_subject_in_prin Sort Prop. 
 Functional Scheme permissionGranted_ind := Induction for permissionGranted Sort Prop.
+Functional Scheme permissionDenied_ind := Induction for permissionDenied Sort Prop.
+
+Theorem theo9_2: forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+((permissionDenied e [agr] s action a) ->
+(~is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+ is_fminus_single_query_evalid (SingletonQuery agr s action a e)))
+
+/\
+
+((~is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+ is_fminus_single_query_evalid (SingletonQuery agr s action a e)) ->
+
+(permissionDenied e [agr] s action a)).
+
+Proof. intros. split. 
+
+unfold permissionDenied. apply iff_refl.
+unfold permissionDenied. apply iff_refl. Qed.
+
+Theorem theo9_2_A: forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+((permissionDenied e [agr] s action a) ->
+(~is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+ is_fminus_single_query_evalid (SingletonQuery agr s action a e))).
+
+Proof. unfold permissionDenied. intros. exact H. Qed.
+
+Theorem theo9_2_B: forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+((~is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+ is_fminus_single_query_evalid (SingletonQuery agr s action a e)) ->
+(permissionDenied e [agr] s action a)).
+Proof. unfold permissionDenied. intros. exact H. Qed.
+
+Theorem theo9_3: forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+((permissionGranted e [agr] s action a) ->
+(is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+ ~is_fminus_single_query_evalid (SingletonQuery agr s action a e)))
+
+/\
+
+((is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+ ~is_fminus_single_query_evalid (SingletonQuery agr s action a e)) ->
+(permissionGranted e [agr] s action a)).
+
+Proof. intros. split. 
+
+unfold permissionGranted. apply iff_refl.
+unfold permissionGranted. apply iff_refl. Qed.
+
+Theorem theo9_3_A: forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+((permissionGranted e [agr] s action a) ->
+(is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+ ~is_fminus_single_query_evalid (SingletonQuery agr s action a e))).
+Proof. unfold permissionGranted. intros. exact H. Qed.
+
+
+Theorem theo9_3_B: forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+((is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
+ ~is_fminus_single_query_evalid (SingletonQuery agr s action a e)) ->
+(permissionGranted e [agr] s action a)).
+Proof. unfold permissionGranted. intros. exact H. Qed.
+
+Theorem theo9_4_A : forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+ 
+(permissionGranted e [agr] s action a) -> ~(permissionDenied e [agr] s action a).
+
+Proof.
+
+intros e agr s action a. intro. apply theo9_3_A in H. unfold not. intro.
+apply theo9_2_A in H0. intuition. Qed. 
+
+Theorem theo9_4_B : forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+ 
+(permissionDenied e [agr] s action a) -> ~(permissionGranted e [agr] s action a).
+
+Proof.
+Show Proof.
+intros e agr s action a. 
+Show Proof.
+intro. 
+Show Proof.
+apply theo9_2_A in H. 
+Show Proof.
+unfold not.
+Show Proof. 
+intro.
+Show Proof.
+apply theo9_3_A in H0. 
+Show Proof.
+intuition. 
+Show Proof.
+Qed. 
+
 
 Theorem theo10 : forall (e:environment), 
                 forall (agrs: nonemptylist agreement),
@@ -1509,9 +1656,33 @@ Theorem theo10 : forall (e:environment),
  
 (permissionGranted e agrs s action a) -> ~(permissionDenied e agrs s action a).
 
-Proof. 
+Proof.
+
+induction agrs as [| agr rest]. 
+
+(*
+
+apply theo9_4_A.
+
+OR
+
+intros.intuition.unfold permissionDenied in H0.unfold permissionGranted in H.intuition.
+
+Both work.
+*)
+
+apply theo9_4_A.
 
 
+intros.
+intuition.
+unfold permissionDenied in H0.
+unfold permissionGranted in H.
+intuition.
+Qed.
+
+
+(*
 intros e agrs s action a.
 functional induction permissionGranted e agrs s action a.
 
@@ -1535,7 +1706,7 @@ intro. inversion e5.
 intro. inversion e5.
 
 intro. inversion e5. destruct H as [H11 H12]. Admitted.
-
+*)
 
 End Sanity1.
 
