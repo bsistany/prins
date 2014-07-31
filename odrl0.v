@@ -1708,6 +1708,15 @@ intro. inversion e5.
 intro. inversion e5. destruct H as [H11 H12]. Admitted.
 *)
 
+Theorem aliceMayPrintTheReportGivenAgreeCan : (trans_agreement eA1 AgreeCan) -> permissionGranted eA1 [AgreeCan] Alice Print TheReport.
+Proof. 
+
+simpl. intro.
+
+intuition. elim H1. apply e_is_consistent. Qed.
+
+
+
 End Sanity1.
 
 End ODRL.
