@@ -1,5 +1,44 @@
 % Load your needed packages and other commands of yours here:
 %\usepackage{} % ... note that old .sty files can be included here
+\usepackage[]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fullpage}
+
+\usepackage{coqdoc}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{fixltx2e}
+\usepackage{syntax}
+\usepackage{lstcoq}
+
+\definecolor{maroon}{rgb}{0.5,0,0}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\lstdefinelanguage{XML}
+{
+  basicstyle=\ttfamily,
+  morestring=[s]{"}{"},
+  morecomment=[s]{?}{?},
+  morecomment=[s]{!--}{--},
+  commentstyle=\color{darkgreen},
+  moredelim=[s][\color{black}]{>}{<},
+  moredelim=[s][\color{red}]{\ }{=},
+  stringstyle=\color{blue},
+  identifierstyle=\color{maroon}
+}
+\lstdefinelanguage{Pucella2006}
+{
+  morekeywords={
+    agreement, prin, about, with, prePay, and, display, print, count
+  }
+}
+
+\lstdefinelanguage{AST}
+{
+  morekeywords={
+    agreement, prin, asset, policySet
+  }
+}
+
 
 
 
@@ -25,12 +64,6 @@
 }{
 \usepackage[top=1in,bottom=1in,left=0.75in,right=1.25in]{geometry}   % For oneside document
 }
-
-\usepackage[]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{fullpage}
-
-
 
 \usepackage{amsmath,amssymb,amstext} % Lots of math symbols and environments
 \usepackage{graphicx} % For including graphics 
@@ -73,7 +106,7 @@
     filecolor=magenta,      % color of file links
     urlcolor=cyan           % color of external links
 }
-\usepackage{coqdoc}
+
 \ifthenelse{\boolean{PrintVersion}}{   % for improved print quality, change some hyperref options
 \hypersetup{	% override some previously defined hyperref options
 %    colorlinks,%

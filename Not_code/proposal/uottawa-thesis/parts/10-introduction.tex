@@ -1,7 +1,7 @@
 %======================================================================
 \chapter{Introduction}
 %======================================================================
-Digital rights management, \emph{DRM}, refers to the digital management of rights associated with the access or usage of digital assets. There are various aspects of rights management however. According to the authors of ``A Digital Rights Management Ecosystem Model for the Education Community,'' digital rights management systems cover the following four areas: 1) defining rights 2) distributing/ acquiring rights 3) enforcing rights and 4) tracking usage. 
+Digital rights management, \emph{DRM}, refers to the digital management of rights associated with the access or usage of digital assets. There are various aspects of rights management however. According to the authors of the whitepaper ``A digital rights management ecosystem model for the education community,'' digital rights management systems cover the following four areas: 1) defining rights 2) distributing/acquiring rights 3) enforcing rights and 4) tracking usage \cite{collier}. 
 
 Rights Expression Languages, \emph{RELs}, or more precisely when dealing with digital assets, Digital Rights Expression Languages \emph{DRELs} deal with the ``rights definition'' aspect of the DRM ecosystem. A DREL, allows the expression and definition of digital asset usage rights such that other areas of the DRM ecosystem namely the enforcement mechanism and the usage tracking components can function correctly.
 
@@ -11,7 +11,9 @@ As popular as both XrML and ODRL are, their adoption and usage is still somewhat
 
 Another issue with the current batch of RELs are due to their semantics being expressed in a natural language (e.g. English). By necessity natural languages are ambiguous and open to interpretation. 
 
-To formalize the semantics of RELS several approaches have been attempted by various authors. The main categories are logic based, operational semantics based interpreters and finally web ontology based (from the Knowledge Representation Field). In this thesis we will focus on the logic based approach to formalizing semantics and will study a specific logic based language that is a subset of ODRL.
+To formalize the semantics of RELS several approaches have been attempted by various authors. The main categories are logic based, operational semantics based interpreters and finally web ontology based (from the Knowledge Representation Field). In this thesis we will focus on the logic based approach to formalizing semantics and will study a specific logic based language that is a translation from a subset of ODRL.
+
+
 
 
 
@@ -20,15 +22,205 @@ To formalize the semantics of RELS several approaches have been attempted by var
 
 
 %----------------------------------------------------------------------
-\section{State of the Art}
+\section{Logic Based Semantics for ODRL}
 %----------------------------------------------------------------------
 
-See equation \ref{eqn_pi} on page \pageref{eqn_pi}.\footnote{A famous equation.}
+%See equation \ref{eqn_pi} on page \pageref{eqn_pi}.\footnote{A famous %equation.}
 
-\section{Some Meaningless Drivel}
+Formal logic can represent the statements and facts we express in a natural language like English. Propositional logic is expressive enough to express simple facts as propositions and allows uses connectives to allow for the negation, conjunction and disjunction of the facts. However propositional logic is not expressive enough to express policies of the kind used in languages like ODRL and XrML. For example, a simple policy expressed in English like ``All who pay 5 dollars can watch the movie Toy Story'' cannot be expressed in propositional logic because the concept of  variables doesn't exist. 
+
+The higher order logic called ``Predicate Logic'' or ``First Order Logic'' \emph{FOL} is more suitable and has the expressive power to represent policies written in English. Moreover, FOL can be used to capture the meaning of policies in an unambiguous way.
+
+Halpern and Weissman [Using First Order Logic to Reason about Policies] propose a fragment of FOL to represent and reason about policies. The fragment of FOL they arrive at is called \emph{Lithium} which is decidable and allows for efficiently answering interesting queries. Lithium restricts policies to be written based on the concept of ``bipolarity'' which disallows by construction policies that both permit and deny an action on an object.
+
+\section{Pucella 2006}
+Pucella and Weissman \cite{pucella2006} specify a predicate logic based based language that represents a subset of ODRL.
+
+\section{what will I do?}
 
 
-Velit dolor illum 
+\subsection{Coq}
+
+
+	• Program correctness
+	• Formal verification of software
+	• Certified programs
+	• Proof assistant
+	• Interactive and mechanized theorem proving
+	• Examples of machine assisted proofs: CompCert, four-color theorem proof
+	• Coq is based on a higher-order functional programming language
+	• Dependent Types
+		○ Subset types
+		○ Easier than writing explicit proofs
+	• Write formal specification and proofs that programs comply to their specification (a-short-intro-to-coq)
+	• Automatically extract code from specifications as Ocaml or Haskell (a-short-intro)
+	• Properties, programs and proofs are all formalized in the same language called CIC (Calculus of inductive Constructions). (a-short-intro)
+	• Coq uses a sort called Prop for propositions
+	• Coq art:
+	• Well-formed propositions are assertions  one can express about values such as mathematical objects or even programs e.g. 3 < 8
+		○ Note that assertions may be true, false or simply conjectures
+		○ An assertion is only true in general if a proof is provided
+		○ However hand written proofs are difficult to verify
+		○ Coq provides an environment for developing proofs including a formal language to express proofs in, the language itself being built using proof theory making it possible to step by step verification of the proofs
+		○ Mechanized proof verification requires a "proof" that the verification algorithm is correct itself in applying all the formal rules correctly
+
+
+
+
+
+
+
+\section{Abstract Syntax}
+
+[Pucella2006] uses abstract syntax instead of XML to express statements in the ODRL language. The abstract syntax used is a more compact representation than XML based language ODRL policies are written in and furthermore it simplifies specifying the semantics as we shall see. As an example here is an agreement written in ODRL and the comparable agreement expressed in the abstract syntax [Pucella2006].
+
+\lstset{language=XML}
+\begin{lstlisting}[caption={The Agreement in XML},label={lst:agreementxml}]
+<agreement>
+ <asset> <context> <uid> Treasure Island </uid> </context> </asset>
+ <permission>
+   <display>
+    <constraint>
+     <cpu> <context> <uid> Mary's computer </uid> </context> </cpu>
+    </constraint>
+   </display>
+   <print>
+    <constraint> <count> 2 </count> </constraint>
+   </print>
+  <requirement>
+   <prepay>
+    <payment> <amount currency="AUD"> 5.00</amount> </payment>
+   </prepay>
+  </requirement>
+ </permission>
+ <party> <context> <name> Mary Smith </name> </context> </party>
+</agreement>
+\end{lstlisting}
+The agreement is shown using the syntax from [Pucella2006] below.
+
+\lstset{language=Pucella2006}
+\begin{lstlisting}[caption={The Agreement As Pucella2006},label={lst:agreementpucella2006}]
+agreement
+ for Mary Smith 
+ about Treasure Island 
+ with prePay[5.00] -> and[cpu[Mary's Computer] => display,
+                                      count[2] => print].
+\end{lstlisting}
+ 
+
+% \emph{prin\textsubscript{u}}
+In the following we will cover the \emph{abstract syntax} of a subset of ODRL expressed as Coq's \emph{Inductive Types} and Definitions. We will call this subset \emph{ODRL0} both because it is a variation of Pucella's ODRL language and also because it is missing some ODRL constructs such as \emph{Requirements} and \emph{Conditions} - we will add the missing pieces making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing~\ref{lst:agreement} would look like in ODRL0's Coq version.
+
+\coqdoceol
+\coqdocvar{Agreement} (\coqdocvar{Single} \coqdocvar{Mary Smith}) \coqdocvar{Treasure Island} (\coqdocvar{PrimitivePolicySet} (\coqdocvar{Constraint} (\coqdocvar{PrePay} 5.00))\coqdoceol
+\coqdocindent{0.50em}
+(\coqdocvar{AndPolicy} (\coqdocvar{NewList} (\coqdocvar{PrimitivePolicy} (\coqdocvar{Constraint} (\coqdocvar{Principal} (\coqdocvar{Single} \coqdocvar{Mary's Computer}))) \coqdocvar{id1} \coqdocvar{Display})\coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{Single} (\coqdocvar{PrimitivePolicy} (\coqdocvar{Constraint} (\coqdocvar{Count} 2)) \coqdocvar{id2} \coqdocvar{Print}))))).\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+
+The top level ODRL0 production is the \emph{agreement}. An agreement expresses what actions a subject may perform on an object. Syntactically an agreement is composed of a set of subjects/users called a \emph{principal} (\emph{prin}), an \emph{asset} and a \emph{Policy Set} (\emph{PolicySet}).
+
+% agreement
+\lstset{language=AST}
+\begin{lstlisting}[caption={agreement},label={lst:agreement}]
+<agreement> ::=  <prin> <asset> <policySet> 
+\end{lstlisting}
+
+
+
+% prin
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={prin},label={lst:prin}]
+<prin> ::=  { <subject$_{1}$>, ..., <subject$_{m}$> }
+\end{lstlisting}
+
+
+
+% asset
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={asset},label={lst:asset}]
+<asset> ::= 'Number'
+\end{lstlisting}
+
+
+% subject
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={subject},label={lst:subject}]
+<subject> ::= 'Number'
+\end{lstlisting}
+
+
+
+% policySet
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={policySet},label={lst:policySet}]
+<policySet> ::=  
+	$\vert$ <PrimitivePolicySet> : <preRequisite><policy> 
+	$\vert$ <PrimitiveExclusivePolicySet> : <preRequisite><policy>	 
+	$\vert$ <AndPolicySet> : { <policySet$_{1}$>, ..., <policySet$_{m}$> }	
+\end{lstlisting}
+
+
+% policy
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={policy},label={lst:policy}]
+<policy> ::=  
+	$\vert$ <PrimitivePolicy> : <preRequisite><policyId><act>
+	$\vert$ <AndPolicy> : { <policy$_{1}$>, ..., <policy$_{m}$> }	
+\end{lstlisting}
+
+
+% act
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={act},label={lst:act}]
+<act> ::= 'Play' $\vert$ 'Print' $\vert$ 'Display'
+\end{lstlisting}
+
+
+% id
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={policyId},label={lst:policyId}]
+<policyId> ::= 'Number'
+\end{lstlisting}
+
+
+% prq
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={preRequisite},label={lst:preRequisite}]
+<preRequisite> ::=  
+	$\vert$ <TruePrq> : 'True'
+	$\vert$ <Constraint> : <constraint>	 
+	$\vert$ <ForEachMember> : <prin>{ <constraint$_{1}$>, ..., <constraint$_{m}$> }	
+	$\vert$ <NotCons> : <constraint>
+	$\vert$ <AndPrqs> : { <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> }		 
+	$\vert$ <OrPrqs> : { <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> }	
+	$\vert$ <XorPrqs> : { <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> }		
+\end{lstlisting}
+
+
+% constraint
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[caption={constraint},label={lst:constraint}]
+<constraint> ::=  
+	$\vert$ <Principal> : <prin>
+	$\vert$ <Count> : 'Number'	 
+	$\vert$ <CountByPrin> : <prin> 'Number'
+\end{lstlisting}
+
+% ---------------------------------- COQ -----------------------
+
+\lstset{language=Coq}
+\begin{lstlisting}[caption={First Coq Listing},label={lst:coqwww}]
+Inductive agreement : Set :=
+  | Agreement : prin -> asset -> policySet -> agreement.
+\end{lstlisting}
+
+% agreement
 \coqdoceol
 \coqdocemptyline
 \coqdocnoindent
@@ -38,16 +230,122 @@ Velit dolor illum
 \coqdocemptyline
 \coqdocemptyline
 
+% prin
+\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{prin} := \coqdocvar{nonemptylist} \coqdocvar{subject}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+
+% asset
+\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{asset} := \coqdocvar{nat}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{FindingNemo} : \coqdocvar{asset} := 901.\coqdoceol
+\coqdocnoindent
+\coqdocemptyline
+\coqdocemptyline
+
+% subject
+\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{subject} := \coqdocvar{nat}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{Alice}:\coqdocvar{subject} := 101.\coqdoceol
+\coqdocnoindent
+\coqdocemptyline
+\coqdocemptyline
+
+% policySet
+
+\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{policySet} : \coqdockw{Set} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{PrimitivePolicySet} : \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{policy} \ensuremath{\rightarrow} \coqdocvar{policySet} \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{PrimitiveExclusivePolicySet} : \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{policy}  \ensuremath{\rightarrow} \coqdocvar{policySet} \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{AndPolicySet} : \coqdocvar{nonemptylist} \coqdocvar{policySet} \ensuremath{\rightarrow} \coqdocvar{policySet}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+
+% policy
+
+\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{policy} : \coqdockw{Set} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{PrimitivePolicy} : \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{policyId} \ensuremath{\rightarrow} \coqdocvar{act} \ensuremath{\rightarrow} \coqdocvar{policy} \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{AndPolicy} : \coqdocvar{nonemptylist} \coqdocvar{policy} \ensuremath{\rightarrow} \coqdocvar{policy}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+
+% act
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{act} := \coqdocvar{nat}.\coqdoceol
+\coqdocnoindent
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{Play} : \coqdocvar{act} := 301.\coqdoceol
+\coqdocnoindent
+
+% id
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{policyId} := \coqdocvar{nat}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{id1}:\coqdocvar{policyId} := 201.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+
+% prq
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{preRequisite} : \coqdockw{Set} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{TruePrq} : \coqdocvar{preRequisite}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{Constraint} : \coqdocvar{constraint} \ensuremath{\rightarrow} \coqdocvar{preRequisite} \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{ForEachMember} : \coqdocvar{prin}  \ensuremath{\rightarrow} \coqdocvar{nonemptylist} \coqdocvar{constraint} \ensuremath{\rightarrow} \coqdocvar{preRequisite}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{NotCons} : \coqdocvar{constraint} \ensuremath{\rightarrow} \coqdocvar{preRequisite} \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{AndPrqs} : \coqdocvar{nonemptylist} \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{preRequisite}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{OrPrqs} : \coqdocvar{nonemptylist} \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{preRequisite}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{XorPrqs} : \coqdocvar{nonemptylist} \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{preRequisite}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+
+% constraint
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{constraint} : \coqdockw{Set} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{Principal} : \coqdocvar{prin}  \ensuremath{\rightarrow} \coqdocvar{constraint} \coqdoceol
+\coqdocindent{1.00em}
+\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{Count} : \coqdocvar{nat} \ensuremath{\rightarrow} \coqdocvar{constraint} \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{CountByPrin} : \coqdocvar{prin} \ensuremath{\rightarrow} \coqdocvar{nat} \ensuremath{\rightarrow} \coqdocvar{constraint}.\coqdoceol
+\coqdocemptyline
 
 
+%----------------------------------------------------------------------
+\section{Semantics}
 
-facilisis zzril ipsum, augue odio, accumsan ea augue molestie lobortis zzril laoreet ex ad, adipiscing nulla. Veniam dolore, vel te in dolor te, feugait dolore ex vel erat duis nostrud diam commodo ad eu in consequat esse in ut wisi. Consectetuer dolore feugiat wisi eum dignissim tincidunt vel, nostrud, at vulputate eum euismod, diam minim eros consequat lorem aliquam et ad. Feugait illum sit suscipit ut, tation in dolore euismod et iusto nulla amet wisi odio quis nisl feugiat adipiscing luptatum minim nisl, quis, erat, dolore. Elit quis sit dolor veniam blandit ullamcorper ex, vero nonummy, duis exerci delenit ullamcorper at feugiat ullamcorper, ullamcorper elit vulputate iusto esse luptatum duis autem. Nulla nulla qui, te praesent et at nisl ut in consequat blandit vel augue ut.
 
-Illum suscipit delenit commodo augue exerci magna veniam hendrerit dignissim duis ut feugait amet dolor dolor suscipit iriure veniam. Vel quis enim vulputate nulla facilisis volutpat vel in, suscipit facilisis dolore ut veniam, duis facilisi wisi nulla aliquip vero praesent nibh molestie consectetuer nulla. Wisi nibh exerci hendrerit consequat, nostrud lobortis ut praesent dignissim tincidunt enim eum accumsan. Lorem, nonummy duis iriure autem feugait praesent, duis, accumsan tation enim facilisi qui te dolore magna velit, iusto esse eu, zzril. Feugiat enim zzril, te vel illum, lobortis ut tation, elit luptatum ipsum, aliquam dolor sed. Ex consectetuer aliquip in, tation delenit dignissim accumsan consequat, vero, et ad eu velit ut duis ea ea odio.
-
-Vero qui, te praesent et at nisl ut in consequat blandit vel augue ut dolor illum facilisis zzril ipsum. Exerci odio, accumsan ea augue molestie lobortis zzril laoreet ex ad, adipiscing nulla, et dolore, vel te in dolor te, feugait dolore ex vel erat duis. Ut diam commodo ad eu in consequat esse in ut wisi aliquip dolore feugiat wisi eum dignissim tincidunt vel, nostrud. Ut vulputate eum euismod, diam minim eros consequat lorem aliquam et ad luptatum illum sit suscipit ut, tation in dolore euismod et iusto nulla. Iusto wisi odio quis nisl feugiat adipiscing luptatum minim. Illum, quis, erat, dolore qui quis sit dolor veniam blandit ullamcorper ex, vero nonummy, duis exerci delenit ullamcorper at feugiat. Et, ullamcorper elit vulputate iusto esse luptatum duis autem esse nulla qui.
-
-Praesent dolore et, delenit, laoreet dolore sed eros hendrerit consequat lobortis. Dolor nulla suscipit delenit commodo augue exerci magna veniam hendrerit dignissim duis ut feugait amet. Ad dolor suscipit iriure veniam blandit quis enim vulputate nulla facilisis volutpat vel in. Erat facilisis dolore ut veniam, duis facilisi wisi nulla aliquip vero praesent nibh molestie consectetuer nulla, iriure nibh exerci hendrerit. Vel, nostrud lobortis ut praesent dignissim tincidunt enim eum accumsan ea, nonummy duis. Ad autem feugait praesent, duis, accumsan tation enim facilisi qui te dolore magna velit, iusto esse eu, zzril vel enim zzril, te. Nisl illum, lobortis ut tation, elit luptatum ipsum, aliquam dolor sed minim consectetuer aliquip.
-
-Tation exerci delenit ullamcorper at feugiat ullamcorper, ullamcorper elit vulputate iusto esse luptatum duis autem esse nulla qui. Volutpat praesent et at nisl ut in consequat blandit vel augue ut dolor illum facilisis zzril ipsum, augue odio, accumsan ea augue molestie lobortis zzril laoreet. Ex duis, te velit illum odio, nisl qui consequat aliquip qui blandit hendrerit. Ea dolor nonummy ullamcorper nulla lorem tation laoreet in ea, ullamcorper vel consequat zzril delenit quis dignissim, vulputate tincidunt ut.
-
+In this section, we describe the semantics of <Bahman> language by a translation from each language object (e.g. agreement) to a proposition 
+%
