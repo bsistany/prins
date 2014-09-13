@@ -112,14 +112,27 @@ agreement
 % \emph{prin\textsubscript{u}}
 In the following we will cover the \emph{abstract syntax} of a subset of ODRL expressed as Coq's \emph{Inductive Types} and Definitions. We will call this subset \emph{ODRL0} both because it is a variation of Pucella's ODRL language and also because it is missing some ODRL constructs such as \emph{Requirements} and \emph{Conditions} - we will add the missing pieces making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing~\ref{lst:agreement} would look like in ODRL0's Coq version.
 
-\coqdoceol
-\coqdocvar{Agreement} (\coqdocvar{Single} \coqdocvar{Mary Smith}) \coqdocvar{Treasure Island} (\coqdocvar{PrimitivePolicySet} (\coqdocvar{Constraint} (\coqdocvar{PrePay} 5.00))\coqdoceol
-\coqdocindent{0.50em}
-(\coqdocvar{AndPolicy} (\coqdocvar{NewList} (\coqdocvar{PrimitivePolicy} (\coqdocvar{Constraint} (\coqdocvar{Principal} (\coqdocvar{Single} \coqdocvar{Mary's Computer}))) \coqdocvar{id1} \coqdocvar{Display})\coqdoceol
-\coqdocindent{6.00em}
-(\coqdocvar{Single} (\coqdocvar{PrimitivePolicy} (\coqdocvar{Constraint} (\coqdocvar{Count} 2)) \coqdocvar{id2} \coqdocvar{Print}))))).\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Coq version of agreement for Mary Smith},label={lst:agreementcoq}]
+
+Agreement (Single MarySmith) Treasure Island 
+ (PrimitivePolicySet (Constraint (PrePay 5.00))
+  (AndPolicy 
+   (NewList (PrimitivePolicy (Constraint 
+                              (Principal 
+                               (Single MarysComputer))) id1 Display)
+   (Single (PrimitivePolicy (Constraint (Count 2)) id2 Print))))).
+\end{lstlisting}
+
+
+%\coqdoceol
+%\coqdocvar{Agreement} (\coqdocvar{Single} \coqdocvar{Mary Smith}) \coqdocvar{Treasure Island} (\coqdocvar{PrimitivePolicySet} (\coqdocvar{Constraint} (\coqdocvar{PrePay} 5.00))\coqdoceol
+%\coqdocindent{0.50em}
+%(\coqdocvar{AndPolicy} (\coqdocvar{NewList} (\coqdocvar{PrimitivePolicy} (\coqdocvar{Constraint} (\coqdocvar{Principal} (\coqdocvar{Single} \coqdocvar{Mary's Computer}))) \coqdocvar{id1} \coqdocvar{Display})\coqdoceol
+%\coqdocindent{6.00em}
+%(\coqdocvar{Single} (\coqdocvar{PrimitivePolicy} (\coqdocvar{Constraint} (\coqdocvar{Count} 2)) \coqdocvar{id2} \coqdocvar{Print}))))).\coqdoceol
+%\coqdocemptyline
+%\coqdocemptyline
 
 The top level ODRL0 production is the \emph{agreement}. An agreement expresses what actions a subject may perform on an object. Syntactically an agreement is composed of a set of subjects/users called a \emph{principal} (\emph{prin}), an \emph{asset} and a \emph{Policy Set} (\emph{PolicySet}).
 
