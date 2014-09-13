@@ -7,6 +7,7 @@
 \usepackage{coqdoc}
 \usepackage{color}
 \usepackage{listings}
+\usepackage{etoolbox}
 \usepackage{fixltx2e}
 \usepackage{syntax}
 \usepackage{lstcoq}
@@ -16,6 +17,8 @@
 \lstdefinelanguage{XML}
 {
   basicstyle=\ttfamily,
+  frame=single,
+  breaklines=true,
   morestring=[s]{"}{"},
   morecomment=[s]{?}{?},
   morecomment=[s]{!--}{--},
@@ -28,15 +31,18 @@
 \lstdefinelanguage{Pucella2006}
 {
   morekeywords={
-    agreement, prin, about, with, prePay, and, display, print, count
+    agreement, prin, asset, with, prePay, and, display, print, count
   }
 }
 
 \lstdefinelanguage{AST}
 {
+  basicstyle=\ttfamily,
+  breaklines=true,
   morekeywords={
-    agreement, prin, asset, policySet
+    agreement, prin, asset, subject, policySet, policy, act, policyId, preRequisite 
   }
+  tabsize=1,
 }
 
 

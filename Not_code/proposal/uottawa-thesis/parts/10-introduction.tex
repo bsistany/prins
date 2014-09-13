@@ -99,14 +99,15 @@ Pucella and Weissman \cite{pucella2006} specify a predicate logic based based la
 The agreement is shown using the syntax from [Pucella2006] below.
 
 \lstset{language=Pucella2006}
-\begin{lstlisting}[caption={The Agreement As Pucella2006},label={lst:agreementpucella2006}]
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}[frame=single, caption={The Agreement As Pucella2006},label={lst:agreementpucella2006}]
 agreement
  for Mary Smith 
  about Treasure Island 
  with prePay[5.00] -> and[cpu[Mary's Computer] => display,
                                       count[2] => print].
 \end{lstlisting}
- 
+\end{minipage} 
 
 % \emph{prin\textsubscript{u}}
 In the following we will cover the \emph{abstract syntax} of a subset of ODRL expressed as Coq's \emph{Inductive Types} and Definitions. We will call this subset \emph{ODRL0} both because it is a variation of Pucella's ODRL language and also because it is missing some ODRL constructs such as \emph{Requirements} and \emph{Conditions} - we will add the missing pieces making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing~\ref{lst:agreement} would look like in ODRL0's Coq version.
@@ -124,7 +125,7 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 
 % agreement
 \lstset{language=AST}
-\begin{lstlisting}[caption={agreement},label={lst:agreement}]
+\begin{lstlisting}[frame=single, caption={agreement},label={lst:agreement}]
 <agreement> ::=  <prin> <asset> <policySet> 
 \end{lstlisting}
 
@@ -132,7 +133,7 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 
 % prin
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={prin},label={lst:prin}]
+\begin{lstlisting}[frame=single, caption={prin},label={lst:prin}]
 <prin> ::=  { <subject$_{1}$>, ..., <subject$_{m}$> }
 \end{lstlisting}
 
@@ -140,14 +141,14 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 
 % asset
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={asset},label={lst:asset}]
+\begin{lstlisting}[frame=single, caption={asset},label={lst:asset}]
 <asset> ::= 'Number'
 \end{lstlisting}
 
 
 % subject
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={subject},label={lst:subject}]
+\begin{lstlisting}[frame=single, caption={subject},label={lst:subject}]
 <subject> ::= 'Number'
 \end{lstlisting}
 
@@ -156,7 +157,7 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 % policySet
 
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={policySet},label={lst:policySet}]
+\begin{lstlisting}[frame=single, caption={policySet},label={lst:policySet}]
 <policySet> ::=  
 	$\vert$ <PrimitivePolicySet> : <preRequisite><policy> 
 	$\vert$ <PrimitiveExclusivePolicySet> : <preRequisite><policy>	 
@@ -167,7 +168,7 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 % policy
 
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={policy},label={lst:policy}]
+\begin{lstlisting}[frame=single, caption={policy},label={lst:policy}]
 <policy> ::=  
 	$\vert$ <PrimitivePolicy> : <preRequisite><policyId><act>
 	$\vert$ <AndPolicy> : { <policy$_{1}$>, ..., <policy$_{m}$> }	
@@ -176,14 +177,14 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 
 % act
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={act},label={lst:act}]
+\begin{lstlisting}[frame=single, caption={act},label={lst:act}]
 <act> ::= 'Play' $\vert$ 'Print' $\vert$ 'Display'
 \end{lstlisting}
 
 
 % id
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={policyId},label={lst:policyId}]
+\begin{lstlisting}[frame=single, caption={policyId},label={lst:policyId}]
 <policyId> ::= 'Number'
 \end{lstlisting}
 
@@ -191,7 +192,7 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 % prq
 
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={preRequisite},label={lst:preRequisite}]
+\begin{lstlisting}[frame=single, caption={preRequisite},label={lst:preRequisite}]
 <preRequisite> ::=  
 	$\vert$ <TruePrq> : 'True'
 	$\vert$ <Constraint> : <constraint>	 
@@ -205,7 +206,7 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 
 % constraint
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[caption={constraint},label={lst:constraint}]
+\begin{lstlisting}[frame=single, caption={constraint},label={lst:constraint}]
 <constraint> ::=  
 	$\vert$ <Principal> : <prin>
 	$\vert$ <Count> : 'Number'	 
@@ -213,134 +214,85 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 \end{lstlisting}
 
 % ---------------------------------- COQ -----------------------
+\section{Coq Version}
 
 \lstset{language=Coq}
-\begin{lstlisting}[caption={First Coq Listing},label={lst:coqwww}]
+\begin{lstlisting}[frame=single, caption={Coq version of agreement},label={lst:agreementcoq}]
 Inductive agreement : Set :=
   | Agreement : prin -> asset -> policySet -> agreement.
 \end{lstlisting}
 
-% agreement
-\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{agreement} : \coqdockw{Set} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{Agreement} : \coqdocvar{prin} \ensuremath{\rightarrow} \coqdocvar{asset} \ensuremath{\rightarrow} \coqdocvar{policySet} \ensuremath{\rightarrow} \coqdocvar{agreement}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-
-% prin
-\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{prin} := \coqdocvar{nonemptylist} \coqdocvar{subject}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
+% prin 
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={prin},label={lst:princoq}]
+Definition prin := nonemptylist subject.
+\end{lstlisting}
 
 % asset
-\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{asset} := \coqdocvar{nat}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{FindingNemo} : \coqdocvar{asset} := 901.\coqdoceol
-\coqdocnoindent
-\coqdocemptyline
-\coqdocemptyline
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={asset},label={lst:asset}]
+Definition asset := nat.
+\end{lstlisting}
+
+
 
 % subject
-\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{subject} := \coqdocvar{nat}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{Alice}:\coqdocvar{subject} := 101.\coqdoceol
-\coqdocnoindent
-\coqdocemptyline
-\coqdocemptyline
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={subject},label={lst:subject}]
+Definition subject := nat.
+\end{lstlisting}
+
 
 % policySet
-
-\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{policySet} : \coqdockw{Set} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{PrimitivePolicySet} : \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{policy} \ensuremath{\rightarrow} \coqdocvar{policySet} \coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{PrimitiveExclusivePolicySet} : \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{policy}  \ensuremath{\rightarrow} \coqdocvar{policySet} \coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{AndPolicySet} : \coqdocvar{nonemptylist} \coqdocvar{policySet} \ensuremath{\rightarrow} \coqdocvar{policySet}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={policySet},label={lst:policySet}]
+Inductive policySet : Set :=
+  | PrimitivePolicySet : preRequisite -> policy -> policySet 
+  | PrimitiveExclusivePolicySet : preRequisite -> policy  -> policySet 
+  | AndPolicySet : nonemptylist policySet -> policySet.
+\end{lstlisting}
 
 % policy
-
-\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{policy} : \coqdockw{Set} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{PrimitivePolicy} : \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{policyId} \ensuremath{\rightarrow} \coqdocvar{act} \ensuremath{\rightarrow} \coqdocvar{policy} \coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{AndPolicy} : \coqdocvar{nonemptylist} \coqdocvar{policy} \ensuremath{\rightarrow} \coqdocvar{policy}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={policy},label={lst:policy}]
+Inductive policy : Set :=
+  | PrimitivePolicy : preRequisite -> policyId -> act -> policy 
+  | AndPolicy : nonemptylist policy -> policy.
+\end{lstlisting}
 
 % act
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{act} := \coqdocvar{nat}.\coqdoceol
-\coqdocnoindent
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{Play} : \coqdocvar{act} := 301.\coqdoceol
-\coqdocnoindent
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={act},label={lst:act}]
+Definition act := nat.
+\end{lstlisting}
 
 % id
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{policyId} := \coqdocvar{nat}.\coqdoceol
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{id1}:\coqdocvar{policyId} := 201.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={policyId},label={lst:policyId}]
+Definition policyId := nat.
+\end{lstlisting}
 
 % prq
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{preRequisite} : \coqdockw{Set} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{TruePrq} : \coqdocvar{preRequisite}\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{Constraint} : \coqdocvar{constraint} \ensuremath{\rightarrow} \coqdocvar{preRequisite} \coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{ForEachMember} : \coqdocvar{prin}  \ensuremath{\rightarrow} \coqdocvar{nonemptylist} \coqdocvar{constraint} \ensuremath{\rightarrow} \coqdocvar{preRequisite}\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{NotCons} : \coqdocvar{constraint} \ensuremath{\rightarrow} \coqdocvar{preRequisite} \coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{AndPrqs} : \coqdocvar{nonemptylist} \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{preRequisite}\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{OrPrqs} : \coqdocvar{nonemptylist} \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{preRequisite}\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{XorPrqs} : \coqdocvar{nonemptylist} \coqdocvar{preRequisite} \ensuremath{\rightarrow} \coqdocvar{preRequisite}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={preRequisite},label={lst:preRequisite}]
+Inductive preRequisite : Set :=
+  | TruePrq : preRequisite
+  | Constraint : constraint -> preRequisite 
+  | ForEachMember : prin  -> nonemptylist constraint -> preRequisite
+  | NotCons : constraint -> preRequisite 
+  | AndPrqs : nonemptylist preRequisite -> preRequisite
+  | OrPrqs : nonemptylist preRequisite -> preRequisite
+  | XorPrqs : nonemptylist preRequisite -> preRequisite.
+\end{lstlisting}
 
 % constraint
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{constraint} : \coqdockw{Set} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{Principal} : \coqdocvar{prin}  \ensuremath{\rightarrow} \coqdocvar{constraint} \coqdoceol
-\coqdocindent{1.00em}
-\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{Count} : \coqdocvar{nat} \ensuremath{\rightarrow} \coqdocvar{constraint} \coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{CountByPrin} : \coqdocvar{prin} \ensuremath{\rightarrow} \coqdocvar{nat} \ensuremath{\rightarrow} \coqdocvar{constraint}.\coqdoceol
-\coqdocemptyline
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={preRequisite},label={lst:preRequisite}]
+Inductive constraint : Set :=
+  | Principal : prin  -> constraint 
+  | Count : nat -> constraint 
+  | CountByPrin : prin -> nat -> constraint.
+\end{lstlisting}
 
 
 %----------------------------------------------------------------------
