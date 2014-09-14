@@ -75,7 +75,7 @@ Pucella and Weissman \cite{pucella2006} specify a predicate logic based based la
 [Pucella2006] uses abstract syntax instead of XML to express statements in the ODRL language. The abstract syntax used is a more compact representation than XML based language ODRL policies are written in and furthermore it simplifies specifying the semantics as we shall see. As an example here is an agreement written in ODRL and the comparable agreement expressed in the abstract syntax [Pucella2006].
 
 \lstset{language=XML}
-\begin{lstlisting}[caption={The Agreement in XML},label={lst:agreementxml}]
+\begin{lstlisting}[caption={agreement for Mary Smith in XML},label={lst:agreementxml}]
 <agreement>
  <asset> <context> <uid> Treasure Island </uid> </context> </asset>
  <permission>
@@ -100,7 +100,7 @@ The agreement is shown using the syntax from [Pucella2006] below.
 
 \lstset{language=Pucella2006}
 \begin{minipage}[c]{0.95\textwidth}
-\begin{lstlisting}[frame=single, caption={The Agreement As Pucella2006},label={lst:agreementpucella2006}]
+\begin{lstlisting}[frame=single, caption={agreement for Mary Smith as BNF (as used in ~\cite{pucella2006})},label={lst:agreementpucella2006}]
 agreement
  for Mary Smith 
  about Treasure Island 
@@ -139,7 +139,7 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 % agreement
 \lstset{language=AST}
 \begin{lstlisting}[frame=single, caption={agreement},label={lst:agreement}]
-<agreement> ::=  <prin> <asset> <policySet> 
+<agreement> ::= 'agreement' 'for' <prin> 'about' <asset> 'with' <policySet> 
 \end{lstlisting}
 
 
@@ -155,14 +155,14 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 % asset
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={asset},label={lst:asset}]
-<asset> ::= 'Number'
+<asset> ::= N
 \end{lstlisting}
 
 
 % subject
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={subject},label={lst:subject}]
-<subject> ::= 'Number'
+<subject> ::= N
 \end{lstlisting}
 
 
@@ -172,9 +172,9 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={policySet},label={lst:policySet}]
 <policySet> ::=  
-	$\vert$ <PrimitivePolicySet> : <preRequisite><policy> 
-	$\vert$ <PrimitiveExclusivePolicySet> : <preRequisite><policy>	 
-	$\vert$ <AndPolicySet> : { <policySet$_{1}$>, ..., <policySet$_{m}$> }	
+	$\vert$ <PrimitivePolicySet> : <preRequisite> $\rightarrow$ <policy> 
+	$\vert$ <PrimitiveExclusivePolicySet> : <preRequisite> $\mapsto$ <policy>	 
+	$\vert$ <AndPolicySet> : 'and'[ <policySet$_{1}$>, ..., <policySet$_{m}$> ]
 \end{lstlisting}
 
 
@@ -183,22 +183,22 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={policy},label={lst:policy}]
 <policy> ::=  
-	$\vert$ <PrimitivePolicy> : <preRequisite><policyId><act>
-	$\vert$ <AndPolicy> : { <policy$_{1}$>, ..., <policy$_{m}$> }	
+	$\vert$ <PrimitivePolicy> : <preRequisite> $\Rightarrow_{<policyId>}$ <act>
+	$\vert$ <AndPolicy> : 'and'[ <policy$_{1}$>, ..., <policy$_{m}$> ]
 \end{lstlisting}
 
 
 % act
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={act},label={lst:act}]
-<act> ::= 'Play' $\vert$ 'Print' $\vert$ 'Display'
+<act> ::= N
 \end{lstlisting}
 
 
 % id
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={policyId},label={lst:policyId}]
-<policyId> ::= 'Number'
+<policyId> ::= N
 \end{lstlisting}
 
 
@@ -209,11 +209,11 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 <preRequisite> ::=  
 	$\vert$ <TruePrq> : 'True'
 	$\vert$ <Constraint> : <constraint>	 
-	$\vert$ <ForEachMember> : <prin>{ <constraint$_{1}$>, ..., <constraint$_{m}$> }	
-	$\vert$ <NotCons> : <constraint>
-	$\vert$ <AndPrqs> : { <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> }		 
-	$\vert$ <OrPrqs> : { <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> }	
-	$\vert$ <XorPrqs> : { <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> }		
+	$\vert$ <ForEachMember> : 'ForEachMember' [<prin> ; <constraint$_{1}$>, ..., <constraint$_{m}$> ]	
+	$\vert$ <NotCons> : 'not' [ <constraint> ]
+	$\vert$ <AndPrqs> : 'and'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ]
+	$\vert$ <OrPrqs> : 'or'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ]
+	$\vert$ <XorPrqs> : 'xor'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ]		
 \end{lstlisting}
 
 
@@ -222,8 +222,8 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 \begin{lstlisting}[frame=single, caption={constraint},label={lst:constraint}]
 <constraint> ::=  
 	$\vert$ <Principal> : <prin>
-	$\vert$ <Count> : 'Number'	 
-	$\vert$ <CountByPrin> : <prin> 'Number'
+	$\vert$ <Count> : 'Count' [N]
+	$\vert$ <CountByPrin> : <prin> ('Count' [N])
 \end{lstlisting}
 
 % ---------------------------------- COQ -----------------------
