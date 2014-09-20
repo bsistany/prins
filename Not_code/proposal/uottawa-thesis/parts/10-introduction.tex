@@ -352,11 +352,21 @@ Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
 Translation of a policy set proceeds with case analysis of different Policy Set constructors. We then recurse into translation functions for the composing elements. The specific Coq propositions for each constructor is taken from the formula translation for each constructor defined in \cite{pucella2006}.
 
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Policy Translation As Formulas},label={lst:transpolicyformula}]
-$[\![ prq \rightarrow p]\!]^{prin_{u}, a}$ $\triangleq$ $\forall$ $(\!( [\![prin_{u}]\!]_{x} \land [\![prq]\!]_{x})\!)$
+\begin{lstlisting}[frame=single, caption={Policy Translation {$\colon$} PrimitivePolicySet},label={lst:transpolicyformulaPrimitivePolicySet}]
+$[\![ preRequisite \rightarrow policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, prin_{u}, a}_{x}             \!)$
 \end{lstlisting}
 
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Policy Translation {$\colon$} PrimitiveExclusivePolicySet},label={lst:transpolicyformulaPrimitiveExclusivePolicySet}]
+$[\![ preRequisite \mapsto policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, prin_{u}, a}_{x}             \!)$ $\land$ $\forall x$ $(\neg[\![prin_{u}]\!]_{x} \rightarrow [\![policy]\!]^{negative, a}_{x})$
 
+\end{lstlisting}
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Policy Translation {$\colon$} AndPolicySet},label={lst:transpolicyformulaAndPolicySet}]
+$[\![ and [policySet_{1}, ..., policySet_{m}]]\!]^{prin_{u}, a}$ $\triangleq$ $[\![policySet_{1}]\!]^{prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policySet_{m}]\!]^{prin_{u}, a}$
+
+\end{lstlisting}
 
 
 
@@ -385,8 +395,163 @@ let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:
     end.
 \end{lstlisting}
 
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prin Translation {$\colon$} Single subject},label={lst:transprinSingle}]
+$[\![ subject ]\!]_{x}$ $\triangleq$ $x=subject$
+
+\end{lstlisting}
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prin Translation {$\colon$} List of subjects},label={lst:transprinListOfSubjects}]
+
+
+$[\![ \{ subject_{1}, ..., subject_{m} \} ]\!]_{x}$ $\triangleq$ $[\![subject_{1}]\!]_{x}$ $\lor$ $...$ $\lor$ $[\![subject_{m}]\!]_{x}$
+
+\end{lstlisting}
+
+\lstset{language=Coq, frame=single, caption={Translation of a Prin},label={lst:transprin}}
+\begin{lstlisting}
+
+Fixpoint trans_prin
+  (x:subject)(p: prin): Prop :=
+
+  match p with
+    | Single s => (x=s)
+    | NewList s rest => ((x=s) \/ trans_prin x rest)
+  end.
+\end{lstlisting}
+
+\lstset{language=Coq, frame=single, caption={Translation of a positive policy},label={lst:transpolicypositive}}
+\begin{lstlisting}
+
+Fixpoint trans_policy_positive
+  (e:environment)(x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} : Prop :=
+
+let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(a:asset){struct p_list}:=
+                  match p_list with
+                    | Single p1 => trans_policy_positive e x p1 prin_u a
+                    | NewList p p_list' => 
+                        ((trans_policy_positive e x p prin_u a) /\ 
+                         (trans_p_list p_list' prin_u a))
+                  end) in
+
+
+  match p with
+    | PrimitivePolicy prq policyId action => ((trans_preRequisite e x prq (Single policyId) prin_u) ->
+                                              (Permitted x action a))
+    | AndPolicy p_list => trans_p_list p_list prin_u a
+  end.
+\end{lstlisting}
+
+\lstset{language=Coq, frame=single, caption={Translation of a negative policy},label={lst:transpolicynegative}}
+\begin{lstlisting}
+
+Fixpoint trans_policy_negative
+  (e:environment)(x:subject)(p:policy)(a:asset){struct p} : Prop :=
+let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){struct p_list}:=
+                  match p_list with
+                    | Single p1 => trans_policy_negative e x p1 a
+                    | NewList p p_list' => ((trans_policy_negative e x p a) /\ 
+                                            (trans_p_list p_list' a))
+                  end) in
+
+
+  match p with
+    | PrimitivePolicy prq policyId action => not (Permitted x action a)
+    | AndPolicy p_list => trans_p_list p_list a
+  end.
+
+\end{lstlisting}
+
+
+\lstset{language=Coq, frame=single, caption={Translation of a PreRequisite},label={lst:transpreRequisite}}
+\begin{lstlisting}
+
+Definition trans_preRequisite
+  (e:environment)(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin) : Prop := 
+
+  match prq with
+    | TruePrq => True
+    | Constraint const => trans_constraint e x const IDs prin_u 
+    | ForEachMember prn const_list => trans_forEachMember e x prn const_list IDs 
+    | NotCons const => trans_notCons e x const IDs prin_u 
+    | AndPrqs prqs => True 
+    | OrPrqs prqs => True 
+    | XorPrqs prqs => True 
+  end.
+\end{lstlisting}
+
+\lstset{language=Coq, frame=single, caption={Translation of a Constraint},label={lst:transconstraint}}
+\begin{lstlisting}
+
+Fixpoint trans_constraint 
+  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)
+  (prin_u:prin){struct const} : Prop := 
+  match const with
+    | Principal prn => trans_prin x prn
+  
+    | Count n => trans_count e n IDs prin_u 
+
+    | CountByPrin prn n => trans_count e n IDs prn 
+
+  end.
+  
+\end{lstlisting}
+
+\lstset{language=Coq, frame=single, caption={Translation of forEachMember},label={lst:transforEachMember}}
+\begin{lstlisting}
+
+Fixpoint trans_forEachMember
+         (e:environment)(x:subject)(principals: nonemptylist subject)(const_list:nonemptylist constraint)
+         (IDs:nonemptylist policyId){struct const_list} : Prop := 
+
+let trans_forEachMember_Aux   
+  := (fix trans_forEachMember_Aux
+         (prins_and_constraints : nonemptylist (Twos subject constraint))
+         (IDs:nonemptylist policyId){struct prins_and_constraints} : Prop :=
+
+      match prins_and_constraints with
+        | Single pair1 => trans_constraint e x (right pair1) IDs (Single (left pair1)) 
+        | NewList pair1 rest_pairs =>
+            (trans_constraint e x (right pair1) IDs (Single (left pair1))) /\
+            (trans_forEachMember_Aux rest_pairs IDs)
+      end) in
+
+      let prins_and_constraints := process_two_lists principals const_list in
+      trans_forEachMember_Aux prins_and_constraints IDs.
+
+\end{lstlisting}
+
+\lstset{language=Coq, frame=single, caption={Translation of not cons},label={lst:transnotCons}}
+\begin{lstlisting}
+
+Definition trans_notCons
+  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin) : Prop :=
+  ~ (trans_constraint e x const IDs prin_u).
+\end{lstlisting}
 
 
 
- 
-%
+
+
+
+\lstset{language=Coq, frame=single, caption={Translation of count},label={lst:transcount}}
+\begin{lstlisting}
+Fixpoint trans_count 
+  (e:environment)(n:nat)(IDs:nonemptylist policyId)
+  (prin_u:prin) : Prop := 
+
+  let trans_count_aux 
+    := (fix trans_count_aux
+         (ids_and_subjects : nonemptylist (Twos policyId subject)) : nat :=
+     match ids_and_subjects with
+        | Single pair1 => getCount e (right pair1) (left pair1)
+        | NewList pair1 rest_pairs =>
+            (getCount e (right pair1)(left pair1)) +
+            (trans_count_aux rest_pairs)
+      end) in
+  
+  let ids_and_subjects := process_two_lists IDs prin_u in
+  let running_total := trans_count_aux ids_and_subjects in
+  running_total < n.
+\end{lstlisting}
