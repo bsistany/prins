@@ -352,18 +352,18 @@ Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
 Translation of a policy set proceeds with case analysis of different Policy Set constructors. We then recurse into translation functions for the composing elements. The specific Coq propositions for each constructor is taken from the formula translation for each constructor defined in \cite{pucella2006}.
 
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Policy Translation {$\colon$} PrimitivePolicySet},label={lst:transpolicyformulaPrimitivePolicySet}]
+\begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitivePolicySet},label={lst:transpolicyformulaPrimitivePolicySet}]
 $[\![ preRequisite \rightarrow policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, prin_{u}, a}_{x}             \!)$
 \end{lstlisting}
 
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Policy Translation {$\colon$} PrimitiveExclusivePolicySet},label={lst:transpolicyformulaPrimitiveExclusivePolicySet}]
+\begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitiveExclusivePolicySet},label={lst:transpolicyformulaPrimitiveExclusivePolicySet}]
 $[\![ preRequisite \mapsto policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, prin_{u}, a}_{x}             \!)$ $\land$ $\forall x$ $(\neg[\![prin_{u}]\!]_{x} \rightarrow [\![policy]\!]^{negative, a}_{x})$
 
 \end{lstlisting}
 
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Policy Translation {$\colon$} AndPolicySet},label={lst:transpolicyformulaAndPolicySet}]
+\begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} AndPolicySet},label={lst:transpolicyformulaAndPolicySet}]
 $[\![ and [policySet_{1}, ..., policySet_{m}]]\!]^{prin_{u}, a}$ $\triangleq$ $[\![policySet_{1}]\!]^{prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policySet_{m}]\!]^{prin_{u}, a}$
 
 \end{lstlisting}
@@ -421,7 +421,28 @@ Fixpoint trans_prin
   end.
 \end{lstlisting}
 
-\lstset{language=Coq, frame=single, caption={Translation of a positive policy},label={lst:transpolicypositive}}
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Positive Policy Translation {$\colon$} Single policy},label={lst:transpolicypositiveSingle}]
+
+$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{positive, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{policyId, prin_{u}}_{x}) \Rightarrow Permitted(x, [\![act]\!], a)$
+
+\end{lstlisting}
+
+
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Positive Policy Translation {$\colon$} List of policies},label={lst:transpolicypositiveListOfPolicies}]
+
+$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{positive, prin_{u}, a}$ $\triangleq$ $[\![policy_{1}]\!]^{positive, prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{positive, prin_{u}, a}$
+
+\end{lstlisting}
+
+
+
+
+
+
+\lstset{language=Coq, frame=single, caption={Translation of a positive policy},label={lst:transpolicypositiveCoq}}
 \begin{lstlisting}
 
 Fixpoint trans_policy_positive
@@ -441,6 +462,25 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(
                                               (Permitted x action a))
     | AndPolicy p_list => trans_p_list p_list prin_u a
   end.
+\end{lstlisting}
+
+
+
+
+
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Negative Policy Translation {$\colon$} Single policy},label={lst:transpolicynegativeSingle}]
+
+$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{negative, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{policyId, prin_{u}}_{x}) \Rightarrow \lnot (Permitted(x, [\![act]\!], a))$
+
+\end{lstlisting}
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Negative Policy Translation {$\colon$} List of policies},label={lst:transpolicynegativeListOfPolicies}]
+
+$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{negative, a}$ $\triangleq$ $[\![policy_{1}]\!]^{negative, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{negative, a}$
+
+
 \end{lstlisting}
 
 \lstset{language=Coq, frame=single, caption={Translation of a negative policy},label={lst:transpolicynegative}}
@@ -463,6 +503,49 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){stru
 
 \end{lstlisting}
 
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Always True Prerequisite},label={lst:transpreRequisiteTruePrq}]
+	$[\![ prerequisite::true ]\!]$ $\triangleq$ True
+\end{lstlisting}
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Constraint},label={lst:transpreRequisiteConstraint}]
+
+$[\![ prerequisite::constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $[\![ constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
+\end{lstlisting}
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} ForEachMember},label={lst:transpreRequisiteForEachMember}]
+
+$[\![ prerequisite::forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], [id_{1}, ..., id_{n}]}_{x}$ $\triangleq$ $[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], [id_{1}, ..., id_{n}]}_{x}$ 	
+\end{lstlisting}
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Not Constraint},label={lst:transpreRequisiteNotConstraint}]
+
+$[\![ not$ $prerequisite::constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $\lnot[\![ constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
+\end{lstlisting}
+
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Conjunction },label={lst:transpreRequisiteAndPrqs}]
+
+$[\![and$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\land$ $...$ $\land$ $[\![preRequisite_{k}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$
+
+\end{lstlisting}
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Inclusive Disjunction},label={lst:transpreRequisiteOrPrqs}]
+
+$[\![or$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\lor$ $...$ $\lor$ $[\![preRequisite_{k}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$
+
+\end{lstlisting}
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Exclusive Disjunction},label={lst:transpreRequisiteXorPrqs}]
+
+$[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\oplus $ $...$ $\oplus$ $[\![preRequisite_{k}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$
+
+\end{lstlisting}
+
 
 \lstset{language=Coq, frame=single, caption={Translation of a PreRequisite},label={lst:transpreRequisite}}
 \begin{lstlisting}
@@ -481,6 +564,33 @@ Definition trans_preRequisite
   end.
 \end{lstlisting}
 
+
+
+
+
+
+
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Principal},label={lst:transconstraintPrin}]
+
+$[\![ constraint::prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ $\triangleq$ $[\![ prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ 
+\end{lstlisting}
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count},label={lst:transconstraintCount}]
+
+$[\![ constraint::count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $[\![ count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
+\end{lstlisting}
+
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count by Principal},label={lst:transconstraintCountbyPrin}]
+
+$[\![ constraint::prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], [id_{1}, ..., id_{n}]}_{x}$ $\triangleq$ $[\![ prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], [id_{1}, ..., id_{n}]}_{x}$ 
+\end{lstlisting}
+
+
 \lstset{language=Coq, frame=single, caption={Translation of a Constraint},label={lst:transconstraint}}
 \begin{lstlisting}
 
@@ -496,6 +606,19 @@ Fixpoint trans_constraint
 
   end.
   
+\end{lstlisting}
+
+
+
+
+
+
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={ForEachMember Translation {$\colon$} Count by Principal},label={lst:transforEachMember}]
+
+$[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], [id_{1}, ..., id_{n}]}_{x}$ $\triangleq$ $[\![constraint]\!]^{(subject_{1}, constraint_{1}), [id_{1}, ..., id_{n}]}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{1}, constraint_{m}), [id_{1}, ..., id_{n}]}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{2}, constraint_{1}), [id_{1}, ..., id_{n}]}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{2}, constraint_{m}), [id_{1}, ..., id_{n}]}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{k}, constraint_{1}), [id_{1}, ..., id_{n}]}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{k}, constraint_{m}), [id_{1}, ..., id_{n}]}_{x}$ 
+
 \end{lstlisting}
 
 \lstset{language=Coq, frame=single, caption={Translation of forEachMember},label={lst:transforEachMember}}
@@ -522,6 +645,16 @@ let trans_forEachMember_Aux
 
 \end{lstlisting}
 
+
+The translation for ``Not Constraint'' was listed in listing ~\ref{lst:transpreRequisiteNotConstraint} earlier but we repeat it here to go along the Coq version. 
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Not Constraint Translation},label={lst:transnotCons}]
+
+$[\![ not$ $constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $\lnot[\![ constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
+
+\end{lstlisting}
+
 \lstset{language=Coq, frame=single, caption={Translation of not cons},label={lst:transnotCons}}
 \begin{lstlisting}
 
@@ -531,6 +664,22 @@ Definition trans_notCons
 \end{lstlisting}
 
 
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Count Translation {$\colon$} subject and policyId pair},label={lst:transcountSinglePair}]
+
+$[\![ count [N] ]\!]^{subject_{1}, id_{1}}_{x}$ $\triangleq$ $getCount(subject_{1}, id_{1}) < N$
+\end{lstlisting}
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Count Translation {$\colon$} subject and policyId pairs},label={lst:transcountPairs}]
+
+$[\![ count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ 
+
+$(getCount(getSubject(prin_{u})_{1}, id_{1})$ $+ ... +$ $getCount(getSubject(prin_{u})_{1}, id_{m})$ $+ ... +$ $getCount(getSubject(prin_{u})_{k}, id_{1})$ $+ ... +$ $getCount(getSubject(prin_{u})_{k}, id_{m}))$ < $N$
+
+
+\end{lstlisting}
 
 
 
