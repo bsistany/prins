@@ -450,13 +450,13 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Negative Policy Translation {$\colon$} Single policy},label={lst:transpolicynegativeSingle}]
 
-$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{negative, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{policyId, prin_{u}}_{x}) \Rightarrow \lnot (Permitted(x, [\![act]\!], a))$
+$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{negative, e, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{e, policyId, prin_{u}}_{x}) \Rightarrow \lnot (Permitted(x, [\![act]\!], a))$
 
 \end{lstlisting}
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Negative Policy Translation {$\colon$} List of policies},label={lst:transpolicynegativeListOfPolicies}]
 
-$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{negative, a}$ $\triangleq$ $[\![policy_{1}]\!]^{negative, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{negative, a}$
+$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{negative, e, a}$ $\triangleq$ $[\![policy_{1}]\!]^{negative, e, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{negative, e, a}$
 
 
 \end{lstlisting}
