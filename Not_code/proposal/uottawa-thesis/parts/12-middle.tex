@@ -405,7 +405,7 @@ Fixpoint trans_prin
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Positive Policy Translation {$\colon$} Single policy},label={lst:transpolicypositiveSingle}]
 
-$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{positive, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{policyId, prin_{u}}_{x}) \Rightarrow Permitted(x, [\![act]\!], a)$
+$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{positive, e, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{e, policyId, prin_{u}}_{x}) \Rightarrow Permitted(x, [\![act]\!], a)$
 
 \end{lstlisting}
 
@@ -414,12 +414,9 @@ $[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{positive, prin_{u}, a}_{x}$ 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Positive Policy Translation {$\colon$} List of policies},label={lst:transpolicypositiveListOfPolicies}]
 
-$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{positive, prin_{u}, a}$ $\triangleq$ $[\![policy_{1}]\!]^{positive, prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{positive, prin_{u}, a}$
+$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{positive, e, prin_{u}, a}$ $\triangleq$ $[\![policy_{1}]\!]^{positive, e, prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{positive, e, prin_{u}, a}$
 
 \end{lstlisting}
-
-
-
 
 
 
