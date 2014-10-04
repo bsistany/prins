@@ -316,8 +316,9 @@ Inductive environment : Set :=
 
 \end{lstlisting}
 
+At high-level, an agreement is translated into a conjunction of formulas of the form $\forall x ( prerequisites(x) \rightarrow P(x))$ where $P(x)$ itself is a conjunction of formulas of the form $ prerequisites(x) \rightarrow (\lnot) Permitted (x, act, a)$, where $x$ is a variable of type $subject$ that occurs free in $P(x)$ and $Permitted$ is a \emph{predicate}. A predicate in Coq is any function that returns a term of type \emph{Prop}. Here is how we have specified the $Permitted$ predicate in Coq: $Parameter Permitted : subject -> act -> asset -> Prop.$ So $Permitted$ predicate takes a $subject$, an $act$ (action) and an $asset$ and returns a $Prop$. Note that the notation $(\lnot)$ indicates that $Permitted$ may be negated.
 
-The translation starts with the top level agreement element and proceeds by case analysis on the structure of the agreement. Note that each translation function takes an environment parameter.
+More specifically translation of the top level agreement element proceeds by case analysis on the structure of the agreement. Note that each translation function takes an environment parameter.
 
 
 \lstset{language=Coq, frame=single, caption={Translation of agreement},label={lst:transagreement}}
@@ -330,7 +331,9 @@ Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
 
 \end{lstlisting}
 
-Translation of a policy set proceeds with case analysis of different Policy Set constructors. We then recurse into translation functions for the composing elements. The specific Coq propositions for each constructor is based on the formula translation for each constructor defined in \cite{pucella2006}.
+Translation of a \emph{policySet} proceeds with case analysis of different policySet constructors. We then recurse into translation functions for the composing elements. A policySet is either a \emph{PrimitivePolicySet}, \emph{PrimitiveExclusivePolicySet} or a \emph{AndPolicySet}. 
+
+Translation of a PrimitivePolicySet yields a formula
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitivePolicySet},label={lst:transpolicyformulaPrimitivePolicySet}]
