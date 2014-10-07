@@ -331,7 +331,7 @@ Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
 
 \end{lstlisting}
 
-Translation of a \emph{policySet} takes as input $prin_{u}$, the agreement's user, and $a$, the asset, and proceeds by case analysis of different policySet constructors and recursing into translation functions for the composing elements. A policySet is either a \emph{PrimitivePolicySet}, \emph{PrimitiveExclusivePolicySet} or a \emph{AndPolicySet}. 
+Translation of a $policySet$ takes as input $prin_{u}$, the agreement's user, and $a$, the asset, and proceeds by case analysis of different policySet constructors and recursing into translation functions for the composing elements. A policySet is either a $PrimitivePolicySet$, $PrimitiveExclusivePolicySet$ or a $AndPolicySet$. 
 
 Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields an implication. Basically, if the user is in $prin_{u}$ and the pre-requisite holds, the policy holds.
 
@@ -501,10 +501,16 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){stru
 
 \end{lstlisting}
 
+The translation of a $prerequisite$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $IDs$, the set of identifiers (of policies implied by the $prerequisite$) and proceeds by case analysis on the structure of the $prerequisite$. A $prerequisite$ is either a $TruePrq$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$.
+
+The translation for a $TruePrq$ yields a formula that is always \emph{true}.
+
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Always True Prerequisite},label={lst:transpreRequisiteTruePrq}]
 	$[\![ prerequisite::true ]\!]$ $\triangleq$ True
 \end{lstlisting}
+
+The translation for a $Constraint$ is handled by a specialized constraint translation function (coverage of which starts at ~\ref{lst:transconstraintPrin}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Constraint},label={lst:transpreRequisiteConstraint}]
@@ -512,11 +518,15 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){stru
 $[\![ prerequisite::constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $[\![ constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
 \end{lstlisting}
 
+The translation for a $ForEachMember$ is also is handled by a specialized translation function (covered at ~\ref{lst:transforEachMember}.
+
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} ForEachMember},label={lst:transpreRequisiteForEachMember}]
 
 $[\![ prerequisite::forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], [id_{1}, ..., id_{n}]}_{x}$ $\triangleq$ $[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], [id_{1}, ..., id_{n}]}_{x}$ 	
 \end{lstlisting}
+
+The translation for a $NotCons$ yields a formula that is simply the negation of the translation for a constraint.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Not Constraint},label={lst:transpreRequisiteNotConstraint}]
@@ -524,6 +534,7 @@ $[\![ prerequisite::forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constr
 $[\![ not$ $prerequisite::constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $\lnot[\![ constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
 \end{lstlisting}
 
+The translation for a $AndPrqs$ yields a formula that is the conjunction of the translation for each $preRequisite$.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Conjunction },label={lst:transpreRequisiteAndPrqs}]
@@ -531,12 +542,19 @@ $[\![ not$ $prerequisite::constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$
 $[\![and$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\land$ $...$ $\land$ $[\![preRequisite_{k}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$
 
 \end{lstlisting}
+
+The translation for a $OrPrqs$ yields a formula that is the inclusive disjunction of the translation for each $preRequisite$.
+
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Inclusive Disjunction},label={lst:transpreRequisiteOrPrqs}]
 
 $[\![or$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\lor$ $...$ $\lor$ $[\![preRequisite_{k}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$
 
 \end{lstlisting}
+
+The translation for a $XorPrqs$ yields a formula that is the exclusive disjunction of the translation for each $preRequisite$.
+
+
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Exclusive Disjunction},label={lst:transpreRequisiteXorPrqs}]
 
@@ -544,6 +562,7 @@ $[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}],
 
 \end{lstlisting}
 
+The Coq version of the translate function for a $preRequisite$ is given in ~\ref{lst:transpreRequisite}. Note that in this listing the translations for $AndPrqs$, $OrPrqs$ and $XorPrqs$ have not yet been done.
 
 \lstset{language=Coq, frame=single, caption={Translation of a PreRequisite},label={lst:transpreRequisite}}
 \begin{lstlisting}
@@ -564,10 +583,9 @@ Definition trans_preRequisite
 
 
 
+The translation of a $constraint$ takes as input $e$, the $environment$, $x$, the $subject$ and $IDs$, the set of identifiers (of policies implied by the $constraint$) and proceeds by case analysis on the structure of the $constraint$. A $constraint$ is either a $Principal$, a $Count$ or a $CountByPrin$.
 
-
-
-
+The translation for a $Principal$ is handled by a specialized translation function (covered at ~\ref{lst:transprin}.   
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Principal},label={lst:transconstraintPrin}]
@@ -575,12 +593,15 @@ Definition trans_preRequisite
 $[\![ constraint::prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ $\triangleq$ $[\![ prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ 
 \end{lstlisting}
 
+The translation for a $Count$ is handled by a specialized translation function (covered at ~\ref{lst:transcount}.
+
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count},label={lst:transconstraintCount}]
 
 $[\![ constraint::count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $[\![ count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
 \end{lstlisting}
 
+The translation for a $CountByPrin$ is handled by the same specialized translation function as that for $Count$. The difference is that $CountByPrin$ overrides the subjects in $prin_{u}$ by a different set of subjects (covered at ~\ref{lst:transcount}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count by Principal},label={lst:transconstraintCountbyPrin}]
@@ -588,6 +609,7 @@ $[\![ constraint::count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triang
 $[\![ constraint::prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], [id_{1}, ..., id_{n}]}_{x}$ $\triangleq$ $[\![ prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], [id_{1}, ..., id_{n}]}_{x}$ 
 \end{lstlisting}
 
+The Coq version of the translate function for a $constraint$ is given in ~\ref{lst:transconstraint}. 
 
 \lstset{language=Coq, frame=single, caption={Translation of a Constraint},label={lst:transconstraint}}
 \begin{lstlisting}
@@ -607,9 +629,7 @@ Fixpoint trans_constraint
 \end{lstlisting}
 
 
-
-
-
+The translation for $forEachMember$ yields a formula that is true, if each subject mentioned in $forEachMember$ is met by each constraint mentioned in $forEachMember$. Note that the agreement's user $prin_{u}$ maybe overriden by a $forEachConstraint$ constraint. 
 
 
 \lstset{mathescape, language=AST}  
@@ -661,7 +681,7 @@ Definition trans_notCons
   ~ (trans_constraint e x const IDs prin_u).
 \end{lstlisting}
 
-
+The translation for $Count$ or $CountByPrin$ for a pair of subject and policy identifier is a formula that is true if the number of times the $subject_{1}$ has invoked a policy with policy identifier $id_{1}$ is smaller than $N$.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Count Translation {$\colon$} subject and policyId pair},label={lst:transcountSinglePair}]
@@ -669,12 +689,14 @@ Definition trans_notCons
 $[\![ count [N] ]\!]^{subject_{1}, id_{1}}_{x}$ $\triangleq$ $getCount(subject_{1}, id_{1}) < N$
 \end{lstlisting}
 
+The translation for $Count$ or $CountByPrin$ for subject and policy identifier pairs is a formula that is true if the total number of times that a subject has invoked a policy with policy identifier $id_{i}$ is smaller than $N$.
+
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Count Translation {$\colon$} subject and policyId pairs},label={lst:transcountPairs}]
 
-$[\![ count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ 
+$[\![ count [N] ]\!]^{[id_{1}, ..., id_{m}], prn}_{x}$ $\triangleq$ 
 
-$(getCount(getSubject(prin_{u})_{1}, id_{1})$ $+ ... +$ $getCount(getSubject(prin_{u})_{1}, id_{m})$ $+ ... +$ $getCount(getSubject(prin_{u})_{k}, id_{1})$ $+ ... +$ $getCount(getSubject(prin_{u})_{k}, id_{m}))$ < $N$
+$(getCount(getSubject(prn)_{1}, id_{1})$ $+ ... +$ $getCount(getSubject(prn)_{1}, id_{m})$ $+ ... +$ $getCount(getSubject(prn)_{k}, id_{1})$ $+ ... +$ $getCount(getSubject(prn)_{k}, id_{m}))$ < $N$
 
 
 \end{lstlisting}
