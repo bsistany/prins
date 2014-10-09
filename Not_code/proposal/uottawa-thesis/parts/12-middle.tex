@@ -8,9 +8,9 @@
 
 %See equation \ref{eqn_pi} on page \pageref{eqn_pi}.\footnote{A famous %equation.}
 
-Formal logic can represent the statements and facts we express in a natural language like English. Propositional logic is expressive enough to express simple facts as propositions and allows uses connectives to allow for the negation, conjunction and disjunction of the facts. However propositional logic is not expressive enough to express policies of the kind used in languages like ODRL and XrML. For example, a simple policy expressed in English like ``All who pay 5 dollars can watch the movie Toy Story'' cannot be expressed in propositional logic because the concept of  variables doesn't exist. 
+Formal logic can represent the statements and facts we express in a natural language like English. Propositional logic is expressive enough to express simple facts as propositions and uses connectives to allow for the negation, conjunction and disjunction of the facts. However propositional logic is not expressive enough to express policies of the kind used in languages like ODRL and XrML. For example, a simple policy expressed in English like ``All who pay 5 dollars can watch the movie Toy Story'' cannot be expressed in propositional logic because the concept of  variables doesn't exist in propositional logic. 
 
-The higher order logic called ``Predicate Logic'' or ``First Order Logic'' \emph{FOL} is more suitable and has the expressive power to represent policies written in English. Moreover, FOL can be used to capture the meaning of policies in an unambiguous way.
+A richer logic called ``Predicate Logic'' or ``First Order Logic'' \emph{FOL} is more suitable and has the expressive power to represent policies written in English. Moreover, FOL can be used to capture the meaning of policies in an unambiguous way.
 
 Halpern and Weissman [Using First Order Logic to Reason about Policies] propose a fragment of FOL to represent and reason about policies. The fragment of FOL they arrive at is called \emph{Lithium} which is decidable and allows for efficiently answering interesting queries. Lithium restricts policies to be written based on the concept of ``bipolarity'' which disallows by construction policies that both permit and deny an action on an object.
 
@@ -53,7 +53,7 @@ Pucella and Weissman \cite{pucella2006} specify a predicate logic based based la
 
 \section{Abstract Syntax}
 
-\cite{pucella2006} uses abstract syntax instead of XML to express statements in the ODRL language. The abstract syntax used is a more compact representation than XML based language ODRL policies are written in and furthermore it simplifies specifying the semantics as we shall see. As an example here is an agreement written in ODRL and the comparable agreement expressed in the abstract syntax \cite{pucella2006}.
+Authors of \cite{pucella2006} use abstract syntax instead of XML to express statements in the ODRL language. The abstract syntax used is a more compact representation than XML based language ODRL policies are written in and furthermore it simplifies specifying the semantics as we shall see. As an example here is an agreement written in ODRL and the comparable agreement expressed in the abstract syntax \cite{pucella2006}.
 
 \lstset{language=XML}
 \begin{lstlisting}[caption={agreement for Mary Smith in XML},label={lst:agreementxml}]
@@ -92,7 +92,20 @@ agreement
 \end{minipage} 
 
 % \emph{prin\textsubscript{u}}
-In the following we will cover the \emph{abstract syntax} of a subset of ODRL expressed as Coq's constructs such as \emph{Inductive Types} and Definitions. We will call this subset \emph{ODRL0} both because it is a variation of Pucella's ODRL language and also because it is missing some ODRL constructs such as \emph{Requirements} and \emph{Conditions} - we will add the missing pieces making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing ~\ref{lst:agreementpucella2006} would look like in ODRL0's Coq version.
+In the following we will cover the \emph{abstract syntax} of a subset of ODRL expressed as Coq's constructs such as \emph{Inductive Types} and Definitions. We will call this subset \emph{ODRL0} both because it is a variation of Pucella's ODRL language and also because it is missing some constructs from Pucella's ODRL. 
+
+More precisely, in ODRL0, agreements and facts (i.e. environments) will only contain the number of times each policy has been used to justify an action. In ODRL0 agreements and facts will not contain: \begin{enumerate}
+  \item Which payments have been made
+  \item Which acknowledgments have been made
+\end{enumerate} 
+
+This means \emph{Paid} and \emph{Attributed} predicates are not used in ODRL0. Also removed are related constructs \emph{prepay} and \emph{attribution}. We also had to remove two other constructs based on $prepay$ and $attribution$ out of ODRL0 in \emph{inSeq} and \emph{anySeq}. $prepay$, $attribution$, $inSeq$ and $anySeq$ make up what is called \emph{requirements} in ODRL.
+
+In ODRL a \emph{prerequisite} is either $true$, a $constraint$, a $requirement$ or a $condition$. $true$ is the prerequisite that always holds. Constraints are facts that are outside of control of users. For example, there is nothing $Alice$ can do to satisfy the constraint ``user must be Bob''. Requirements are facts that are in users' control. For example, $Alice$ may satisfy the requirement ``The user must pay 5 dollars''. Finally conditions are constraints that must not hold.
+
+In ODRL0, a prerequisite is either $true$, a $constraint$, or not a $constraint$. So we have removed requirements from the picture and don't have explicit conditions. Conditions are replaced by a category called $NotCons$ directly in the production for prerequisites (see \ref{lst:preRequisiteast}). Note that we have also removed the condition $not[policySet]$ from ODRL since the authors in \cite{pucella2006} have shown the semantics of this component are not well-defined and including it leads to intractability results.
+
+We will add the missing pieces as described above (except for $not[policySet]$) making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing ~\ref{lst:agreementpucella2006} would look like in ODRL0's Coq version.
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Coq version of agreement for Mary Smith},label={lst:marysmithagreementcoq}]
@@ -138,7 +151,7 @@ Principals or prins are composed of \emph{subjects} which are specified based on
 <subject> ::= N
 \end{lstlisting}
 
-Assets are also application specific but similar to subjects we will use specific ones for the DRM application (taken from \cite{pucella2006}). \emph{ebook}, \emph{The Report} and \emph{latestJingle} are examples of specific subjects we will be using throughout. Syntactically an asset is just a positive number (\emph{N}).
+Assets are also application specific but similar to subjects we will use specific ones for the DRM application (taken from \cite{pucella2006}). \emph{ebook}, \emph{The Report} and \emph{latestJingle} are examples of specific subjects we will be using throughout. Syntactically an asset is represented as a natural number (\emph{N}). Similarly for subjects.
 
 % asset
 \lstset{mathescape, language=AST}  
@@ -150,27 +163,27 @@ Agreements include policy sets. Each policy set specifies a \emph{prerequisite} 
 
 
 % policySet
-
-\lstset{mathescape, language=AST}  
+\newcommand*{\Comment}[1]{\hfill\makebox[7.0cm][l]{#1}}%
+\lstset{mathescape, language=AST, escapechar=\&}  
 \begin{lstlisting}[frame=single, caption={policySet},label={lst:policySetast}]
 <policySet> ::=  
-	$\vert$ <PrimitivePolicySet> : <preRequisite> $\rightarrow$ <policy> 
-	$\vert$ <PrimitiveExclusivePolicySet> : <preRequisite> $\mapsto$ <policy>	 
-	$\vert$ <AndPolicySet> : 'and'[ <policySet$_{1}$>, ..., <policySet$_{m}$> ]
+	<preRequisite> $\rightarrow$ <policy>	&\Comment{; primitive policy set }&
+	<preRequisite> $\mapsto$ <policy>		&\Comment{; primitive exclusive policy set }&
+	'and'[ <policySet$_{1}$>, ..., <policySet$_{m}$> ]	&\Comment{; conjunction }&
 \end{lstlisting}
 
 A policy specifies an action to be performed on an asset, depending of whether the policy's prerequisite holds or not. If the prerequisite holds the agreement's user is permitted to perform the action on the agreement's asset; otherwise permission is denied. Similar to policy sets, policies could also be grouped together in a conjunction. The policy also includes a unique identifier. The policy identifier is added to help the translation (from agreements to formulas) but is optional in ODRL proper.
 
 % policy
 
-\lstset{mathescape, language=AST}  
+\lstset{mathescape, language=AST, escapechar=\&}  
 \begin{lstlisting}[frame=single, caption={policy},label={lst:policyast}]
 <policy> ::=  
-	$\vert$ <PrimitivePolicy> : <preRequisite> $\Rightarrow_{<policyId>}$ <act>
-	$\vert$ <AndPolicy> : 'and'[ <policy$_{1}$>, ..., <policy$_{m}$> ]
+	<preRequisite> $\Rightarrow_{<policyId>}$ <act> &\Comment{; primitive policy}&
+	'and'[ <policy$_{1}$>, ..., <policy$_{m}$> ] &\Comment{; conjunction }&
 \end{lstlisting}
 
-An \emph{Action} (\emph{act}) is simply a positive number. Similar to assets and subjects, actions are application specific. Some example actions taken from \cite{pucella2006} are \emph{Display} and \emph{Print}.
+An \emph{Action} (\emph{act}) is represented as a natural number. Similar to assets and subjects, actions are application specific. Some example actions taken from \cite{pucella2006} are \emph{Display} and \emph{Print}.
 
 % act
 \lstset{mathescape, language=AST}  
@@ -190,27 +203,27 @@ In ODRL0 a \emph{prerequisite} is either true or it is a \emph{constraint}. The 
 
 % prq
 
-\lstset{mathescape, language=AST}  
+\lstset{mathescape, language=AST, escapechar=\&}  
 \begin{lstlisting}[frame=single, caption={preRequisite},label={lst:preRequisiteast}]
 <preRequisite> ::=  
-	$\vert$ <TruePrq> : 'True'
-	$\vert$ <Constraint> : <constraint>	 
-	$\vert$ <ForEachMember> : 'ForEachMember' [<prin> ; <constraint$_{1}$>, ..., <constraint$_{m}$> ]	
-	$\vert$ <NotCons> : 'not' [ <constraint> ]
-	$\vert$ <AndPrqs> : 'and'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ]
-	$\vert$ <OrPrqs> : 'or'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ]
-	$\vert$ <XorPrqs> : 'xor'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ]		
+	'True' &\Comment{; always true}&
+	<constraint>	 &\Comment{; constraint}&
+	'ForEachMember' [<prin> ; <constraint$_{1}$>, ..., <constraint$_{m}$> ]	&\Comment{; constraint distribution}&
+	'not' [ <constraint> ] &\Comment{; suspending constraint}&
+	'and'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ] &\Comment{; conjunction }&
+	'or'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ] &\Comment{; disjunction}&
+	'xor'[ <preRequisite$_{1}$>, ..., <preRequisite$_{m}$> ] &\Comment{; exclusive disjunction}&
 \end{lstlisting}
 
 Constraints are either \emph{Principal}, \emph{Count} or \emph{CountByPrin}. Principal constraints basically require matching to specified prins. For example, the user being Alice is a Principal constraint. A count constraint refers to a set of policies \emph{P} and specifies the number of times the user of an agreement has invoked the policies in P to justify her actions. If the count constraint is part of a policy then the set P is composed of the single policy. In the case that the count constraint is part of a policy set, the set P is the set of policies specified in the policy set.
 
 % constraint
-\lstset{mathescape, language=AST}  
+\lstset{mathescape, language=AST, escapechar=\&}  
 \begin{lstlisting}[frame=single, caption={constraint},label={lst:constraintast}]
 <constraint> ::=  
-	$\vert$ <Principal> : <prin>
-	$\vert$ <Count> : 'Count' [N]
-	$\vert$ <CountByPrin> : <prin> ('Count' [N])
+	<prin> &\Comment{; principal}&
+	'Count' [N] &\Comment{; number of executions}&
+	<prin> ('Count' [N]) &\Comment{; number of executions by prin}&
 \end{lstlisting}
 
 % ---------------------------------- COQ -----------------------
