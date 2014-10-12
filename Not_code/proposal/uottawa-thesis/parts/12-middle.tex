@@ -94,7 +94,8 @@ agreement
 % \emph{prin\textsubscript{u}}
 In the following we will cover the \emph{abstract syntax} of a subset of ODRL expressed as Coq's constructs such as \emph{Inductive Types} and Definitions. We will call this subset \emph{ODRL0} both because it is a variation of Pucella's ODRL language and also because it is missing some constructs from Pucella's ODRL. 
 
-More precisely, in ODRL0, agreements and facts (i.e. environments) will only contain the number of times each policy has been used to justify an action. In ODRL0 agreements and facts will not contain: \begin{enumerate}
+\subsection{Odrl0}\label{subsec:odrl0}
+In ODRL0, agreements and facts (i.e. environments) will only contain the number of times each policy has been used to justify an action. In ODRL0 agreements and facts will not contain: \begin{enumerate}
   \item Which payments have been made
   \item Which acknowledgments have been made
 \end{enumerate} 
@@ -312,48 +313,31 @@ Inductive constraint : Set :=
 \section{Semantics}
 \label{sec:Semantics}
 
-In this section, we describe the semantics of ODRL0 language by a translation from each language object (e.g. agreement) to a proposition in \emph{Coq}. The semantics will help answer queries of the form ``may subject \emph{s} perform action \emph{act} to asset \emph{a}?''. If the answer is yes, we say permission is granted. Otherwise permission is denied. 
+In this section, we describe the semantics of ODRL0 language by a translation from agreements to a subset of many-sorted first-order logic formulas with equality. The semantics will help answer queries of the form ``may subject \emph{s} perform action \emph{act} to asset \emph{a}?''. If the answer is yes, we say permission is granted. Otherwise permission is denied. 
 
-Whether a permission is granted or denied depends on the agreements in question but also on the facts recorded in the environment. For ODRL0 those facts revolve around the number of times a policy has been used to justify an action. We encode this information in an \emph{environment} which is a conjunction of equalities of the form \emph{count(s, policyId) = n}. 
 
-The Coq version of the count equality is a new inductive type called \emph{count_equality}. An environment is defined to be a non-empty list of count_equality objects.
+At a high-level, an agreement is translated into a conjunction of formulas of the form $\forall x ( prerequisites(x) \rightarrow P(x))$ where $P(x)$ itself is a conjunction of formulas of the form $ prerequisites(x) \rightarrow (\lnot) Permitted (x, act, a)$, where ``Permitted (x, act, a)'' means the subject $x$ is permitted to perform action $act$ on asset $a$.
 
-\lstset{language=Coq, frame=single, caption={Environments and Counts},label={lst:environmentcoq}}
-\begin{lstlisting}
-Inductive count_equality : Set := 
-   | CountEquality : subject -> policyId -> nat -> count_equality.
+The translation of an $agreement$ returns the translation for a $policySet$ per $prin_{u}$, the agreement's user and $a$, the asset.
 
-Inductive environment : Set := 
-  | SingleEnv : count_equality -> environment
-  | ConsEnv :  count_equality ->  environment -> environment.
 
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Agreement Translation},label={lst:transAgreementast}]
+$[\![ agreement$ $for$ $prin_{u}$ $about$ $a$ $with$ $ps]\!]$ $\triangleq$ $[\![policySet]\!]^{prin_{u}, a}$
 \end{lstlisting}
 
-At a high-level, an agreement is translated into a conjunction of formulas of the form $\forall x ( prerequisites(x) \rightarrow P(x))$ where $P(x)$ itself is a conjunction of formulas of the form $ prerequisites(x) \rightarrow (\lnot) Permitted (x, act, a)$, where $x$ is a variable of type $subject$ that occurs free in $P(x)$, $act$ is an action, $a$ is an asset and lastly $Permitted$ is a \emph{predicate}. A predicate in Coq is any function that returns a term of type \emph{Prop}. Here is how we have specified the $Permitted$ predicate in Coq: $Parameter Permitted : subject -> act -> asset -> Prop.$ So $Permitted$ predicate takes a $subject$, an $act$ (action) and an $asset$ and returns a $Prop$. Note that the notation $(\lnot)$ indicates that $Permitted$ may be negated.
-
-Translation of the top level $agreement$ element proceeds by case analysis on the structure of the agreement. Note that each translation function takes an environment parameter.
+The translation for a $[\![policySet]\!]^{prin_{u}, a}$ is described by describing the translation for each type of $policySet$. A $policySet$ is either a $PrimitivePolicySet$, a $PrimitiveExclusivePolicySet$ or a $AndPolicySet$.
 
 
-\lstset{language=Coq, frame=single, caption={Translation of agreement},label={lst:transagreement}}
-\begin{lstlisting}
-
-Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
-  match ag with 
-    | Agreement prin_u a ps => trans_ps e ps prin_u a
-  end.
-
-\end{lstlisting}
-
-Translation of a $policySet$ takes as input $prin_{u}$, the agreement's user, and $a$, the asset, and proceeds by case analysis of different policySet constructors and recursing into translation functions for the composing elements. A policySet is either a $PrimitivePolicySet$, $PrimitiveExclusivePolicySet$ or a $AndPolicySet$. 
-
-Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields an implication. Basically, if the user is in $prin_{u}$ and the pre-requisite holds, the policy holds.
+Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields a formula that includes a test on whether the subject is in the set of agreements' users, the translation of the policy and the translation of the $prerequisite$. Basically if the subject in question is a user of the agreement and the policySet prerequisites hold, then the policy holds. Translation of the policy for a $PrimitivePolicySet$ is called a \emph{positive translation}. A positive translation is one where the actions described by the policies are permitted.   
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitivePolicySet},label={lst:transpolicyformulaPrimitivePolicySet}]
-$[\![ preRequisite \rightarrow policy]\!]^{e, prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{e, getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, e, prin_{u}, a}_{x}             \!)$
+$[\![ preRequisite \rightarrow policy]\!]^{e, prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{e, getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, e, prin_{u}, a}_{x}\!)$
 \end{lstlisting}
 
-$PrimitiveExclusivePolicySet$ ($preRequisite \mapsto policy$) yields an implication, similar to the translation of a $PrimitivePolicySet$ except we use a second implication to restrict access (to make the policy set exclusive) to only those subjects that are in the agreement's user. As we shall see later the policy's prerequisites will not override the exclusivity of this type of policy set.
+$PrimitiveExclusivePolicySet$ ($preRequisite \mapsto policy$) yields the conjunction of two implications. First implication, is the same as one found in the translation of $PrimitivePolicySet$. The second implication however restricts access (to make the policy set exclusive) to only those subjects that are in the agreement's user. Translation of the policy in the second implication is called a \emph{negative translation}. A negative translation is one where the actions described by the policies are not permitted. 
+
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitiveExclusivePolicySet},label={lst:transpolicyformulaPrimitiveExclusivePolicySet}]
@@ -737,3 +721,43 @@ Fixpoint trans_count
   let running_total := trans_count_aux ids_and_subjects in
   running_total < n.
 \end{lstlisting}
+
+\section{Semantics in Coq}
+\label{sec:Semanticsincoq}
+
+% COQ
+
+A predicate in Coq is any function that returns a term of type \emph{Prop}. Here is how we have specified the $Permitted$ predicate in Coq: $Parameter Permitted : subject -> act -> asset -> Prop.$ So $Permitted$ predicate takes a $subject$, an $act$ (action) and an $asset$ and returns a $Prop$. Note that the notation $(\lnot)$ indicates that $Permitted$ may be negated.
+
+
+Whether a permission is granted or denied depends on the agreements in question but also on the facts recorded in the environment. For ODRL0 those facts revolve around the number of times a policy has been used to justify an action (see \ref{subsec:odrl0} for more details on odrl0). We encode this information in an \emph{environment} which is a conjunction of equalities of the form \emph{count(s, policyId) = n}. 
+
+% COQ
+The Coq version of the count equality is a new inductive type called \emph{count_equality}. An environment is defined to be a non-empty list of count_equality objects.
+
+\lstset{language=Coq, frame=single, caption={Environments and Counts},label={lst:environmentcoq}}
+\begin{lstlisting}
+Inductive count_equality : Set := 
+   | CountEquality : subject -> policyId -> nat -> count_equality.
+
+Inductive environment : Set := 
+  | SingleEnv : count_equality -> environment
+  | ConsEnv :  count_equality ->  environment -> environment.
+
+\end{lstlisting}
+
+
+Translation of the top level $agreement$ element proceeds by case analysis on the structure of the agreement. Note that each translation function takes an environment parameter.
+
+
+\lstset{language=Coq, frame=single, caption={Translation of agreement},label={lst:transagreement}}
+\begin{lstlisting}
+
+Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
+  match ag with 
+    | Agreement prin_u a ps => trans_ps e ps prin_u a
+  end.
+
+\end{lstlisting}
+
+Translation of a $policySet$ takes as input $prin_{u}$, the agreement's user, and $a$, the asset, and proceeds by case analysis of different policySet constructors and recursing into translation functions for the composing elements. A policySet is either a $PrimitivePolicySet$, $PrimitiveExclusivePolicySet$ or a $AndPolicySet$. 
