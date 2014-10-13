@@ -10,7 +10,7 @@
 
 Formal logic can represent the statements and facts we express in a natural language like English. Propositional logic is expressive enough to express simple facts as propositions and uses connectives to allow for the negation, conjunction and disjunction of the facts. However propositional logic is not expressive enough to express policies of the kind used in languages like ODRL and XrML. For example, a simple policy expressed in English like ``All who pay 5 dollars can watch the movie Toy Story'' cannot be expressed in propositional logic because the concept of  variables doesn't exist in propositional logic. 
 
-A richer logic called ``Predicate Logic'' or ``First Order Logic'' \emph{FOL} is more suitable and has the expressive power to represent policies written in English. Moreover, FOL can be used to capture the meaning of policies in an unambiguous way.
+A richer logic called ``Predicate Logic'' or ``First Order Logic'' (\emph{FOL}) is more suitable and has the expressive power to represent policies written in English. Moreover, FOL can be used to capture the meaning of policies in an unambiguous way.
 
 Halpern and Weissman [Using First Order Logic to Reason about Policies] propose a fragment of FOL to represent and reason about policies. The fragment of FOL they arrive at is called \emph{Lithium} which is decidable and allows for efficiently answering interesting queries. Lithium restricts policies to be written based on the concept of ``bipolarity'' which disallows by construction policies that both permit and deny an action on an object.
 
@@ -130,7 +130,7 @@ Agreement (Single MarySmith) Treasure Island
 %\coqdocemptyline
 %\coqdocemptyline
 
-The top level ODRL0 production is the \emph{agreement}. An agreement expresses what actions a set of subjects may perform on an object and under what conditions. Syntactically an agreement is composed of a set of subjects/users called a \emph{principal} (\emph{prin}), an \emph{asset} and a \emph{Policy Set} (\emph{PolicySet}).
+The top level ODRL0 production is the \emph{agreement}. An agreement expresses what actions a set of subjects may perform on an object and under what conditions. Syntactically an agreement is composed of a set of subjects/users called a \emph{principal} or \emph{prin}, an \emph{asset} and a \emph{policySet}.
 
 % agreement
 \lstset{language=AST}
@@ -318,6 +318,7 @@ In this section, we describe the semantics of ODRL0 language by a translation fr
 
 At a high-level, an agreement is translated into a conjunction of formulas of the form $\forall x ( prerequisites(x) \rightarrow P(x))$ where $P(x)$ itself is a conjunction of formulas of the form $ prerequisites(x) \rightarrow (\lnot) Permitted (x, act, a)$, where ``Permitted (x, act, a)'' means the subject $x$ is permitted to perform action $act$ on asset $a$.
 
+\subsection{Agreement Translation}
 The translation of an $agreement$ returns the translation for a $policySet$ per $prin_{u}$, the agreement's user and $a$, the asset.
 
 
@@ -326,9 +327,10 @@ The translation of an $agreement$ returns the translation for a $policySet$ per 
 $[\![ agreement$ $for$ $prin_{u}$ $about$ $a$ $with$ $ps]\!]$ $\triangleq$ $[\![policySet]\!]^{prin_{u}, a}$
 \end{lstlisting}
 
-The translation for a $[\![policySet]\!]^{prin_{u}, a}$ is described by describing the translation for each type of $policySet$. A $policySet$ is either a $PrimitivePolicySet$, a $PrimitiveExclusivePolicySet$ or a $AndPolicySet$.
+\subsection{Policy Set Translation}
+The translation for a $policySet$ ($[\![policySet]\!]^{prin_{u}, a}$) is described by translation formulas for each type of $policySet$. A $policySet$ is either a $PrimitivePolicySet$, a $\linebreak PrimitiveExclusivePolicySet$ or a $AndPolicySet$.
 
-
+\subsubsection{PrimitivePolicySet Translation}
 Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields a formula that includes a test on whether the subject is in the set of agreements' users, the translation of the policy and the translation of the $prerequisite$. Basically if the subject in question is a user of the agreement and the policySet prerequisites hold, then the policy holds. Translation of the policy for a $PrimitivePolicySet$ is called a \emph{positive translation}. A positive translation is one where the actions described by the policies are permitted.   
 
 \lstset{mathescape, language=AST}  
@@ -336,94 +338,15 @@ Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields
 $[\![ preRequisite \rightarrow policy]\!]^{e, prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{e, getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, e, prin_{u}, a}_{x}\!)$
 \end{lstlisting}
 
-$PrimitiveExclusivePolicySet$ ($preRequisite \mapsto policy$) yields the conjunction of two implications. First implication, is the same as one found in the translation of $PrimitivePolicySet$. The second implication however restricts access (to make the policy set exclusive) to only those subjects that are in the agreement's user. Translation of the policy in the second implication is called a \emph{negative translation}. A negative translation is one where the actions described by the policies are not permitted. 
 
 
-\lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitiveExclusivePolicySet},label={lst:transpolicyformulaPrimitiveExclusivePolicySet}]
-$[\![ preRequisite \mapsto policy]\!]^{e, prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{e, getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, e, prin_{u}, a}_{x}\!)$ $\land$ $\forall x$ $(\neg[\![prin_{u}]\!]_{x} \rightarrow [\![policy]\!]^{negative, e, a}_{x})$
-\end{lstlisting}
-
-$AndPolicySet$ translates to conjunctions of the corresponding policy set translations. 
-
-\lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} AndPolicySet},label={lst:transpolicyformulaAndPolicySet}]
-$[\![ and [policySet_{1}, ..., policySet_{m}]]\!]^{e, prin_{u}, a}$ $\triangleq$ $[\![policySet_{1}]\!]^{e, prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policySet_{m}]\!]^{e, prin_{u}, a}$
-
-\end{lstlisting}
-
-The Coq version of the policy set translation function follows (listing ~\ref{lst:transps}).
-
-\lstset{language=Coq, frame=single, caption={Translation of Policy Set},label={lst:transps}}
-\begin{minipage}{\linewidth}
-\begin{lstlisting}
-
-Fixpoint trans_ps
-  (e:environment)(ps:policySet)(prin_u:prin)(a:asset){struct ps} : Prop :=
-
-let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:prin)(a:asset){struct ps_list}:=
-  match ps_list with
-    | Single ps1 => trans_ps e ps1 prin_u a
-    | NewList ps ps_list' => ((trans_ps e ps prin_u a) /\ (trans_ps_list ps_list' prin_u a))
-  end) in
-    match ps with
-    | PrimitivePolicySet prq p => forall x, (((trans_prin x prin_u) /\ 
-                                   (trans_preRequisite e x prq (getId p) prin_u)) -> 
-                                   (trans_policy_positive e x p prin_u a))  
-
-    | PrimitiveExclusivePolicySet prq p => forall x, ((((trans_prin x prin_u) /\ 
-                                              (trans_preRequisite e x prq (getId p) prin_u)) -> 
-                                             (trans_policy_positive e x p prin_u a)) /\
-                                            ((not (trans_prin x prin_u)) -> (trans_policy_negative e x p a)))
-                   
-    | AndPolicySet ps_list => trans_ps_list ps_list prin_u a
-    end.
-\end{lstlisting}
-\end{minipage}
-
-Translation of a \emph{prin_{u}} takes as input $x$, a variable of type $subject$ and proceeds based on whether we have a single subject or a list of subjects.  
-
-Translation of a single $prin_{u}$ yields a formula that is true if and only if the subject $x$ is the same as the single subject.
-
-\lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Prin Translation {$\colon$} Single subject},label={lst:transprinSingle}]
-$[\![ subject ]\!]_{x}$ $\triangleq$ $x=subject$
-\end{lstlisting}
-
-
-Translation of a list of subjects is the conjunction of the translations of each subject.
-
-\lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Prin Translation {$\colon$} List of subjects},label={lst:transprinListOfSubjects}]
-
-$[\![ \{ subject_{1}, ..., subject_{m} \} ]\!]_{x}$ $\triangleq$ $[\![subject_{1}]\!]_{x}$ $\lor$ $...$ $\lor$ $[\![subject_{m}]\!]_{x}$
-
-\end{lstlisting}
-
-\lstset{language=Coq, frame=single, caption={Translation of a Prin},label={lst:transprin}}
-\begin{lstlisting}
-
-Fixpoint trans_prin
-  (x:subject)(p: prin): Prop :=
-
-  match p with
-    | Single s => (x=s)
-    | NewList s rest => ((x=s) \/ trans_prin x rest)
-  end.
-\end{lstlisting}
-
-
-Depending on whether a permission is granted or not we define two translations for policies. A positive translation and a negatives one. 
-
-A positive translation for a policy $p$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $a$, the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is permitted to do $act$ to $a$, if the $preRequisite$ holds.
-
-
-\lstset{mathescape, language=AST}  
+\lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={Positive Policy Translation {$\colon$} Single policy},label={lst:transpolicypositiveSingle}]
 
 $[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{positive, e, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{e, policyId, prin_{u}}_{x}) \Rightarrow Permitted(x, [\![act]\!], a)$
 
 \end{lstlisting}
+
 
 If the policy is a $AndPolicy$, the translation yields a conjunction of positive translations of each policy in turn.
 
@@ -435,31 +358,14 @@ $[\![ and [policy_{1}, ..., policy_{m}]]\!]^{positive, e, prin_{u}, a}$ $\triang
 \end{lstlisting}
 
 
-
-\lstset{language=Coq, frame=single, caption={Translation of a positive policy},label={lst:transpolicypositiveCoq}}
-\begin{lstlisting}
-
-Fixpoint trans_policy_positive
-  (e:environment)(x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} : Prop :=
-
-let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(a:asset){struct p_list}:=
-                  match p_list with
-                    | Single p1 => trans_policy_positive e x p1 prin_u a
-                    | NewList p p_list' => 
-                        ((trans_policy_positive e x p prin_u a) /\ 
-                         (trans_p_list p_list' prin_u a))
-                  end) in
+\subsubsection{PrimitiveExclusivePolicySet Translation}
+$PrimitiveExclusivePolicySet$ ($preRequisite \mapsto policy$) yields the conjunction of two implications. The first implication, is the same as one found in the translation of $PrimitivePolicySet$. The second implication however restricts access (to make the policy set exclusive) to only those subjects that are in the agreement's user. Translation of the policy in the second implication is called a \emph{negative translation}. A negative translation is one where the actions described by the policies are not permitted. 
 
 
-  match p with
-    | PrimitivePolicy prq policyId action => ((trans_preRequisite e x prq (Single policyId) prin_u) ->
-                                              (Permitted x action a))
-    | AndPolicy p_list => trans_p_list p_list prin_u a
-  end.
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitiveExclusivePolicySet},label={lst:transpolicyformulaPrimitiveExclusivePolicySet}]
+$[\![ preRequisite \mapsto policy]\!]^{e, prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{e, getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, e, prin_{u}, a}_{x}\!)$ $\land$ $\forall x$ $(\neg[\![prin_{u}]\!]_{x} \rightarrow [\![policy]\!]^{negative, e, a}_{x})$
 \end{lstlisting}
-
-
-A negative translation for a policy $p$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $a$, the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is forbidden to do $act$ to $a$ regardless of whether $preRequisite$ holds.
 
 
 \lstset{mathescape, language=AST}  
@@ -475,31 +381,47 @@ If the policy is a $AndPolicy$, the translation yields a conjunction of negative
 
 $[\![ and [policy_{1}, ..., policy_{m}]]\!]^{negative, e, a}$ $\triangleq$ $[\![policy_{1}]\!]^{negative, e, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{negative, e, a}$
 
+\end{lstlisting}
+
+\subsubsection{AndPolicySet Translation}
+$AndPolicySet$ translates to conjunctions of the corresponding policy set translations. 
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} AndPolicySet},label={lst:transpolicyformulaAndPolicySet}]
+$[\![ and [policySet_{1}, ..., policySet_{m}]]\!]^{e, prin_{u}, a}$ $\triangleq$ $[\![policySet_{1}]\!]^{e, prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policySet_{m}]\!]^{e, prin_{u}, a}$
 
 \end{lstlisting}
 
-\lstset{language=Coq, frame=single, caption={Translation of a negative policy},label={lst:transpolicynegative}}
-\begin{lstlisting}
-
-Fixpoint trans_policy_negative
-  (e:environment)(x:subject)(p:policy)(a:asset){struct p} : Prop :=
-let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){struct p_list}:=
-                  match p_list with
-                    | Single p1 => trans_policy_negative e x p1 a
-                    | NewList p p_list' => ((trans_policy_negative e x p a) /\ 
-                                            (trans_p_list p_list' a))
-                  end) in
+\subsection{Principal Translation}
+Translation for a \emph{prin} ($[\![ prin ]\!]_{x}$) is a formula that is true if and only if the subject $x$ is in the prin set. A $prin$ is either a single subject or a list of subjects ($\{ subject_{1}, ..., subject_{m} \}$ so the translation covers both cases. 
 
 
-  match p with
-    | PrimitivePolicy prq policyId action => not (Permitted x action a)
-    | AndPolicy p_list => trans_p_list p_list a
-  end.
+If the $prin$ is a single subject, the translation is a formula that is true if and only if the subject $x$ is the same as the single subject $subject$.
+
+\subsubsection{Single Subject Translation}
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prin Translation {$\colon$} Single subject},label={lst:transprinSingle}]
+$[\![ subject ]\!]_{x}$ $\triangleq$ $x=subject$
+\end{lstlisting}
+
+\subsubsection{List of Subjects Translation}
+Translation of a list of subjects is the disjunction of the translations for each subject.
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Prin Translation {$\colon$} List of subjects},label={lst:transprinListOfSubjects}]
+
+$[\![ \{ subject_{1}, ..., subject_{m} \} ]\!]_{x}$ $\triangleq$ $[\![subject_{1}]\!]_{x}$ $\lor$ $...$ $\lor$ $[\![subject_{m}]\!]_{x}$
 
 \end{lstlisting}
 
-The translation of a $prerequisite$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $IDs$, the set of identifiers (of policies implied by the $prerequisite$) and proceeds by case analysis on the structure of the $prerequisite$. A $prerequisite$ is either a $TruePrq$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$.
 
+
+
+\subsection{Prerequisite Translation}
+
+Translation for a prerequisite is a formula $[\![prerequisite]\!]^{[id_{1}, ..., id_{m}], prin, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the prerequisites, $prin$ is the agreement's user(s) (and to which the prerequisites apply), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $prerequisite$ is described by translation formulas for each type of $prerequisite$. A $prerequisite$ is either always $true$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$.
+
+\subsubsection{True Prerequisite Translation}
 The translation for a $TruePrq$ yields a formula that is always \emph{true}.
 
 \lstset{mathescape, language=AST}  
@@ -507,6 +429,7 @@ The translation for a $TruePrq$ yields a formula that is always \emph{true}.
 	$[\![ prerequisite::true ]\!]$ $\triangleq$ True
 \end{lstlisting}
 
+\subsubsection{Constraint Prerequisite Translation}
 The translation for a $Constraint$ is handled by a specialized constraint translation function (coverage of which starts at ~\ref{lst:transconstraintPrin}.
 
 \lstset{mathescape, language=AST}  
@@ -515,6 +438,7 @@ The translation for a $Constraint$ is handled by a specialized constraint transl
 $[\![ prerequisite::constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $[\![ constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
 \end{lstlisting}
 
+\subsubsection{ForEachMember Prerequisite Translation}
 The translation for a $ForEachMember$ is also is handled by a specialized translation function (covered at ~\ref{lst:transforEachMember}.
 
 \lstset{mathescape, language=AST}  
@@ -523,6 +447,7 @@ The translation for a $ForEachMember$ is also is handled by a specialized transl
 $[\![ prerequisite::forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], [id_{1}, ..., id_{n}]}_{x}$ $\triangleq$ $[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], [id_{1}, ..., id_{n}]}_{x}$ 	
 \end{lstlisting}
 
+\subsubsection{NotCons Prerequisite Translation}
 The translation for a $NotCons$ yields a formula that is simply the negation of the translation for a constraint.
 
 \lstset{mathescape, language=AST}  
@@ -531,6 +456,7 @@ The translation for a $NotCons$ yields a formula that is simply the negation of 
 $[\![ not$ $prerequisite::constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $\lnot[\![ constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
 \end{lstlisting}
 
+\subsubsection{AndPrqs Prerequisite Translation}
 The translation for a $AndPrqs$ yields a formula that is the conjunction of the translation for each $preRequisite$.
 
 \lstset{mathescape, language=AST}  
@@ -540,6 +466,7 @@ $[\![and$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}],
 
 \end{lstlisting}
 
+\subsubsection{OrPrqs Prerequisite Translation}
 The translation for a $OrPrqs$ yields a formula that is the inclusive disjunction of the translation for each $preRequisite$.
 
 \lstset{mathescape, language=AST}  
@@ -549,6 +476,7 @@ $[\![or$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}], 
 
 \end{lstlisting}
 
+\subsubsection{XorPrqs Prerequisite Translation}
 The translation for a $XorPrqs$ yields a formula that is the exclusive disjunction of the translation for each $preRequisite$.
 
 
@@ -559,28 +487,10 @@ $[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}],
 
 \end{lstlisting}
 
-The Coq version of the translate function for a $preRequisite$ is given in ~\ref{lst:transpreRequisite}. Note that in this listing the translations for $AndPrqs$, $OrPrqs$ and $XorPrqs$ have not yet been done.
 
-\lstset{language=Coq, frame=single, caption={Translation of a PreRequisite},label={lst:transpreRequisite}}
-\begin{lstlisting}
-
-Definition trans_preRequisite
-  (e:environment)(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin) : Prop := 
-
-  match prq with
-    | TruePrq => True
-    | Constraint const => trans_constraint e x const IDs prin_u 
-    | ForEachMember prn const_list => trans_forEachMember e x prn const_list IDs 
-    | NotCons const => trans_notCons e x const IDs prin_u 
-    | AndPrqs prqs => True 
-    | OrPrqs prqs => True 
-    | XorPrqs prqs => True 
-  end.
-\end{lstlisting}
+\subsection{Constraint Translation}
 
 
-
-The translation of a $constraint$ takes as input $e$, the $environment$, $x$, the $subject$ and $IDs$, the set of identifiers (of policies implied by the $constraint$) and proceeds by case analysis on the structure of the $constraint$. A $constraint$ is either a $Principal$, a $Count$ or a $CountByPrin$.
 
 The translation for a $Principal$ is handled by a specialized translation function (covered at ~\ref{lst:transprin}.   
 
@@ -606,27 +516,6 @@ The translation for a $CountByPrin$ is handled by the same specialized translati
 $[\![ constraint::prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], [id_{1}, ..., id_{n}]}_{x}$ $\triangleq$ $[\![ prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], [id_{1}, ..., id_{n}]}_{x}$ 
 \end{lstlisting}
 
-The Coq version of the translate function for a $constraint$ is given in ~\ref{lst:transconstraint}. 
-
-\lstset{language=Coq, frame=single, caption={Translation of a Constraint},label={lst:transconstraint}}
-\begin{lstlisting}
-
-Fixpoint trans_constraint 
-  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)
-  (prin_u:prin){struct const} : Prop := 
-  match const with
-    | Principal prn => trans_prin x prn
-  
-    | Count n => trans_count e n IDs prin_u 
-
-    | CountByPrin prn n => trans_count e n IDs prn 
-
-  end.
-  
-\end{lstlisting}
-
-
-The translation for $forEachMember$ yields a formula that is true, if each subject mentioned in $forEachMember$ is met by each constraint mentioned in $forEachMember$. Note that the agreement's user $prin_{u}$ maybe overriden by a $forEachConstraint$ constraint. 
 
 
 \lstset{mathescape, language=AST}  
@@ -636,29 +525,6 @@ $[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ...,
 
 \end{lstlisting}
 
-\lstset{language=Coq, frame=single, caption={Translation of forEachMember},label={lst:transforEachMember}}
-\begin{lstlisting}
-
-Fixpoint trans_forEachMember
-         (e:environment)(x:subject)(principals: nonemptylist subject)(const_list:nonemptylist constraint)
-         (IDs:nonemptylist policyId){struct const_list} : Prop := 
-
-let trans_forEachMember_Aux   
-  := (fix trans_forEachMember_Aux
-         (prins_and_constraints : nonemptylist (Twos subject constraint))
-         (IDs:nonemptylist policyId){struct prins_and_constraints} : Prop :=
-
-      match prins_and_constraints with
-        | Single pair1 => trans_constraint e x (right pair1) IDs (Single (left pair1)) 
-        | NewList pair1 rest_pairs =>
-            (trans_constraint e x (right pair1) IDs (Single (left pair1))) /\
-            (trans_forEachMember_Aux rest_pairs IDs)
-      end) in
-
-      let prins_and_constraints := process_two_lists principals const_list in
-      trans_forEachMember_Aux prins_and_constraints IDs.
-
-\end{lstlisting}
 
 
 The translation for ``Not Constraint'' was listed in listing ~\ref{lst:transpreRequisiteNotConstraint} earlier but we repeat it here to go along the Coq version. 
@@ -670,13 +536,7 @@ $[\![ not$ $constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ 
 
 \end{lstlisting}
 
-\lstset{language=Coq, frame=single, caption={Translation of not cons},label={lst:transnotCons}}
-\begin{lstlisting}
 
-Definition trans_notCons
-  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin) : Prop :=
-  ~ (trans_constraint e x const IDs prin_u).
-\end{lstlisting}
 
 The translation for $Count$ or $CountByPrin$ for a pair of subject and policy identifier is a formula that is true if the number of times the $subject_{1}$ has invoked a policy with policy identifier $id_{1}$ is smaller than $N$.
 
@@ -701,26 +561,7 @@ $(getCount(getSubject(prn)_{1}, id_{1})$ $+ ... +$ $getCount(getSubject(prn)_{1}
 
 
 
-\lstset{language=Coq, frame=single, caption={Translation of count},label={lst:transcount}}
-\begin{lstlisting}
-Fixpoint trans_count 
-  (e:environment)(n:nat)(IDs:nonemptylist policyId)
-  (prin_u:prin) : Prop := 
 
-  let trans_count_aux 
-    := (fix trans_count_aux
-         (ids_and_subjects : nonemptylist (Twos policyId subject)) : nat :=
-     match ids_and_subjects with
-        | Single pair1 => getCount e (right pair1) (left pair1)
-        | NewList pair1 rest_pairs =>
-            (getCount e (right pair1)(left pair1)) +
-            (trans_count_aux rest_pairs)
-      end) in
-  
-  let ids_and_subjects := process_two_lists IDs prin_u in
-  let running_total := trans_count_aux ids_and_subjects in
-  running_total < n.
-\end{lstlisting}
 
 \section{Semantics in Coq}
 \label{sec:Semanticsincoq}
@@ -761,3 +602,199 @@ Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
 \end{lstlisting}
 
 Translation of a $policySet$ takes as input $prin_{u}$, the agreement's user, and $a$, the asset, and proceeds by case analysis of different policySet constructors and recursing into translation functions for the composing elements. A policySet is either a $PrimitivePolicySet$, $PrimitiveExclusivePolicySet$ or a $AndPolicySet$. 
+
+The Coq version of the policy set translation function follows (listing ~\ref{lst:transps}).
+
+\lstset{language=Coq, frame=single, caption={Translation of Policy Set},label={lst:transps}}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}
+
+Fixpoint trans_ps
+  (e:environment)(ps:policySet)(prin_u:prin)(a:asset){struct ps} : Prop :=
+
+let trans_ps_list := (fix trans_ps_list (ps_list:nonemptylist policySet)(prin_u:prin)(a:asset){struct ps_list}:=
+  match ps_list with
+    | Single ps1 => trans_ps e ps1 prin_u a
+    | NewList ps ps_list' => ((trans_ps e ps prin_u a) /\ (trans_ps_list ps_list' prin_u a))
+  end) in
+    match ps with
+    | PrimitivePolicySet prq p => forall x, (((trans_prin x prin_u) /\ 
+                                   (trans_preRequisite e x prq (getId p) prin_u)) -> 
+                                   (trans_policy_positive e x p prin_u a))  
+
+    | PrimitiveExclusivePolicySet prq p => forall x, ((((trans_prin x prin_u) /\ 
+                                              (trans_preRequisite e x prq (getId p) prin_u)) -> 
+                                             (trans_policy_positive e x p prin_u a)) /\
+                                            ((not (trans_prin x prin_u)) -> (trans_policy_negative e x p a)))
+                   
+    | AndPolicySet ps_list => trans_ps_list ps_list prin_u a
+    end.
+\end{lstlisting}
+\end{minipage}
+
+
+
+% COQ
+Translation of a \emph{prin} is a formula takes as input $x$, a variable of type $subject$ and proceeds based on whether we have a single subject or a list of subjects.  
+
+Translation of a single $prin_{u}$ yields a formula that is true if and only if the subject $x$ is the same as the single subject.
+
+\lstset{language=Coq, frame=single, caption={Translation of a Prin},label={lst:transprin}}
+\begin{lstlisting}
+
+Fixpoint trans_prin
+  (x:subject)(p: prin): Prop :=
+
+  match p with
+    | Single s => (x=s)
+    | NewList s rest => ((x=s) \/ trans_prin x rest)
+  end.
+\end{lstlisting}
+
+ 
+
+A positive translation for a policy $p$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $a$, the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is permitted to do $act$ to $a$, if the $preRequisite$ holds.
+
+\lstset{language=Coq, frame=single, caption={Translation of a positive policy},label={lst:transpolicypositiveCoq}}
+\begin{lstlisting}
+
+Fixpoint trans_policy_positive
+  (e:environment)(x:subject)(p:policy)(prin_u:prin)(a:asset){struct p} : Prop :=
+
+let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(a:asset){struct p_list}:=
+                  match p_list with
+                    | Single p1 => trans_policy_positive e x p1 prin_u a
+                    | NewList p p_list' => 
+                        ((trans_policy_positive e x p prin_u a) /\ 
+                         (trans_p_list p_list' prin_u a))
+                  end) in
+
+
+  match p with
+    | PrimitivePolicy prq policyId action => ((trans_preRequisite e x prq (Single policyId) prin_u) ->
+                                              (Permitted x action a))
+    | AndPolicy p_list => trans_p_list p_list prin_u a
+  end.
+\end{lstlisting}
+
+A negative translation for a policy $p$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $a$, the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is forbidden to do $act$ to $a$ regardless of whether $preRequisite$ holds.
+
+
+\lstset{language=Coq, frame=single, caption={Translation of a negative policy},label={lst:transpolicynegative}}
+\begin{lstlisting}
+
+Fixpoint trans_policy_negative
+  (e:environment)(x:subject)(p:policy)(a:asset){struct p} : Prop :=
+let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){struct p_list}:=
+                  match p_list with
+                    | Single p1 => trans_policy_negative e x p1 a
+                    | NewList p p_list' => ((trans_policy_negative e x p a) /\ 
+                                            (trans_p_list p_list' a))
+                  end) in
+
+
+  match p with
+    | PrimitivePolicy prq policyId action => not (Permitted x action a)
+    | AndPolicy p_list => trans_p_list p_list a
+  end.
+
+\end{lstlisting}
+
+The translation of a $prerequisite$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $IDs$, the set of identifiers (of policies implied by the $prerequisite$) and proceeds by case analysis on the structure of the $prerequisite$. A $prerequisite$ is either a $TruePrq$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$.
+
+The Coq version of the translate function for a $preRequisite$ is given in ~\ref{lst:transpreRequisite}. Note that in this listing the translations for $AndPrqs$, $OrPrqs$ and $XorPrqs$ have not yet been done.
+
+\lstset{language=Coq, frame=single, caption={Translation of a PreRequisite},label={lst:transpreRequisite}}
+\begin{lstlisting}
+
+Definition trans_preRequisite
+  (e:environment)(x:subject)(prq:preRequisite)(IDs:nonemptylist policyId)(prin_u:prin) : Prop := 
+
+  match prq with
+    | TruePrq => True
+    | Constraint const => trans_constraint e x const IDs prin_u 
+    | ForEachMember prn const_list => trans_forEachMember e x prn const_list IDs 
+    | NotCons const => trans_notCons e x const IDs prin_u 
+    | AndPrqs prqs => True 
+    | OrPrqs prqs => True 
+    | XorPrqs prqs => True 
+  end.
+\end{lstlisting}
+
+The translation of a $constraint$ takes as input $e$, the $environment$, $x$, the $subject$ and $IDs$, the set of identifiers (of policies implied by the $constraint$) and proceeds by case analysis on the structure of the $constraint$. A $constraint$ is either a $Principal$, a $Count$ or a $CountByPrin$.
+
+The Coq version of the translate function for a $constraint$ is given in ~\ref{lst:transconstraint}. 
+
+\lstset{language=Coq, frame=single, caption={Translation of a Constraint},label={lst:transconstraint}}
+\begin{lstlisting}
+
+Fixpoint trans_constraint 
+  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)
+  (prin_u:prin){struct const} : Prop := 
+  match const with
+    | Principal prn => trans_prin x prn
+  
+    | Count n => trans_count e n IDs prin_u 
+
+    | CountByPrin prn n => trans_count e n IDs prn 
+
+  end.
+  
+\end{lstlisting}
+
+
+The translation for $forEachMember$ yields a formula that is true, if each subject mentioned in $forEachMember$ is met by each constraint mentioned in $forEachMember$. Note that the agreement's user $prin_{u}$ maybe overriden by a $forEachConstraint$ constraint. 
+
+\lstset{language=Coq, frame=single, caption={Translation of forEachMember},label={lst:transforEachMember}}
+\begin{lstlisting}
+
+Fixpoint trans_forEachMember
+         (e:environment)(x:subject)(principals: nonemptylist subject)(const_list:nonemptylist constraint)
+         (IDs:nonemptylist policyId){struct const_list} : Prop := 
+
+let trans_forEachMember_Aux   
+  := (fix trans_forEachMember_Aux
+         (prins_and_constraints : nonemptylist (Twos subject constraint))
+         (IDs:nonemptylist policyId){struct prins_and_constraints} : Prop :=
+
+      match prins_and_constraints with
+        | Single pair1 => trans_constraint e x (right pair1) IDs (Single (left pair1)) 
+        | NewList pair1 rest_pairs =>
+            (trans_constraint e x (right pair1) IDs (Single (left pair1))) /\
+            (trans_forEachMember_Aux rest_pairs IDs)
+      end) in
+
+      let prins_and_constraints := process_two_lists principals const_list in
+      trans_forEachMember_Aux prins_and_constraints IDs.
+
+\end{lstlisting}
+
+
+\lstset{language=Coq, frame=single, caption={Translation of not cons},label={lst:transnotCons}}
+\begin{lstlisting}
+
+Definition trans_notCons
+  (e:environment)(x:subject)(const:constraint)(IDs:nonemptylist policyId)(prin_u:prin) : Prop :=
+  ~ (trans_constraint e x const IDs prin_u).
+\end{lstlisting}
+
+\lstset{language=Coq, frame=single, caption={Translation of count},label={lst:transcount}}
+\begin{lstlisting}
+Fixpoint trans_count 
+  (e:environment)(n:nat)(IDs:nonemptylist policyId)
+  (prin_u:prin) : Prop := 
+
+  let trans_count_aux 
+    := (fix trans_count_aux
+         (ids_and_subjects : nonemptylist (Twos policyId subject)) : nat :=
+     match ids_and_subjects with
+        | Single pair1 => getCount e (right pair1) (left pair1)
+        | NewList pair1 rest_pairs =>
+            (getCount e (right pair1)(left pair1)) +
+            (trans_count_aux rest_pairs)
+      end) in
+  
+  let ids_and_subjects := process_two_lists IDs prin_u in
+  let running_total := trans_count_aux ids_and_subjects in
+  running_total < n.
+\end{lstlisting}
