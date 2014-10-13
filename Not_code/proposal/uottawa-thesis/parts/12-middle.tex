@@ -490,8 +490,9 @@ $[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}],
 
 \subsection{Constraint Translation}
 
+Translation for a constraint is a formula $[\![constraint]\!]^{[id_{1}, ..., id_{m}], prin_{u}, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the constraint, $prin_{u}$ is the agreement's user(s) (and to which the constraint applies), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $constraint$ is described by translation formulas for each type of $constraint$. A $constraint$ is either a $Principal$, a $Count$, or a $CountByPrin$.
 
-
+\subsubsection{Principal Constraint Translation}
 The translation for a $Principal$ is handled by a specialized translation function (covered at ~\ref{lst:transprin}.   
 
 \lstset{mathescape, language=AST}  
@@ -500,6 +501,7 @@ The translation for a $Principal$ is handled by a specialized translation functi
 $[\![ constraint::prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ $\triangleq$ $[\![ prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ 
 \end{lstlisting}
 
+\subsubsection{Count Constraint Translation}
 The translation for a $Count$ is handled by a specialized translation function (covered at ~\ref{lst:transcount}.
 
 \lstset{mathescape, language=AST}  
@@ -508,6 +510,7 @@ The translation for a $Count$ is handled by a specialized translation function (
 $[\![ constraint::count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ $[\![ count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ 
 \end{lstlisting}
 
+\subsubsection{CountByPrin Constraint Translation}
 The translation for a $CountByPrin$ is handled by the same specialized translation function as that for $Count$. The difference is that $CountByPrin$ overrides the subjects in $prin_{u}$ by a different set of subjects (covered at ~\ref{lst:transcount}.
 
 \lstset{mathescape, language=AST}  
@@ -517,6 +520,7 @@ $[\![ constraint::prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], [id_{1}
 \end{lstlisting}
 
 
+\subsection{forEachMember Translation}
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={ForEachMember Translation {$\colon$} Count by Principal},label={lst:transforEachMember}]
@@ -525,7 +529,7 @@ $[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ...,
 
 \end{lstlisting}
 
-
+\subsection{''Not Constraint" Translation}
 
 The translation for ``Not Constraint'' was listed in listing ~\ref{lst:transpreRequisiteNotConstraint} earlier but we repeat it here to go along the Coq version. 
 
@@ -536,8 +540,8 @@ $[\![ not$ $constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ 
 
 \end{lstlisting}
 
-
-
+\subsection{Count Translation}
+\subsubsection{Count Translation For Subject/ID Pair}
 The translation for $Count$ or $CountByPrin$ for a pair of subject and policy identifier is a formula that is true if the number of times the $subject_{1}$ has invoked a policy with policy identifier $id_{1}$ is smaller than $N$.
 
 \lstset{mathescape, language=AST}  
@@ -546,6 +550,7 @@ The translation for $Count$ or $CountByPrin$ for a pair of subject and policy id
 $[\![ count [N] ]\!]^{subject_{1}, id_{1}}_{x}$ $\triangleq$ $getCount(subject_{1}, id_{1}) < N$
 \end{lstlisting}
 
+\subsubsection{Count Translation For Subject/ID Pairs}
 The translation for $Count$ or $CountByPrin$ for subject and policy identifier pairs is a formula that is true if the total number of times that a subject has invoked a policy with policy identifier $id_{i}$ is smaller than $N$.
 
 \lstset{mathescape, language=AST}  
