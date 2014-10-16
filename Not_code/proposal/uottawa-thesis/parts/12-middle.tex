@@ -724,7 +724,7 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(a:asset){stru
 
 The translation of a $prerequisite$ (called $trans\_preRequisite$ in listing ~\ref{lst:transpreRequisiteCoq}) takes as input $e$, the $environment$, $x$, the $subject$, $prq$, the $preRequisite$ to translate, $IDs$, the set of identifiers (of policies implied by the $prq$), $prin_{u}$, the agreement's user, and proceeds by case analysis on the structure of the $prerequisite$. A $prerequisite$ is either a $TruePrq$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$. 
 
-In listing ~\ref{lst:transpreRequisiteCoq} the translation for $TruePrq$ is the Prop $True$, the translations for $Constraint$, $ForEachMember$ and  $NotCons$ simply call respective translation functions for corresponding types $constraint$, $forEachMember$ and $constraint$ (namely $trans\_constraint$, $trans\_forEachMember$ and $trans\_notCons$). Note that the translation for $AndPrqs$, $OrPrqs$ and $XorPrqs$ have not yet been implemented but based on the their many-sorted-logic formulas' specifications (~\ref{lst:preRequisiteast}) they will be conjunctions, disjunctions and exclusive disjunctions of translations for each $prerequisite$.
+In listing ~\ref{lst:transpreRequisiteCoq} the translation for $TruePrq$ is the Prop $True$, the translations for $Constraint$, $ForEachMember$ and $NotCons$ simply call respective translation functions for corresponding types $constraint$ and $forEachMember$ (namely $trans\_constraint$, $trans\_forEachMember$ and $trans\_notCons$). Note that the translation for $AndPrqs$, $OrPrqs$ and $XorPrqs$ have not yet been implemented but based on the their many-sorted-logic formulas' specifications (~\ref{lst:preRequisiteast}) they will be conjunctions, disjunctions and exclusive disjunctions of translations for each $prerequisite$.
 
 \lstset{language=Coq, frame=single, caption={Translation of a PreRequisite},label={lst:transpreRequisiteCoq}}
 \begin{lstlisting}
@@ -743,11 +743,12 @@ Definition trans_preRequisite
   end.
 \end{lstlisting}
 
-The translation of a $constraint$ takes as input $e$, the $environment$, $x$, the $subject$ and $IDs$, the set of identifiers (of policies implied by the $constraint$) and proceeds by case analysis on the structure of the $constraint$. A $constraint$ is either a $Principal$, a $Count$ or a $CountByPrin$.
+The translation of a $constraint$ (called $trans\_constraint$ in listing ~\ref{lst:transconstraintCoq}) takes as input $e$ the $environment$, $x$ the $subject$, $const$, the $constraint$ to translate, $IDs$, the set of identifiers (of policies implied by the parent $preRequisite$) and $prin_{u}$, the agreement's user and proceeds by case analysis on the structure of the $constraint$. A $constraint$ is either a $Principal$, a $Count$ or a $CountByPrin$.
 
-The Coq version of the translate function for a $constraint$ is given in ~\ref{lst:transconstraint}. 
+In listing ~\ref{lst:transconstraintCoq} the translation for $Principal$ returns the translation function (namely $trans\_prin$) for the $prn$ (the $prin$ that accompanies the $const$ constraint). The translation for $Count$ and $CountByPrin$ return the translation function $trans\_count$. For $Count$ the $prin$ used is the agreement's user, whereas the $prin$ used is the one passed to $CountByPrin$ namely $prn$.
 
-\lstset{language=Coq, frame=single, caption={Translation of a Constraint},label={lst:transconstraint}}
+
+\lstset{language=Coq, frame=single, caption={Translation of a Constraint},label={lst:transconstraintCoq}}
 \begin{lstlisting}
 
 Fixpoint trans_constraint 
