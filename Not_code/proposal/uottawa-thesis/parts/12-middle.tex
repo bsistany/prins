@@ -572,8 +572,9 @@ $(getCount(getSubject(prn)_{1}, id_{1})$ $+ ... +$ $getCount(getSubject(prn)_{1}
 \label{sec:Semanticsincoq}
 
 % COQ
+The translation functions plus the auxiliary types and infrastructure, implementing the semantics have been encoded in Coq. Translation functions all return the \emph{sort} $Prop$. 
 
-A predicate in Coq is any function that returns a term of type \emph{Prop}. Here is how we have specified the $Permitted$ predicate in Coq: $Parameter Permitted : subject -> act -> asset -> Prop.$ So $Permitted$ predicate takes a $subject$, an $act$ (action) and an $asset$ and returns a $Prop$. Note that the notation $(\lnot)$ indicates that $Permitted$ may be negated.
+Talk about Props here...
 
 
 Whether a permission is granted or denied depends on the agreements in question but also on the facts recorded in the environment. For ODRL0 those facts revolve around the number of times a policy has been used to justify an action (see \ref{subsec:odrl0} for more details on odrl0). We encode this information in an \emph{environment} which is a conjunction of equalities of the form \emph{count(s, policyId) = n}. 
@@ -582,6 +583,7 @@ Whether a permission is granted or denied depends on the agreements in question 
 The Coq version of the count equality is a new inductive type called \emph{count_equality}. An environment is defined to be a non-empty list of count_equality objects.
 
 \lstset{language=Coq, frame=single, caption={Environments and Counts},label={lst:environmentcoq}}
+\begin{minipage}[c]{0.95\textwidth}
 \begin{lstlisting}
 Inductive count_equality : Set := 
    | CountEquality : subject -> policyId -> nat -> count_equality.
@@ -591,9 +593,25 @@ Inductive environment : Set :=
   | ConsEnv :  count_equality ->  environment -> environment.
 
 \end{lstlisting}
+\end{minipage}
 
+The non-empty list data structure is defined as a new \emph{polymorphic} inductive type in its own section. The non-empty list definition is listed at listing ~\ref{lst:nonemptylistcoq}.
 
-Translation of the top level $agreement$ element proceeds by case analysis on the structure of the agreement. Note that each translation function takes an environment parameter.
+\lstset{language=Coq, frame=single, caption={nonemptylist type},label={lst:nonemptylistcoq}}
+\begin{lstlisting}
+
+Section nonemptylist.
+
+Variable X : Set.
+
+Inductive nonemptylist : Set :=
+  | Single : X -> nonemptylist 
+  | NewList : X -> nonemptylist -> nonemptylist.
+
+End nonemptylist.
+\end{lstlisting}
+
+Translation of the top level $agreement$ element proceeds by case analysis on the structure of the agreement. However an agreement can only be built one way; by calling the constructor $Agreement$. The translation proceeds by calling the translation function for the corresponding $policySet$ namely the parameter to $Agreement$ called $ps$.
 
 
 \lstset{language=Coq, frame=single, caption={Translation of agreement},label={lst:transagreement}}
@@ -656,9 +674,10 @@ Fixpoint trans_prin
   end.
 \end{lstlisting}
 
- 
 
-A positive translation for a policy $p$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $a$, the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is permitted to do $act$ to $a$, if the $preRequisite$ holds.
+A positive translation for a policy $p$ takes as input $e$, the $environment$, $x$, the $subject$, $prin_{u}$, the agreement's user, and $a$, the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is \emph{permitted} to do $act$ to $a$, if the $preRequisite$ holds. 
+
+$Permitted$ is a predicate $Parameter Permitted : subject -> act -> asset -> Prop.$ So $Permitted$ predicate takes a $subject$, an $act$ (action) and an $asset$ and returns a $Prop$. Note that the notation $(\lnot)$ indicates that $Permitted$ may be negated.
 
 \lstset{language=Coq, frame=single, caption={Translation of a positive policy},label={lst:transpolicypositiveCoq}}
 \begin{lstlisting}
