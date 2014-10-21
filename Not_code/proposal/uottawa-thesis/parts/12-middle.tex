@@ -624,7 +624,9 @@ Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
 
 \end{lstlisting}
 
-Translation of a $policySet$ (called $trans\_ps$ in listing ~\ref{lst:transps}), takes as input $e$, the environment, $ps$, the policy set, $prin_{u}$, the agreement's user, and $a$, the asset, and proceeds by case analysis of different policySet constructors and recursing into translation functions for the composing elements. A policySet is either a $PrimitivePolicySet$, $PrimitiveExclusivePolicySet$ or a $AndPolicySet$.  Note that to implement the translation for an $AndPolicySet$ a local function $trans_ps_list$ has been defined where for a single $policySet$, $trans_ps$ is called, and for a list of $policySet$s, the conjunction of $trans_ps$s are returned.
+Translation of a $policySet$ (called $trans\_ps$ in listing ~\ref{lst:transps}), takes as input $e$, the environment, $ps$, the policy set, $prin_{u}$, the agreement's user, and $a$, the asset, and proceeds by case analysis of different policySet constructors and recursing into translation functions for the composing elements. A policySet is either a $PrimitivePolicySet$, $PrimitiveExclusivePolicySet$ or a $AndPolicySet$. 
+
+Note that to implement the translation for an $AndPolicySet$ a local function $trans_ps_list$ has been defined where for a single $policySet$, $trans_ps$ is called, and for a list of $policySet$s, the conjunction of $trans_ps$s are returned.
 
 \lstset{language=Coq, frame=single, caption={Translation of Policy Set},label={lst:transps}}
 \begin{minipage}{\linewidth}
@@ -765,10 +767,13 @@ Fixpoint trans_constraint
   
 \end{lstlisting}
 
+The translation of a $forEachMember$ (called $trans\_forEachMember$ in listing ~\ref{lst:transforEachMemberCoq}) takes as input $e$ the $environment$, $x$ the $subject$, $principals$, the set of subjects that override the agreement's user(s), $const\_list$ the set of constraints and $IDs$, the set of identifiers (of policies implied by the parent $preRequisite$).
 
-The translation for $forEachMember$ yields a formula that is true, if each subject mentioned in $forEachMember$ is met by each constraint mentioned in $forEachMember$. Note that the agreement's user $prin_{u}$ maybe overriden by a $forEachConstraint$ constraint. 
+To implement the translation for a $forEachMember$ we start by calling an auxiliary function $process\_two\_lists$ that effectively returns a new list composed of pairs of members of the first list and the second list (the cross-product of the two input lists). In the case of a $forEachMember$ translation, the call is $process\_two\_lists principals const\_list$ which returns a list of pairs of subject and constraint namely $prins\_and\_constraints$. $prins\_and\_constraints$ is then passed to a locally defined function $trans\_forEachMember\_Aux$ where for a single pair of subject and constraint $trans\_constraint$ is called and for a list of pairs of subject and constraints, the conjunction of $trans\_constraint$s (for the first pair) and $trans\_forEachMember\_Aux$s (for the rest of the pairs) are returned.
 
-\lstset{language=Coq, frame=single, caption={Translation of forEachMember},label={lst:transforEachMember}}
+
+
+\lstset{language=Coq, frame=single, caption={Translation of forEachMember},label={lst:transforEachMemberCoq}}
 \begin{lstlisting}
 
 Fixpoint trans_forEachMember
