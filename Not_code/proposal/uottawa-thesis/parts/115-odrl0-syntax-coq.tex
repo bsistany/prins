@@ -1,0 +1,85 @@
+%======================================================================
+\chapter{ODRL0 Syntax In Coq}
+%======================================================================
+
+% ---------------------------------- COQ -----------------------
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Coq version of agreement},label={lst:agreementcoq}]
+Inductive agreement : Set :=
+  | Agreement : prin -> asset -> policySet -> agreement.
+\end{lstlisting}
+
+% prin 
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={prin},label={lst:princoq}]
+Definition prin := nonemptylist subject.
+\end{lstlisting}
+
+% asset
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={asset},label={lst:assetcoq}]
+Definition asset := nat.
+\end{lstlisting}
+
+
+
+% subject
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={subject},label={lst:subjectcoq}]
+Definition subject := nat.
+\end{lstlisting}
+
+
+% policySet
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={policySet},label={lst:policySetcoq}]
+Inductive policySet : Set :=
+  | PrimitivePolicySet : preRequisite -> policy -> policySet 
+  | PrimitiveExclusivePolicySet : preRequisite -> policy  -> policySet 
+  | AndPolicySet : nonemptylist policySet -> policySet.
+\end{lstlisting}
+
+% policy
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={policy},label={lst:policycoq}]
+Inductive policy : Set :=
+  | PrimitivePolicy : preRequisite -> policyId -> act -> policy 
+  | AndPolicy : nonemptylist policy -> policy.
+\end{lstlisting}
+
+% act
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={act},label={lst:actcoq}]
+Definition act := nat.
+\end{lstlisting}
+
+% id
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={policyId},label={lst:policyIdcoq}]
+Definition policyId := nat.
+\end{lstlisting}
+
+% prq
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={preRequisite},label={lst:preRequisitecoq}]
+Inductive preRequisite : Set :=
+  | TruePrq : preRequisite
+  | Constraint : constraint -> preRequisite 
+  | ForEachMember : prin  -> nonemptylist constraint -> preRequisite
+  | NotCons : constraint -> preRequisite 
+  | AndPrqs : nonemptylist preRequisite -> preRequisite
+  | OrPrqs : nonemptylist preRequisite -> preRequisite
+  | XorPrqs : nonemptylist preRequisite -> preRequisite.
+\end{lstlisting}
+
+% constraint
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={constraint},label={lst:constraintcoq}]
+Inductive constraint : Set :=
+  | Principal : prin  -> constraint 
+  | Count : nat -> constraint 
+  | CountByPrin : prin -> nat -> constraint.
+\end{lstlisting}
+
+

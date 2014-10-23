@@ -1,0 +1,31 @@
+%======================================================================
+\chapter{Examples}
+%======================================================================
+
+%----------------------------------------------------------------------
+\section{Agreements}
+%----------------------------------------------------------------------
+
+%%%%%%% Examples 
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Example 2.1},label={lst:example21}]
+
+
+Definition p1A1:policySet :=
+  PrimitivePolicySet
+    TruePrq
+    (PrimitivePolicy (Constraint (Count  5)) id1 Print).
+
+Definition p2A1prq1:preRequisite := (Constraint (Principal (Single Alice))).
+Definition p2A1prq2:preRequisite := (Constraint (Count 2)).
+
+Definition p2A1:policySet :=
+  PrimitivePolicySet
+    TruePrq
+    (PrimitivePolicy (AndPrqs (NewList p2A1prq1 (Single p2A1prq2))) id2 Print).
+
+Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
+                  (AndPolicySet (NewList p1A1 (Single p2A1))).
+
+\end{lstlisting}                  
