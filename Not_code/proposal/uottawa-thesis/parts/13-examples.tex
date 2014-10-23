@@ -8,8 +8,24 @@
 
 %%%%%%% Examples 
 
+We will begin the example agreements with some examples from ~\cite{pucella2006}. Consider example 2.1 (~\ref{lst:example21pucella2006}) where the $policySet$ is a $AndPolicySet$ with $p1$ and $p2$ as the individual $policySet$s. Let $p1$ be defined as $Count[5]$ $\rightarrow$ $print$ and $p2$ as $and[Alice, Count[5]]$ $\rightarrow$ $print$. 
+
+The agreement is that the asset \emph{The Report} may be printed a total of five times by either \emph{Alice} or \emph{Bob}, and twice more by Alice. So if Alice and Bob have used policy $p1$ to justify their printing of the asset $m_{p1}$ and $n_{p1}$ times, respectively, then either may do so again if $m_{p1} + n_{p1} < 5$. If they have used $p2$ to justify their printing of the asset $m_{p2}$ and $n_{p2}$ times, respectively, then only Alice may do so again if $m_{p2} + n_{p2} < 2$. Note that since Bob doesn't meet the prerequisite of being Alice, $n_{p2}$ is effectively $0$, so we have $m_{p2} < 2$ as the condition for Alice being able to print again (Alice does meet the prerequisite of being Alice).
+
+\lstset{language=Pucella2006}
+\begin{lstlisting}[frame=single, caption={Agreement 2.1 (as used in ~\cite{pucella2006})},label={lst:example21pucella2006}]
+agreement
+ for {Alice, Bob} 
+ about The Report 
+ with and [p1, p2].
+\end{lstlisting}
+
+The coq version of the agreement 2.1 (~\ref{lst:example21pucella2006}) and its sub-parts is listed below. It is best to start with the agreement itself namely $A1$ and compare to the agreement 2.1 (~\ref{lst:example21pucella2006}).
+
+
 \lstset{language=Coq}
-\begin{lstlisting}[frame=single, caption={Example 2.1},label={lst:example21}]
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}[frame=single, caption={Agreement 2.1 in Coq},label={lst:example21}]
 
 
 Definition p1A1:policySet :=
@@ -29,3 +45,59 @@ Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
                   (AndPolicySet (NewList p1A1 (Single p2A1))).
 
 \end{lstlisting}                  
+\end{minipage}
+
+
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Example 2.5},label={lst:example25}]
+
+Definition tenCount:preRequisite := (Constraint (Count 10)).
+Definition fiveCount:constraint := (Count 5).
+Definition oneCount:constraint := (Count 1).
+
+Definition prins2_5 := (NewList Alice (Single Bob)).
+
+Check ForEachMember prins2_5 (Single fiveCount).
+Definition forEach_display:preRequisite := ForEachMember prins2_5 (Single fiveCount).
+Definition forEach_print:preRequisite := ForEachMember prins2_5 (Single oneCount).
+
+Definition primPolicy1:policy := PrimitivePolicy forEach_display id1 Display.
+Definition primPolicy2:policy := PrimitivePolicy forEach_print id2 Print.
+
+Definition policySet2_5:policySet :=
+  PrimitivePolicySet tenCount (AndPolicy (NewList primPolicy1 (Single primPolicy2))).
+                     
+Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
+
+\end{lstlisting}
+
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Example 2.6},label={lst:example26}]
+Definition prins2_6 := prins2_5.
+
+Definition aliceCount10:preRequisite := Constraint (CountByPrin (Single Alice) 10).
+Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 id3 Play.
+Definition policySet2_6_modified:= PrimitiveExclusivePolicySet TruePrq primPolicy2_6.
+\end{lstlisting}
+
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Example 2.4},label={lst:example24}]
+
+\end{lstlisting}
+
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Example 2.5},label={lst:example25}]
+
+\end{lstlisting}
+
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Example 2.6},label={lst:example26}]
+
+\end{lstlisting}
+
+
