@@ -3,12 +3,18 @@
 %======================================================================
 
 %----------------------------------------------------------------------
-\section{Agreements}
+\section{Introduction}
 %----------------------------------------------------------------------
 
 %%%%%%% Examples 
 
-We will begin the example agreements with some examples from ~\cite{pucella2006}. Consider example 2.1 (~\ref{lst:example21pucella2006}) where the $policySet$ is a $AndPolicySet$ with $p1$ and $p2$ as the individual $policySet$s. Let $p1$ be defined as $Count[5]$ $\rightarrow$ $print$ and $p2$ as $and[Alice, Count[5]]$ $\rightarrow$ $print$. 
+In this chapter we will take a tour of the syntax and semantics we have so far developed by examining some example agreements. In the following we will start by reviewing some of the examples used in ~\cite{pucella2006}.
+
+Ultimately the goal of specifying all the syntax and semantics is to declare some interesting theorems about policy expressions and proving them in Coq however we will start with some specific propositions/theorems about these examples to get a feel for how proofs are done in Coq.
+
+\section{Agreement 2.1}
+
+Consider example 2.1 (from ~\cite{pucella2006}) where the $policySet$ is a $AndPolicySet$ with $p1$ and $p2$ as the individual $policySet$s. Let $p1$ be defined as $Count[5]$ $\rightarrow$ $print$ and $p2$ as $and[Alice, Count[5]]$ $\rightarrow$ $print$. 
 
 The agreement is that the asset \emph{The Report} may be printed a total of five times by either \emph{Alice} or \emph{Bob}, and twice more by Alice. So if Alice and Bob have used policy $p1$ to justify their printing of the asset $m_{p1}$ and $n_{p1}$ times, respectively, then either may do so again if $m_{p1} + n_{p1} < 5$. If they have used $p2$ to justify their printing of the asset $m_{p2}$ and $n_{p2}$ times, respectively, then only Alice may do so again if $m_{p2} + n_{p2} < 2$. Note that since Bob doesn't meet the prerequisite of being Alice, $n_{p2}$ is effectively $0$, so we have $m_{p2} < 2$ as the condition for Alice being able to print again (Alice does meet the prerequisite of being Alice).
 
@@ -16,12 +22,11 @@ The agreement is that the asset \emph{The Report} may be printed a total of five
 \begin{lstlisting}[frame=single, caption={Agreement 2.1 (as used in ~\cite{pucella2006})},label={lst:example21pucella2006}]
 agreement
  for {Alice, Bob} 
- about The Report 
+ about TheReport 
  with and [p1, p2].
 \end{lstlisting}
 
-The coq version of the agreement 2.1 (~\ref{lst:example21pucella2006}) and its sub-parts is listed below. It is best to start with the agreement itself namely $A1$ and compare to the agreement 2.1 (~\ref{lst:example21pucella2006}).
-
+The Coq version of the agreement 2.1 (listing ~\ref{lst:example21pucella2006}) and its sub-parts is listed below. It is best to start with the agreement itself called $A2.1$ in the listing and compare to the agreement 2.1 listed in ~\ref{lst:example21pucella2006}.
 
 \lstset{language=Coq}
 \begin{minipage}[c]{0.95\textwidth}
@@ -41,12 +46,28 @@ Definition p2A1:policySet :=
     TruePrq
     (PrimitivePolicy (AndPrqs (NewList p2A1prq1 (Single p2A1prq2))) id2 Print).
 
-Definition A1 := Agreement (NewList Alice (Single Bob)) TheReport
+Definition A2.1 := Agreement (NewList Alice (Single Bob)) TheReport
                   (AndPolicySet (NewList p1A1 (Single p2A1))).
 
 \end{lstlisting}                  
 \end{minipage}
 
+\section{Agreement 2.5}
+
+Consider example 2.5 (from ~\cite{pucella2006}) where the $policySet$ is a $PrimitivePolicySet$ with a $Count$ constraint as prerequisite and a $AndPolicy$ as the policy. The $AndPolicy$ is the conjunction of two $PrimitivePolicy$s. Both policies have prerequisites of type $ForEachMember$ with actions $display$ and $print$ respectively. The $prin$ component for both $ForEachMember$s is ${Alice, Bob}$, whereas the constraint for the first $ForEachMember$ is $Count[5]$ and for the second is $Count[2]$.
+
+\lstset{language=Pucella2006}
+\begin{lstlisting}[frame=single, caption={Agreement 2.5 (as used in ~\cite{pucella2006})},label={lst:example25pucella2006}]
+agreement
+ for {Alice, Bob} 
+ about ebook 
+ with Count [10] $\rightarrow$ and [forEachMember[{Alice, Bob}; Count[5]] $\Rightarrow_{id1}$ display,
+                                 forEachMember[{Alice, Bob}; Count[1]] $\Rightarrow_{id2}$ print].
+\end{lstlisting}
+
+The Coq version of the agreement 2.5 (listing ~\ref{lst:example25pucella2006}) and its sub-parts is listed below. It is best to start with the agreement itself called $A2.5$ in the listing and compare to the agreement 2.5 listed in ~\ref{lst:example25pucella2006}.
+
+The agreement is that the asset \emph{ebook} may be displayed up to five times by Alice and Bob each, and printed once by each. However the total number of actions (either $display$ or $print$) justified by the two policies by either Alice and Bob is at most 10.
 
 
 \lstset{language=Coq}
@@ -57,8 +78,6 @@ Definition fiveCount:constraint := (Count 5).
 Definition oneCount:constraint := (Count 1).
 
 Definition prins2_5 := (NewList Alice (Single Bob)).
-
-Check ForEachMember prins2_5 (Single fiveCount).
 Definition forEach_display:preRequisite := ForEachMember prins2_5 (Single fiveCount).
 Definition forEach_print:preRequisite := ForEachMember prins2_5 (Single oneCount).
 
@@ -68,7 +87,7 @@ Definition primPolicy2:policy := PrimitivePolicy forEach_print id2 Print.
 Definition policySet2_5:policySet :=
   PrimitivePolicySet tenCount (AndPolicy (NewList primPolicy1 (Single primPolicy2))).
                      
-Definition A2_5 := Agreement prins2_5 ebook policySet2_5.
+Definition A2.5 := Agreement prins2_5 ebook policySet2_5.
 
 \end{lstlisting}
 
