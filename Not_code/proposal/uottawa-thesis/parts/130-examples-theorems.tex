@@ -1,17 +1,19 @@
 %======================================================================
-\chapter{Examples}\label{chap:examples}
-
+\chapter{Some Simple Theorems}
 %======================================================================
 
 %----------------------------------------------------------------------
 \section{Introduction}
 %----------------------------------------------------------------------
 
-%%%%%%% Examples 
+In this chapter we will declare and prove some very simple theorems about the examples from chapter [~\ref{chap:examples}]. This simple introduction is only meant to give us a feel for how theorems are stated in Coq and how proofs are constructed using Coq \emph{tactics}.
 
-In this chapter we will take a tour of the syntax and semantics we have so far developed by examining some example agreements. In the following we will start by reviewing some of the examples used in ~\cite{pucella2006}.
 
-Ultimately the goal of specifying all the syntax and semantics is to declare some interesting theorems about policy expressions and proving them in Coq however we will start with some specific propositions/theorems about these examples to get a feel for how proofs are done in Coq.
+Given a proposition in Coq in order to show that the proposition is true one needs to construct a proof. Theorem proving in general can be expressed as logical implication: $Hyposthesis \rightarrow Goal$ and one needs to reach the goal from the given hypothesis. Coq uses backward reasoning (as opposed to forward reasoning) theorem proving with built-in \emph{tactics}. Tactics transform each goal into simpler sub-goals such that when the sub-goals are proved or discharged, the goal is proved. 
+
+In Coq we declare a new goal by using the keyword \emph{Theorem} or \emph{Lemma} with a name and a term of type $Prop$. For example, $Theroem example1: forall x:nat, x < x + 1.$ where the theorem name is $example1$ and the term of type $Prop$ is $forall x:nat, x < x + 1.$. Note that the notation $P:T$ is also used to declare program $P$ has type $T$. This duality of notation is due to Curry-Howard isomorphism which relates the two worlds of type theory and structural logic together. Once the Theorem has been declared Coq displays the proposition to be proved under a horizontal line written --------, and displays the context of local facts and hypothesis, if any, above the horizontal line. At this point one can enter proof mode by using \emph{Proof.} upon which Coq is ready to accept tactics. Entering tactics that can break the stated goal (under the horizontal line) into one or more sub-goals is how one progresses until no goals left at which point Coq responds with ``No more subgoals'' (~\cite{CoqHurry}).
+
+
 
 \section{Agreement 2.1}
 
