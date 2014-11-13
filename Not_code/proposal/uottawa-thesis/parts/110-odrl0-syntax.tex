@@ -4,7 +4,7 @@
 
 \section{Introduction}
 
-Authors of \cite{pucella2006} use abstract syntax instead of XML to express statements in the ODRL language. The abstract syntax used is a more compact representation than XML based language ODRL policies are written in and furthermore it simplifies specifying the semantics as we shall see. As an example here is an agreement written in ODRL and the comparable agreement expressed in the abstract syntax \cite{pucella2006}.
+Authors of \cite{pucella2006} use abstract syntax instead of XML (ODRL 2.0 can also be encoded in \emph{JSON} and \emph{RDF/OWL Ontology}) to express statements in the ODRL language. Abstract syntax is a more compact representation than XML in which ODRL policies may be written in and furthermore abstract syntax simplifies specifying the semantics as we shall see later. As an example the agreement ``If Mary Smith pays five dollars, then she is allowed to print the eBook 'Treasure Island' twice and she is allowed to display it on her computer as many times as she likes'' written in ODRL's XML encoding and the equivalent one expressed in the abstract syntax \cite{pucella2006}.
 
 \lstset{language=XML}
 \begin{lstlisting}[caption={agreement for Mary Smith in XML},label={lst:agreementxml}]
@@ -43,9 +43,9 @@ agreement
 \end{minipage} 
 
 % \emph{prin\textsubscript{u}}
-In the following we will cover the \emph{abstract syntax} of a subset of ODRL expressed as Coq's constructs such as \emph{Inductive Types} and Definitions. We will call this subset \emph{ODRL0} both because it is a variation of Pucella's ODRL language and also because it is missing some constructs from Pucella's ODRL. 
+In the following we will cover the \emph{abstract syntax} of a subset of ODRL that we later express using Coq's constructs such as \emph{Inductive Types} and Definitions. We will call this subset \emph{ODRL0} both because it is a variation of Pucella's ODRL language and also because it is missing some constructs from Pucella's ODRL (and hence from ODRL proper). 
 
-\section{Odrl0}\label{sec:odrl0}
+\section{ODRL0}\label{sec:odrl0}
 In ODRL0, agreements and facts (i.e. environments) will only contain the number of times each policy has been used to justify an action. In ODRL0 agreements and facts will not contain: \begin{enumerate}
   \item Which payments have been made
   \item Which acknowledgments have been made
@@ -55,7 +55,7 @@ This means \emph{Paid} and \emph{Attributed} predicates are not used in ODRL0. A
 
 In ODRL a \emph{prerequisite} is either $true$, a $constraint$, a $requirement$ or a $condition$. $true$ is the prerequisite that always holds. Constraints are facts that are outside of control of users. For example, there is nothing $Alice$ can do to satisfy the constraint ``user must be Bob''. Requirements are facts that are in users' control. For example, $Alice$ may satisfy the requirement ``The user must pay 5 dollars''. Finally conditions are constraints that must not hold.
 
-In ODRL0, a prerequisite is either $true$, a $constraint$, or not a $constraint$. So we have removed requirements from the picture and don't have explicit conditions. Conditions are replaced by a category called $NotCons$ directly in the production for prerequisites (see \ref{lst:preRequisiteast}). Note that we have also removed the condition $not[policySet]$ from ODRL since the authors in \cite{pucella2006} have shown the semantics of this component are not well-defined and including it leads to intractability results.
+In ODRL0, a prerequisite is either $true$, a $constraint$, or the negation of a $constraint$. So we have removed requirements from the picture and don't have explicit conditions. Conditions are replaced by a category called $NotCons$ directly in the production for prerequisites (see \ref{lst:preRequisiteast}). Note that we have also removed the condition $not[policySet]$ from ODRL since the authors in \cite{pucella2006} have shown the semantics of this component are not well-defined and including it leads to intractability results.
 
 We will add the missing pieces as described above (except for $not[policySet]$) making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing ~\ref{lst:agreementpucella2006} would look like in ODRL0's Coq version.
 
@@ -91,7 +91,8 @@ The top level ODRL0 production is the \emph{agreement}. An agreement expresses w
 <agreement> ::= 'agreement' 'for' <prin> 'about' <asset> 'with' <policySet> 
 \end{lstlisting}
 
-Principals or prins are composed of \emph{subjects} which are specified based on the application e.g. Alice, Bob, etc for the DRM application we will be using throughout.
+Principals or prins are composed of \emph{subjects} which are specified based on the application e.g. Alice, Bob, etc for the %\ac{drm} 
+application we will be using throughout.
 
 % prin
 \lstset{mathescape, language=AST}  

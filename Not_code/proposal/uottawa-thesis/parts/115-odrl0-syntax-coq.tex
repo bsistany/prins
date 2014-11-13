@@ -6,7 +6,7 @@
 
 ODRL0 productions were presented as high level abstract syntax in ~\ref{sec:productionast}. Below we present the corresponding encodings in Coq. 
 
-An agreement is a new inductive type in Coq by the same name. The constructor $Agreement$ takes a $prin$, an $asset$ and a $policySet$. $prin$ is defined to be a non empty list of $subject$s. 
+An agreement is a new inductive type in Coq by the same name. The constructor $Agreement$ takes a $prin$, an $asset$ and a $policySet$. $prin$ is defined to be a non empty list of $subject$s (see ~\ref{lst:agreementcoq}). 
 
 Types $asset$, $subject$, $act$ and $policyId$ are simply defined as $nat$ which is the datatype of natural numbers defined in coq's library module $Coq.Init.Datatypes$ ($nat$ is itself an inductive datatype). We use Coq constants to refer to specific objects of each type. For example, the subject 'Alice' is defined as $Definition Alice:subject := 101.$ and the act 'Play' as $Definition Play : act := 301.$. For each ``nat'' type in ODRL0 we have also used constants that play the role of ``Null'' objects (see ``Null Object Pattern'' ~\cite{martin1998pattern}), for example $NullSubject$. This is needed partly because of the way ODRL0 language elements are defined which corresponds to the need to use $nonemptylist$ exclusively even though at intermediate stages during the various algorithms Coq's $list$ is a better fit because it allows empty lists.
 
