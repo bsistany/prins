@@ -15,7 +15,7 @@ Ultimately the goal of specifying all the syntax and semantics is to declare som
 
 \section{Agreement 2.1}
 
-Consider example 2.1 (from ~\cite{pucella2006}) where the $policySet$ is a $AndPolicySet$ with $p1$ and $p2$ as the individual $policySet$s. Let $p1$ be defined as $Count[5]$ $\rightarrow$ $print$ and $p2$ as $and[Alice, Count[5]]$ $\rightarrow$ $print$. 
+Consider example 2.1 (from ~\cite{pucella2006}) where the $policySet$ is a $AndPolicySet$ with $p1$ and $p2$ as the individual $policySet$s. Let $p1$ be defined as $Count[5]$ $\rightarrow$ $print$ and $p2$ as $and[Alice, Count[2]]$ $\rightarrow$ $print$. 
 
 The agreement is that the asset \emph{The Report} may be printed a total of five times by either \emph{Alice} or \emph{Bob}, and twice more by Alice. So if Alice and Bob have used policy $p1$ to justify their printing of the asset $m_{p1}$ and $n_{p1}$ times, respectively, then either may do so again if $m_{p1} + n_{p1} < 5$. If they have used $p2$ to justify their printing of the asset $m_{p2}$ and $n_{p2}$ times, respectively, then only Alice may do so again if $m_{p2} + n_{p2} < 2$. Note that since Bob doesn't meet the prerequisite of being Alice, $n_{p2}$ is effectively $0$, so we have $m_{p2} < 2$ as the condition for Alice being able to print again (Alice does meet the prerequisite of being Alice).
 
@@ -66,7 +66,7 @@ agreement
                                  forEachMember[{Alice, Bob}; Count[1]] $\Rightarrow_{id2}$ print].
 \end{lstlisting}
 
-The Coq version of the agreement 2.5 (listing ~\ref{lst:example25pucella2006}) and its sub-parts is listed below. It is best to start with the agreement itself called $A2.5$ in the listing and compare to the agreement 2.5 listed in ~\ref{lst:example25pucella2006}.
+The Coq version of the agreement 2.5 (listing ~\ref{lst:example25pucella2006}) and its sub-parts is listed below. See agreement 2.5 listed in ~\ref{lst:example25pucella2006} for comparison.
 
 The agreement is that the asset \emph{ebook} may be displayed up to five times by Alice and Bob each, and printed once by each. However the total number of actions (either $display$ or $print$) justified by the two policies by either Alice and Bob is at most 10.
 

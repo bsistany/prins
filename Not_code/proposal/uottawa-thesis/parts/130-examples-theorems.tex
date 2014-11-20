@@ -6,109 +6,31 @@
 \section{Introduction}
 %----------------------------------------------------------------------
 
-In this chapter we will declare and prove some very simple theorems about the examples from chapter [~\ref{chap:examples}]. This simple introduction is only meant to give us a feel for how theorems are stated in Coq and how proofs are constructed using Coq \emph{tactics}.
+In this chapter we will declare and prove some very simple theorems about the examples from chapter [~\ref{chap:examples}]. This simple introduction is only meant to give us a feel for how theorems are stated in Coq and how proofs are constructed using Coq \emph{tactics}. 
+
+Propositions are types in Coq whose type is the sort $Prop$. Any term $t$ whose type is a proposition is a proof term or, for short, a proof. A \emph{Hypothesis} is a local declaration $h : P$ where $h$ is an identifier and $P$ is a proposition. An \emph{Axiom} is similar to a hypothesis except it is declared at the global scope and so it is always available. A \emph{Theorem} or \emph{Lemma} is any identifier whose type is a proposition (~\cite{BC04}). Keywords ``Hypothesis'', ``Axiom'' and ``Theorem'' or ``Lemma'' are used in each case respectively. 
+
+To build a proof in Coq the user states the proposition to prove; this is called a goal to be proved or discharge, along with some hypothesis that makes up the local context. The user then uses commands called tactics to manipulate the local context and to decompose the goal into simpler goals. The goal simplification into sub-goals will continue until all the sub-goals are solved.
+
+In listing ~\ref{lst:proofexample} we have declared a theorem called $example1$ and the corresponding proposition $forall x:nat, x < x + 1.$
+ 
+Note that the notation $P : T$ is also used to declare program $P$ has type $T$. This duality of notation is due to Curry-Howard isomorphism which relates the two worlds of type theory and structural logic together. Once the Theorem has been declared Coq displays the proposition to be proved under a horizontal line written --------, and displays the context of local facts and hypothesis, if any, above the horizontal line. At this point one can enter proof mode by using \emph{Proof.} upon which Coq is ready to accept tactics. Entering tactics that can break the stated goal (under the horizontal line) into one or more sub-goals is how one progresses until no goals left at which point Coq responds with ``No more subgoals'' (~\cite{CoqHurry}).
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Proof Example},label={lst:proofexample}]
+Theroem example1: forall x:nat, x < x + 1.
+\end{lstlisting}
 
 
-Given a proposition in Coq in order to show that the proposition is true one needs to construct a proof. Theorem proving in general can be expressed as logical implication: $Hyposthesis \rightarrow Goal$ and one needs to reach the goal from the given hypothesis. Coq uses backward reasoning (as opposed to forward reasoning) theorem proving with built-in \emph{tactics}. Tactics transform each goal into simpler sub-goals such that when the sub-goals are proved or discharged, the goal is proved. 
 
-In Coq we declare a new goal by using the keyword \emph{Theorem} or \emph{Lemma} with a name and a term of type $Prop$. For example, $Theroem example1: forall x:nat, x < x + 1.$ where the theorem name is $example1$ and the term of type $Prop$ is $forall x:nat, x < x + 1.$. Note that the notation $P:T$ is also used to declare program $P$ has type $T$. This duality of notation is due to Curry-Howard isomorphism which relates the two worlds of type theory and structural logic together. Once the Theorem has been declared Coq displays the proposition to be proved under a horizontal line written --------, and displays the context of local facts and hypothesis, if any, above the horizontal line. At this point one can enter proof mode by using \emph{Proof.} upon which Coq is ready to accept tactics. Entering tactics that can break the stated goal (under the horizontal line) into one or more sub-goals is how one progresses until no goals left at which point Coq responds with ``No more subgoals'' (~\cite{CoqHurry}).
+
+
+
 
 
 
 \section{Agreement 2.1}
 
-Consider example 2.1 (from ~\cite{pucella2006}) where the $policySet$ is a $AndPolicySet$ with $p1$ and $p2$ as the individual $policySet$s. Let $p1$ be defined as $Count[5]$ $\rightarrow$ $print$ and $p2$ as $and[Alice, Count[5]]$ $\rightarrow$ $print$. 
-
-The agreement is that the asset \emph{The Report} may be printed a total of five times by either \emph{Alice} or \emph{Bob}, and twice more by Alice. So if Alice and Bob have used policy $p1$ to justify their printing of the asset $m_{p1}$ and $n_{p1}$ times, respectively, then either may do so again if $m_{p1} + n_{p1} < 5$. If they have used $p2$ to justify their printing of the asset $m_{p2}$ and $n_{p2}$ times, respectively, then only Alice may do so again if $m_{p2} + n_{p2} < 2$. Note that since Bob doesn't meet the prerequisite of being Alice, $n_{p2}$ is effectively $0$, so we have $m_{p2} < 2$ as the condition for Alice being able to print again (Alice does meet the prerequisite of being Alice).
-
-\lstset{language=Pucella2006}
-\begin{lstlisting}[frame=single, caption={Agreement 2.1 (as used in ~\cite{pucella2006})},label={lst:example21pucella2006}]
-agreement
- for {Alice, Bob} 
- about TheReport 
- with and [p1, p2].
-\end{lstlisting}
-
-The Coq version of the agreement 2.1 (listing ~\ref{lst:example21pucella2006}) and its sub-parts is listed below. It is best to start with the agreement itself called $A2.1$ in the listing and compare to the agreement 2.1 listed in ~\ref{lst:example21pucella2006}.
-
-\lstset{language=Coq}
-\begin{minipage}[c]{0.95\textwidth}
-\begin{lstlisting}[frame=single, caption={Agreement 2.1 in Coq},label={lst:example21}]
-
-
-Definition p1A1:policySet :=
-  PrimitivePolicySet
-    TruePrq
-    (PrimitivePolicy (Constraint (Count  5)) id1 Print).
-
-Definition p2A1prq1:preRequisite := (Constraint (Principal (Single Alice))).
-Definition p2A1prq2:preRequisite := (Constraint (Count 2)).
-
-Definition p2A1:policySet :=
-  PrimitivePolicySet
-    TruePrq
-    (PrimitivePolicy (AndPrqs (NewList p2A1prq1 (Single p2A1prq2))) id2 Print).
-
-Definition A2.1 := Agreement (NewList Alice (Single Bob)) TheReport
-                  (AndPolicySet (NewList p1A1 (Single p2A1))).
-
-\end{lstlisting}                  
-\end{minipage}
-
-\section{Agreement 2.5}
-
-Consider example 2.5 (from ~\cite{pucella2006}) where the $policySet$ is a $PrimitivePolicySet$ with a $Count$ constraint as prerequisite and a $AndPolicy$ as the policy. The $AndPolicy$ is the conjunction of two $PrimitivePolicy$s. Both policies have prerequisites of type $ForEachMember$ with actions $display$ and $print$ respectively. The $prin$ component for both $ForEachMember$s is ${Alice, Bob}$, whereas the constraint for the first $ForEachMember$ is $Count[5]$ and for the second is $Count[2]$.
-
-\lstset{language=Pucella2006}
-\begin{lstlisting}[frame=single, caption={Agreement 2.5 (as used in ~\cite{pucella2006})},label={lst:example25pucella2006}]
-agreement
- for {Alice, Bob} 
- about ebook 
- with Count [10] $\rightarrow$ and [forEachMember[{Alice, Bob}; Count[5]] $\Rightarrow_{id1}$ display,
-                                 forEachMember[{Alice, Bob}; Count[1]] $\Rightarrow_{id2}$ print].
-\end{lstlisting}
-
-The Coq version of the agreement 2.5 (listing ~\ref{lst:example25pucella2006}) and its sub-parts is listed below. It is best to start with the agreement itself called $A2.5$ in the listing and compare to the agreement 2.5 listed in ~\ref{lst:example25pucella2006}.
-
-The agreement is that the asset \emph{ebook} may be displayed up to five times by Alice and Bob each, and printed once by each. However the total number of actions (either $display$ or $print$) justified by the two policies by either Alice and Bob is at most 10.
-
-
-\lstset{language=Coq}
-\begin{lstlisting}[frame=single, caption={Example 2.5},label={lst:example25}]
-
-Definition tenCount:preRequisite := (Constraint (Count 10)).
-Definition fiveCount:constraint := (Count 5).
-Definition oneCount:constraint := (Count 1).
-
-Definition prins2_5 := (NewList Alice (Single Bob)).
-Definition forEach_display:preRequisite := ForEachMember prins2_5 (Single fiveCount).
-Definition forEach_print:preRequisite := ForEachMember prins2_5 (Single oneCount).
-
-Definition primPolicy1:policy := PrimitivePolicy forEach_display id1 Display.
-Definition primPolicy2:policy := PrimitivePolicy forEach_print id2 Print.
-
-Definition policySet2_5:policySet :=
-  PrimitivePolicySet tenCount (AndPolicy (NewList primPolicy1 (Single primPolicy2))).
-                     
-Definition A2.5 := Agreement prins2_5 ebook policySet2_5.
-
-\end{lstlisting}
-
-\section{Agreement 2.6}
-
-Consider example 2.6 (from ~\cite{pucella2006}) where the $policySet$ is a $PrimitiveExclusivePolicySet$ with a $InSequence$ \emph{requirement} as prerequisite. We will cover requirements type constraints in \emph{ODRL1} since in ODRL0 we have elided their use. We will also describe this example in detail when ODRL1 constructs are added.
-
- 
-\lstset{language=Coq}
-\begin{lstlisting}[frame=single, caption={Example 2.6},label={lst:example26}]
-Definition prins2_6 := prins2_5.
-
-Definition aliceCount10:preRequisite := Constraint (CountByPrin (Single Alice) 10).
-Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 id3 Play.
-Definition policySet2_6_modified:= PrimitiveExclusivePolicySet TruePrq primPolicy2_6.
-\end{lstlisting}
-
-
-
+Consider example 2.1 (from ~\cite{pucella2006}).
 
 

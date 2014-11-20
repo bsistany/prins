@@ -12,8 +12,9 @@ Types $asset$, $subject$, $act$ and $policyId$ are simply defined as $nat$ which
 
 Next we define the $policySet$ datatype. Note the close/one-to-one mapping to its counterpart in ~\ref{lst:policySetast}. There are three ways a $policySet$ can be constructed (see ~\ref{lst:policySetast}) corresponding to three constructors: $PrimitivePolicySet$, $PrimitiveExclusivePolicySet$ and $AndPolicySet$. Both $PrimitivePolicySet$ and $PrimitiveExclusivePolicySet$ take a $preRequisite$ and a $policy$ as parameters. Finally $AndPolicySet$ takes a non empty list of $policySet$s.
 
-A $policy$ is defined as a datatype with constructors $PrimitivePolicy$ and $AndPolicy$ (see ~\ref{lst:policyast}). $PrimitivePolicy$ takes a $preRequisite$, a $policyId$ and a action $act$. Ignoring the $policyId$ for a moment (it is only added to help the translation otherwise $policyId$s don't exist in ODRL proper), a primitive policy consists of a prerequisite and an action. If the prerequisite holds the action is allowed to be performed on the asset. The $AndPolicy$ constructor is simply a non empty list of $policy$s.
+A $policy$ is defined as a datatype with constructors $PrimitivePolicy$ and $AndPolicy$ (see ~\ref{lst:policyast}). $PrimitivePolicy$ takes a $preRequisite$, a $policyId$ and a action $act$. Ignoring the $policyId$ for a moment (it is only added to help the translation otherwise $policyId$s don't exist in ODRL proper), a primitive policy consists of a prerequisite and an action. If the prerequisite holds the action is allowed to be performed on the asset. The $AndPolicy$ constructor is simply a $nonemptylist$ (see listing ~\ref{lst:nonemptylistcoq}) of $policy$s. 
 
+The data type $nonemptylist$ reflects the definition of ``policy conjunction'' in listing ~\ref{lst:policyast} in chapter ~\ref{chap:odrl0syntax} (see definition of $nonemptylist$ in listing ~\ref{lst:nonemptylistcoq}). Essentially $nonemptylist$ represents a list data structure that has at least one element and it is defined as a new \emph{polymorphic} inductive type in its own section. 
 
 \lstset{language=Coq}
 \begin{minipage}[c]{0.95\textwidth}
@@ -43,7 +44,26 @@ Inductive policy : Set :=
 \end{lstlisting}
 \end{minipage}
 
-A $preRequisite$ (see ~\ref{lst:preRequisiteast} for the abstract syntax equivalent) is defined as a new datatype with constructors $TruePrq$, $Constraint$, $ForEachMember$, $NotCons$, $AndPrqs$, $OrPrqs$ and $XorPrqs$. 
+
+
+\lstset{language=Coq, frame=single, caption={nonemptylist type},label={lst:nonemptylistcoq}}
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}
+
+Section nonemptylist.
+
+Variable X : Set.
+
+Inductive nonemptylist : Set :=
+  | Single : X -> nonemptylist 
+  | NewList : X -> nonemptylist -> nonemptylist.
+
+End nonemptylist.
+\end{lstlisting}
+\end{minipage}
+
+
+In listing ~\ref{lst:preRequisitecoq} $preRequisite$ is defined as a new datatype with constructors $TruePrq$, $Constraint$, $ForEachMember$, $NotCons$, $AndPrqs$, $OrPrqs$ and $XorPrqs$ (see ~\ref{lst:preRequisiteast} for the abstract syntax equivalent).
 
 $TruePrq$ represents the always true prerequisite. The $Constraint$ prerequisite is defined as the type $constraint$ so its description is deferred here. Intuitively a constraint is a prerequisite to be satisfied that is outside the control of the user(s). For example, the constraint of being 'Alice' if you are 'Bob' (or 'Alice' for that matter). The constructor $ForEachMember$ is defined to be a $prin$ and a non empty list of $constraint$s. Intuitively a $ForEachMember$ prerequisite holds if each subject in $prin$ satisfies each constraint in the list of $constraint$s. The constructor $NotCons$ is defined the same way the $Constraint" constructor$ is. This constructor is defined as the type $constraint$ and it is meant to represent the negation of a $constraint$ as we shall see in the translation (see ~\ref{lst:transnotConsCoq}). The remaining constructors $AndPrqs$, $OrPrqs$ and $XorPrqs$ take as parameters non empty lists of prerequisites. They represent conjunction, inclusive disjunction and exclusive disjunction of prerequisites respectively. 
 

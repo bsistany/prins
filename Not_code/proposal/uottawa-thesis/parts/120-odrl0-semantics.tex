@@ -7,22 +7,24 @@
 \section{Introduction}
 
 
-In this section, we describe the semantics of ODRL0 language by a translation from agreements to a subset of many-sorted first-order logic formulas with equality. The semantics will help answer queries of the form ``may subject \emph{s} perform action \emph{act} to asset \emph{a}?''. If the answer is yes, we say permission is granted. Otherwise permission is denied. 
+In this section, we describe the semantics of ODRL0 language by a translation from agreements to a subset of many-sorted first-order logic formulas with equality. Note that in the listings in this chapter we use $[\![]\!]$ (double square brackets) notation as a mapping of ODRL0 syntactic elements to their translations as many-sorted first-order logic formulas. We also use $\triangleq$ between a translation and its corresponding formula to mean the translation is ``mapped to'' the formula.
+
+The semantics will help answer queries of the form ``may subject \emph{s} perform action \emph{act} to asset \emph{a}?''. If the answer is yes, we say permission is granted. Otherwise permission is denied. 
 
 
-At a high-level, an agreement is translated into a conjunction of formulas of the form $\forall x ( prerequisites(x) \rightarrow P(x))$ where $P(x)$ itself is a conjunction of formulas of the form $ prerequisites(x) \rightarrow (\lnot) Permitted (x, act, a)$, where ``Permitted (x, act, a)'' means the subject $x$ is permitted to perform action $act$ on asset $a$.
+At a high-level, an agreement is translated into a conjunction of formulas of the form $\forall x ( prerequisites(x) \rightarrow P(x))$ where $P(x)$ itself is a conjunction of formulas of the form $ prerequisites(x) \rightarrow (\lnot) Permitted (x, act, a)$, where $Permitted (x, act, a)$ means the subject $x$ is permitted to perform action $act$ on asset $a$.
 
 \section{Agreement Translation}
-The translation of an $agreement$ returns the translation for a $policySet$ per $prin_{u}$, the agreement's user and $a$, the asset.
+The translation of an $agreement$ returns the translation for a $policySet$ with arguments $prin_{u}$, the agreement's user and $a$, the asset.
 
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Agreement Translation},label={lst:transAgreementast}]
-$[\![ agreement$ $for$ $prin_{u}$ $about$ $a$ $with$ $ps]\!]$ $\triangleq$ $[\![policySet]\!]^{prin_{u}, a}$
+$[\![ agreement$ $for$ $prin_{u}$ $about$ $a$ $with$ $policySet]\!]$ $\triangleq$ $[\![policySet]\!]^{prin_{u}, a}$
 \end{lstlisting}
 
 \section{Policy Set Translation}
-The translation for a $policySet$ ($[\![policySet]\!]^{prin_{u}, a}$) is described by translation formulas for each type of $policySet$. A $policySet$ is either a $PrimitivePolicySet$, a $\linebreak PrimitiveExclusivePolicySet$ or a $AndPolicySet$.
+The translation for a $policySet$ ($[\![policySet]\!]^{prin_{u}, a}$) is defined by cases, one for each clause of the grammar in listing ~\ref{lst:policySetast}. Recall that a $policySet$ is either a $PrimitivePolicySet$, a $\linebreak PrimitiveExclusivePolicySet$ or a $AndPolicySet$. Each of these has its own translation function, which will be defined in the next 3 subsections.
 
 \subsection{PrimitivePolicySet Translation}
 Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields a formula that includes a test on whether the subject is in the set of agreements' users, the translation of the policy and the translation of the $prerequisite$. Basically if the subject in question is a user of the agreement and the policySet prerequisites hold, then the policy holds. Translation of the policy for a $PrimitivePolicySet$ is called a \emph{positive translation}. A positive translation is one where the actions described by the policies are permitted.   
@@ -87,7 +89,7 @@ $[\![ and [policySet_{1}, ..., policySet_{m}]]\!]^{e, prin_{u}, a}$ $\triangleq$
 \end{lstlisting}
 
 \section{Principal Translation}
-Translation for a \emph{prin} ($[\![ prin ]\!]_{x}$) is a formula that is true if and only if the subject $x$ is in the prin set. A $prin$ is either a single subject or a list of subjects ($\{ subject_{1}, ..., subject_{m} \}$ so the translation covers both cases. 
+Translation for a \emph{prin} ($[\![ prin ]\!]_{x}$) is a formula that is true if and only if the subject $x$ is in the prin set. A $prin$ is either a single subject or a list of subjects ($\{ subject_{1}, ..., subject_{m} \}$ so the translation covers both cases. Each of these has its own translation function, which will be defined in the following 2 subsections.
 
 
 If the $prin$ is a single subject, the translation is a formula that is true if and only if the subject $x$ is the same as the single subject $subject$.
@@ -113,7 +115,7 @@ $[\![ \{ subject_{1}, ..., subject_{m} \} ]\!]_{x}$ $\triangleq$ $[\![subject_{1
 
 \section{Prerequisite Translation}
 
-Translation for a prerequisite is a formula $[\![prerequisite]\!]^{[id_{1}, ..., id_{m}], prin, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the prerequisites, $prin$ is the agreement's user(s) (and to which the prerequisites apply), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $prerequisite$ is described by translation formulas for each type of $prerequisite$. A $prerequisite$ is either always $true$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$.
+Translation for a prerequisite is a formula $[\![prerequisite]\!]^{[id_{1}, ..., id_{m}], prin, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the prerequisites, $prin$ is the agreement's user(s) (and to which the prerequisites apply), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $prerequisite$ is described by translation formulas for each type of $prerequisite$. A $prerequisite$ is either always $true$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$. Each of these has its own translation function, which will be defined in the following subsections.
 
 \subsection{True Prerequisite Translation}
 The translation for a $TruePrq$ yields a formula that is always \emph{true}.
@@ -184,7 +186,7 @@ $[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}],
 
 \section{Constraint Translation}
 
-Translation for a constraint is a formula $[\![constraint]\!]^{[id_{1}, ..., id_{m}], prin_{u}, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the constraint, $prin_{u}$ is the agreement's user(s) (and to which the constraint applies), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $constraint$ is described by translation formulas for each type of $constraint$. A $constraint$ is either a $Principal$, a $Count$, or a $CountByPrin$.
+Translation for a constraint is a formula $[\![constraint]\!]^{[id_{1}, ..., id_{m}], prin_{u}, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the constraint, $prin_{u}$ is the agreement's user(s) (and to which the constraint applies), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $constraint$ is described by translation formulas for each type of $constraint$. A $constraint$ is either a $Principal$, a $Count$, or a $CountByPrin$. Each of these has its own translation function, which will be defined in the following subsections.
 
 \subsection{Principal Constraint Translation}
 The translation for a $Principal$ is handled by a specialized translation function (covered at ~\ref{lst:transprin}.   
@@ -235,6 +237,8 @@ $[\![ not$ $constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triangleq$ 
 \end{lstlisting}
 
 \section{Count Translation}
+Translation for $Count$ or $CountByPrin$ is based on whether the translation is on a single pair and multiple pairs of subject/policyIds. Each of these two cases will be described in the following subsections.
+
 \subsection{Count Translation For Subject/ID Pair}
 The translation for $Count$ or $CountByPrin$ for a pair of subject and policy identifier is a formula that is true if the number of times the $subject_{1}$ has invoked a policy with policy identifier $id_{1}$ is smaller than $N$.
 

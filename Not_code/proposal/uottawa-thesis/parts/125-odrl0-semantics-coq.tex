@@ -8,7 +8,7 @@
 
 
 % COQ
-The translation functions plus the auxiliary types and infrastructure, implementing the semantics have been encoded in Coq. Translation functions all return the \emph{sort} $Prop$. 
+The translation functions plus the auxiliary types and infrastructure, implementing the semantics have been encoded in Coq. Translation functions all build terms of \emph{sort} $Prop$. 
 
 Talk about Props here...
 
@@ -31,23 +31,7 @@ Inductive environment : Set :=
 \end{lstlisting}
 \end{minipage}
 
-The non-empty list data structure is defined as a new \emph{polymorphic} inductive type in its own section. The non-empty list definition is listed at listing ~\ref{lst:nonemptylistcoq}.
 
-\lstset{language=Coq, frame=single, caption={nonemptylist type},label={lst:nonemptylistcoq}}
-\begin{minipage}[c]{0.95\textwidth}
-\begin{lstlisting}
-
-Section nonemptylist.
-
-Variable X : Set.
-
-Inductive nonemptylist : Set :=
-  | Single : X -> nonemptylist 
-  | NewList : X -> nonemptylist -> nonemptylist.
-
-End nonemptylist.
-\end{lstlisting}
-\end{minipage}
 
 \section{Translations}
 
@@ -115,7 +99,7 @@ Fixpoint trans_prin
 
 A positive translation for a policy (called $trans\_policy\_positive$ in listing ~\ref{lst:transpolicypositiveCoq}) takes as input $e$, the $environment$, $x$, the $subject$, $p$, the $policy$ to translate, $prin_{u}$, the agreement's user, and $a$, the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is \emph{permitted} to do $action$ to $a$, if the $preRequisite$ holds. 
 
-$Permitted$ is a predicate specified as $Parameter Permitted : subject -> act -> asset -> Prop.$ So $Permitted$ predicate takes a $subject$, an $act$ (an action) and an $asset$ and returns a $Prop$. 
+$Permitted$ is a predicate specified as $Parameter Permitted : subject -> act -> asset -> Prop.$ So $Permitted$ predicate takes a $subject$, an $act$ (an action) and an $asset$ and builds a term of type $Prop$. 
 
 Note that to implement the translation for an $AndPolicy$ a local function $trans\_p\_list$ has been defined where for a single $policy$, $trans\_policy\_positive$ is returned, and for a list of $policy$s, the conjunction of $trans\_policy\_positive$s are returned.
 
