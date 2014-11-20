@@ -18,19 +18,43 @@ Note that the notation $P : T$ is also used to declare program $P$ has type $T$.
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Proof Example},label={lst:proofexample}]
-Theroem example1: forall x:nat, x < x + 1.
+Theorem example1: forall x:nat, x < x + 1.
+\end{lstlisting}
+
+\section{Theorem One}
+
+In listing ~\ref{lst:theoremone} we define a $policySet$ with a $constraint$ such that if $Alice$ has used the policy with $id1$ to justify her printing $a_{1}$ times, she may do so again if $a_{1} < 5$. The agreement $AgreeCan$ simply links the asset $TheReport$ with the subject $Alice$ and the $policySet$ previously defined. 
+
+We capture the fact that $Alice$ has used the policy with $id1$ to justify her printing $2$ times in an environment called $eA1$. Recall that environments are defined to be non-empty lists of $count_equality$ objects (see ~\ref{lst:environmentcoq}). 
+
+We also declare a hypothesis $H$ with the proposition that results from the translation of the agreement (see definition of $trans_agreement$ in listing ~\ref{lst:transagreement}) and the environment. The proposition can be shown in Coq after some clean-up (e.g. replaced 101 by Alice) and using the form $Eval compute$ : $forall x : subject, x = Alice /\ True -> 2 < 5 -> Permitted x Print TheReport$. 
+
+The theorem $One$ that we are going to prove is trivial but nonetheless in English it states that Alice is Permitted to Print TheReport. The proof comes after the command 'Proof.' and ends with 'Qed'. 
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Theorem One},label={lst:theoremone}]
+
+Definition psA1:policySet :=
+  PrimitivePolicySet
+    TruePrq
+    (PrimitivePolicy (Constraint (Count  5)) id1 Print).
+
+Definition AgreeCan := Agreement (Single Alice) TheReport psA1.
+
+Definition eA1 : environment := 
+  (SingleEnv (make_count_equality Alice id1 2)).
+
+Hypothesis H: trans_agreement eA1 AgreeCan.
+
+Theorem One: Permitted Alice Print TheReport.
+
+Proof. simpl in H. apply H. split. reflexivity. auto.  omega. Qed.
+
+
 \end{lstlisting}
 
 
 
 
-
-
-
-
-
-\section{Agreement 2.1}
-
-Consider example 2.1 (from ~\cite{pucella2006}).
 
 
