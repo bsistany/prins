@@ -1741,10 +1741,10 @@ intuition. elim H1. apply e_is_consistent. Qed.
 
 Functional Scheme agreements_hold_in_at_least_one_E_relevant_model_ind := 
   Induction for agreements_hold_in_at_least_one_E_relevant_model Sort Prop.
-
+(*
 Functional Scheme trans_ps_ind := 
   Induction for trans_ps Sort Prop.
-
+*)
 
 Theorem PP1: forall (P Q:Prop), (P->True->True->Q) -> (P->Q).                              
 Proof. intros. apply H. exact H0. auto. auto. Qed.
@@ -1782,6 +1782,8 @@ Qed.
 
 Hypothesis Q: Charlie <> Alice.
 Hypothesis T: Charlie <> Bob.
+
+(****
 Theorem example4_3_is_QueryInconsistent : 
 (((trans_agreement e_agr agr) /\ (trans_agreement e_agr agr')) -> 
 permissionGranted e_agr (NewList agr (Single agr')) Charlie Print TheReport) /\
@@ -1794,7 +1796,7 @@ Proof.  intuition.
 
 destruct agr in H0. unfold trans_agreement in H0. 
 destruct agr' in H1. unfold trans_agreement in H1.
-*)
+
 
 functional induction permissionGranted e_agr (agr, [agr']) Charlie Print TheReport.
 
@@ -1824,12 +1826,12 @@ apply (ModesT (Charlie = Bob) (Permitted Charlie Print TheReport) (conj H1 H0)).
 apply H2. 
 intuition.
 
+****)
 
 
+(****
 
-
-
-Theorem example4_3_is_QueryInconsistent : 
+Theorem example4_3_is_QueryInconsistent2 : 
 (trans_agreement e_agr agr) -> (trans_agreement e_agr agr') -> 
 queryInconsistent e_agr (NewList agr (Single agr')) Charlie Print TheReport.
 Proof.
@@ -1856,7 +1858,7 @@ unfold trans_agreement in Q.
 
 
 
-(****)
+
 simpl. intros Q T. intuition. 
 unfold queryInconsistent. unfold not. unfold agreements_hold_in_at_least_one_E_relevant_model. 
 simpl. intro. Show Proof.
@@ -1870,6 +1872,7 @@ intro. intuition.
 assert (Charlie <> Bob). eauto. 
 
 destruct H0 as [H01 H02].
+****)
 
 End Sanity1.
 
