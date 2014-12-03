@@ -27,7 +27,12 @@ In listing ~\ref{lst:theoremone} we define a $policySet$ with a $constraint$ suc
 
 We capture the fact that $Alice$ has used the policy with $id1$ to justify her printing $2$ times in an environment called $eA1$. Recall that environments are defined to be non-empty lists of $count_equality$ objects (see ~\ref{lst:environmentcoq}). 
 
-We also declare a hypothesis $H$ with the proposition that results from the translation of the agreement (see definition of $trans_agreement$ in listing ~\ref{lst:transagreement}) and the environment. The proposition can be shown in Coq after some clean-up (e.g. replaced 101 by Alice) and using the form $Eval compute$ : $forall x : subject, x = Alice /\ True -> 2 < 5 -> Permitted x Print TheReport$. 
+We also declare a hypothesis $H$ with the proposition that results from the translation of the agreement (see definition of $trans_agreement$ in listing ~\ref{lst:transagreement}) and the environment. The proposition can be shown in Coq after some clean-up (e.g. replaced 101 by Alice) and using the form $Eval$ $compute$ : 
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Hypothesis for Theorem One},label={lst:theoremonehypo}]
+forall x : subject, x = Alice /\ True -> 2 < 5 -> Permitted x Print TheReport.
+\end{lstlisting}
 
 The theorem $One$ that we are going to prove is trivial but nonetheless in English it states that Alice is Permitted to Print TheReport. The proof comes after the command 'Proof.' and ends with 'Qed'. 
 
@@ -49,6 +54,46 @@ Hypothesis H: trans_agreement eA1 AgreeCan.
 Theorem One: Permitted Alice Print TheReport.
 
 Proof. simpl in H. apply H. split. reflexivity. auto.  omega. Qed.
+
+
+\end{lstlisting}
+
+\section{Theorem Two}
+
+In listing ~\ref{lst:theoremtwo} we define an exclusive policy set $policySet$ containing a policy $pol$ that allows printing. The agreement $AgreeA5$ includes the exclusive policy set to express that Bob may print $LoveAndPeace$. However any subject that is not the agreement's user (e.g. Bob) is forbidden from printing $LoveAndPeace$. 
+
+Notice that due to the fact that environments are defined as non-empty lists, we have added a Null count to it (see $eA5$). We continue to capture the relevant facts from the environment and the agreement through defining a hypothesis (e.g. $H$). The hypothesis is shown below : 
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Hypothesis for Theorem Two}, label={lst:theoremtwohypo}]
+forall x : subject, 
+        (x = Bob /\ True -> True -> Permitted x Print LoveAndPeace) /\
+       ((x = Bob -> False) -> Permitted x Print LoveAndPeace -> False). 
+\end{lstlisting}
+
+Theorem $T1\_A5$ states the exclusivity of the policy set, namely that any subject that is not Bob is not permitted to print the asset LoveAndPeace. Theorem $T2\_A5$ uses $T1\_A5$ to prove Alice is not permitted to print the asset.
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Theorem Two},label={lst:theoremtwo}]
+
+Definition prin_bob := (Single Bob).
+Definition pol:policy := PrimitivePolicy TruePrq id3 Print.
+Definition pol_set:policySet := PrimitiveExclusivePolicySet TruePrq pol.
+Definition AgreeA5 := Agreement prin_bob LoveAndPeace pol_set.
+Definition eA5 : environment := (SingleEnv (make_count_equality NullSubject NullId 0)).
+
+
+Hypothesis H: trans_agreement eA5 AgreeA5.
+
+
+Theorem T1_A5: forall x, x<>Bob -> ~Permitted x Print LoveAndPeace.
+Proof. simpl in H. apply H. Qed.
+
+Theorem T2_A5: ~Permitted Alice Print LoveAndPeace.
+Proof. simpl in H. apply T1_A5. apply not_eq_S. omega. Qed.
+
+
+End A5.
 
 
 \end{lstlisting}
