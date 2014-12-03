@@ -99,6 +99,103 @@ End A5.
 \end{lstlisting}
 
 
+\section{Theorem Three}
+
+In listing ~\ref{lst:environmentcoq} we defined environments as non-empty lists of $count_equality$ objects which are in turn defined as counts per each subject, policy-id pair. These count formulas represent how many times each policy has been used to justify an action by a subject wrt a policy (specified by the policy id) and semantically it makes sense that they are unique in time. When and if two $count_equality$ objects with the same subject and policy id refer to different counts, we say we have \emph{inconsistent} count formulas. The listing ~\ref{lst:inconsistentcounts} defines the binary predicate $inconsistent$.
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Inconsistent Count Formulas}, label={lst:inconsistentcounts}]
+
+Definition inconsistent (f1 f2 : count_equality) : Prop :=
+   match f1 with (CountEquality s1 id1 n1) =>
+     match f2 with (CountEquality s2 id2 n2) =>       
+       s1 = s2 -> id1 = id2 -> n1 <> n2
+     end 
+   end.
+
+\end{lstlisting}
+
+
+Next we would like to expand the notion of inconsistency to more than two count formulas. We first define a predicate over a count formula and an environment as in listing ~\ref{lst:inconsistentcountandenv}. If the environment is a singleton then we just compare the two count formulas for inconsistency, else we build the disjunction of the inconsistency between the count formula on one hand and the head of the environment and the rest of the environment, respectively. 
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Inconsistent Count Formula And Environment}, label={lst:inconsistentcountandenv}]
+Fixpoint formula_inconsistent_with_env (f: count_equality)
+                          (e : environment) : Prop :=
+  match e with
+    | SingleEnv g =>  inconsistent f g
+    | ConsEnv g rest => (inconsistent f g) \/ (formula_inconsistent_with_env f rest)
+  end.
+\end{lstlisting}
+
+Finally we define a new inductive data type that represents $consistent$ environments (see ~\ref{lst:inconsistentenv}). An environment is consistent if it is a singleton count formula, if it consists of only two consistent count formulas and finally if the environment consists of a consistent environment and the consistent  composition of a count formula and the consistent environment (see constructor \emph{consis_more}.
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Inconsistent Environment}, label={lst:inconsistentenv}]
+
+Inductive env_consistent : environment -> Prop :=
+| consis_1 : forall f, env_consistent (SingleEnv f)
+| consis_2 : forall f g, ~(inconsistent f g) -> env_consistent (ConsEnv f (SingleEnv g))
+| consis_more : forall f e, 
+   env_consistent e -> ~(formula_inconsistent_with_env f e) -> env_consistent (ConsEnv f e).
+
+\end{lstlisting}
+
+
+We will now pose several small theorems about consistency of count formulas and environments and provide proofs for them (see listing ~\ref{lst:inconsistenttheorems}).
+
+\lstset{language=Coq}
+\begin{lstlisting}[frame=single, caption={Inconsistent Environment}, label={lst:inconsistenttheorems}]
+
+Theorem f1_and_f2_are_inconsistent: inconsistent f1 f2.
+Proof. 
+unfold inconsistent. simpl. omega. Qed.
+
+
+Theorem f1_and___env_of_f2_inconsistent: formula_inconsistent_with_env f1 (SingleEnv f2).
+Proof. 
+unfold formula_inconsistent_with_env. apply f1_and_f2_are_inconsistent. Qed.
+
+
+Theorem two_inconsistent_formulas_imply_env_inconsistent: 
+  forall f g, inconsistent f g -> ~env_consistent (ConsEnv f (SingleEnv g)).
+Proof. 
+intros. unfold not. intros H'. 
+inversion H'. intuition. intuition. Qed.
+
+
+Theorem e2_is_inconsistent: ~env_consistent e2.
+Proof.
+apply two_inconsistent_formulas_imply_env_inconsistent. 
+apply f1_and_f2_are_inconsistent. Qed.
+
+
+Theorem env_consistent_implies_two_consistent_formulas: 
+  forall (f g: count_equality), 
+    env_consistent (ConsEnv f (SingleEnv g))-> ~inconsistent f g.
+Proof. 
+intros. inversion H. exact H1. intuition. Qed.
+
+
+Theorem two_consistent_formulas_imply_env_consistent: 
+  forall (f g: count_equality), 
+    ~inconsistent f g -> env_consistent (ConsEnv f (SingleEnv g)).
+Proof. 
+intros. apply consis_2. exact H. Qed.
+
+\end{lstlisting}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
