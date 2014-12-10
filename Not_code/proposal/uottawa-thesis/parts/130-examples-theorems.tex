@@ -183,6 +183,42 @@ Theorem two_consistent_formulas_imply_env_consistent:
 Proof. 
 intros. apply consis_2. exact H. Qed.
 
+Theorem env_inconsistent_implies_two_inconsistent_formulas: 
+  forall (f g: count_equality), 
+    ~env_consistent (ConsEnv f (SingleEnv g))-> inconsistent f g.
+Proof.
+induction f.
+induction g.
+unfold inconsistent.
+intros.
+subst.
+generalize (dec_eq_nat n n0).
+intro h; elim h.
+intro; subst.
+elim H.
+apply consis_2.
+unfold inconsistent.
+intro.
+assert (s0=s0); auto.
+assert (p0=p0); auto.
+specialize H0 with (1:=H1) (2:=H2).
+elim H0; auto.
+auto.
+Qed.
+
+
+Theorem same_subjects_policyids_different_counts_means_inconsistent : forall (s1 s2: subject),
+                forall (id1 id2: policyId),
+                forall (n1 n2: nat),
+
+  (s1 = s2 /\ id1 = id2 /\ n1 <> n2) -> 
+  inconsistent (CountEquality s1 id1 n1) (CountEquality s2 id2 n2).
+
+Proof. 
+intros. unfold inconsistent. intros. intuition. Qed.
+
+
+
 \end{lstlisting}
 
 
