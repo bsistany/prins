@@ -1303,6 +1303,8 @@ Definition permissionUnregulated (e:environment)
 (** 
 Now for the real hard stuff:
 We can start theorems like : query q56 results in permissionUnregulated or permissionGranted
+Or more generally: we want to state and prove that all queries in ODRL0 result in one of 
+permissionGranted, permissionDenied, permissionUnregulated or queryInconsistent
 **)   
 
 End AAA.
@@ -1875,5 +1877,17 @@ destruct H0 as [H01 H02].
 ****)
 
 End Sanity1.
+
+Theorem allQueriesWillGetAnAnswer: forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+(permissionGranted e [agr] s action a) \/
+(permissionDenied e [agr] s action a)  \/
+(queryInconsistent e [agr] s action a) \/
+(permissionUnregulated e [agr] s action a).
+                                 
 
 End ODRL.

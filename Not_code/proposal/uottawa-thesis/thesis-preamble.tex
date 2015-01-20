@@ -55,7 +55,10 @@
   tabsize=1,
 }
 
-
+\newtheorem{innercustomthm}{Theorem}
+\newenvironment{customthm}[1]
+  {\renewcommand\theinnercustomthm{#1}\innercustomthm}
+  {\endinnercustomthm}
 
 
 
