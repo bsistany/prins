@@ -1,0 +1,93 @@
+%======================================================================
+\chapter{Proposed Future Work}
+%======================================================================
+
+%----------------------------------------------------------------------
+\section{Introduction}
+%----------------------------------------------------------------------
+By defining formal semantics for \ac{odrl} authors of ~\cite{pucella2006} were able to show some important results. First result is that answering the question of whether a set of ODRL statements imply a permission or a denial (or other possibilities as we will see) is decidable and also that its complexity is NP-hard (see Theorem ~\ref{customthm41} from ~\cite{pucella2006} re-printed here below).
+
+\begin{customthm}{4.1}\label{customthm41}
+The problem of deciding, for a query $q = (A, s, act, a, E)$, whether $f^{+}_q$ is E-valid is decidable but NP-hard. Similarly for $f^{-}_q$.
+\end{customthm}
+
+The authors of ~\cite{pucella2006} then prove that by removing the construct $not[policySet]$ from \ac{odrl}'s syntax makes answering the same query decidable and efficient (polynomial time complexity). 
+
+We will prove equivalent results as above starting with the decidability result of answering a query in ODRL0 which does not include $not[policySet]$. The theorem in listing ~\ref{lst:decidabilityodrl0coq} states that for all environments, all single agreements, all subjects, all actions and all assets, either permission is granted, permission is denied, permission is unregulated or query is inconsistent. 
+
+\lstset{language=Coq, frame=single, caption={Environments and Counts},label={lst:decidabilityodrl0coq}}
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}
+Theorem queriesAreDecidable: forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+
+(permissionGranted e [agr] s action a) \/
+(permissionDenied e [agr] s action a)  \/
+(queryInconsistent e [agr] s action a) \/
+(permissionUnregulated e [agr] s action a).
+
+\end{lstlisting}
+\end{minipage}
+
+We will state and prove the complexity (expecting a polynomial time complexity) of the decision procedure (see ~\cite{quicksortInCoq} for a detailed example of an algorithm complexity proof). 
+
+We will then augment ODRL0 with the constructs we omitted from the full ODRL (resulting in what we have earlier called ODRL1 or ODRL2) including the troublesome construct $not[policySet]$ and prove decidability and NP-hardness as stated in theorem ~\ref{customthm41}.
+
+\section{SELinux}
+ 
+We started out by looking at \ac{drel}s and specifically \ac{odrl} where rights expressions are used to arbitrate access to assets under conditions. Recall that the main construct in \ac{odrl} is the agreement which specifies users, asset(s) and policies (as part of policy sets) whereby controls on users' access to the assets are described. This is reminiscent of how access control conditions are expressed in access control policy languages such as \ac{xacml} and \ac{selinux}.
+
+While \ac{xacml} is a high-level and platform independent access control system \ac{selinux} is platform dependent (e.g. Linux based) and low-level. \ac{selinux} enhances the \ac{DAC} that most unix based systems employ by \ac{MAC} where designed access control policies are applied throughout the system possibly overriding whatever \ac{DAC} is in place by the system users. 
+
+\ac{selinux} uses Linux's extended file attributes to attach a \emph{security context} to passive entities (e.g. files, directories, sockets) and also to each active entity typically a Linux user space process. Security context is a data structure that is composed of a user, a role and a domain (or type). While users can map directly to ordinary user names they can also be defined separately. Roles are meant to group users and add flexibility when assigning permissions and are the basis for \ac{RBAC}. Finally domains or types are the basis for defining common access control requirements for both passive and active entities. 
+
+
+The enforcement of \ac{selinux} policies are performed by the \emph{security server}. Whenever a security operation is requested from user space by a system call, the security server is invoked to arbitrate the operation and either allow the operation or to deny it. Each operation is identified by two pieces of information: an object class (e.g. file) and a permission (e.g. read, write). When an operation is requested to be performed on an object, the class and the permissions associated with the object along with security contexts of the source (typically the source entity is a process) and the object are passed to the security server. The security server consults the loaded policy (loaded at 
+boot time) and allows and denies the access request [sarna-starosta]
+
+\section{SELinux Policy Language}
+
+The \ac{selinux} policy has four different kinds of statements: declarations, rules, constraints and assertions [archer]. Assertions are compile time checks that the \emph{checkpolicy} tool performs at compile time. The other three kinds of statements however are evaluated at run-time. 
+
+Declaration statements declare a user, a role and a type. 
+
+\lstset{language=selinux}
+\begin{lstlisting}[frame=single, caption={Declarations},label={lst:declsselinux}]
+
+user u types Ru;
+
+role r types Tr;
+
+type t, attrib_{1}, ..., attrib_{n};
+
+\end{lstlisting}
+
+Rule statements define access vector rules and type transition rules. Access vector (AV) rules (see ~\ref{lst:avruleselinux}) specify which operations are allowed and whether to audit (log). Any operation not covered by AV rules are denied and all denied operations are logged. The semantics of the AV rule with avkind \emph{allow} is: processes with type \emph{sourcetype} are allowed to perform operations in \emph{perm} on objects with class \emph{obj-class} and type \emph{targettype}. \emph{auditallow} means to allow and audit, \emph{dontaudit} means to never audit and finally \emph{neverallow} provides a mechanism to override allow rules. When a process changes security context, the role may change, assuming a role transition rule exists relating the old and the new roles (~\ref{lst:roletransitionselinux}).
+
+\lstset{language=selinux}
+\begin{lstlisting}[frame=single, caption={AV rule},label={lst:avruleselinux}]
+
+avkind sourcetype targettype:object-class perm
+
+avkind=allow, auditallow, dontaudit, neverallow
+\end{lstlisting}
+
+Constraints are additional conditions that must hold for an attempted operation to be allowed. Constrains relate all of their arguments (the security contexts) to the server (see ~\ref{lst:constrainselinux}. Whenever a permission is requested on an obj-class, the security server checks that the two security contexts are related by a constrain statement.
+
+\lstset{language=selinux}
+\begin{lstlisting}[frame=single, caption={Constrain rule},label={lst:constrainselinux}]
+
+constrain classes, perms, sourcetype, sourcerole, sourceuser, targettype, targetrole, targetuser
+\end{lstlisting}
+
+\section{Authorization Relation}
+
+The authorization elation characterizes the operations allowed by a policy. \emph{auth(C, P, T1, R1, U1, T2, R2, U2)} holds if the security context defined by the tuple <T1, R1, U1> and <T2, R2, U2> are \emph{consistent} and an entity with type T1 has permission P for targets with class C and type T2, and the constraint defined by \emph{constrain} holds. A security context type <T, R, U> (type, role and user) is consistent with respect to a given policy if (1) either there exists a \emph{types} such that a role-type relation \emph{role(R, types)} holds and T is in types, or R is \emph{object_r} (note that since the notion of a role is irrelevant for files, all files are assigned the object_r role) and T is not a process type, and (2) either there exists \emph{roles} such that \emph{user(U, roles)} holds and R is in roles, or R is object_r. 
+
+
+
+
+
