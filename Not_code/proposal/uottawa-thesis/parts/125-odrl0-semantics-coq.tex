@@ -8,18 +8,16 @@
 
 
 % COQ
-The translation functions plus the auxiliary types and infrastructure, implementing the semantics have been encoded in Coq. Translation functions all build terms of \emph{sort} $Prop$. 
-
-Talk about Props here...
+The translation functions plus the auxiliary types and infrastructure, implementing the semantics have been encoded in Coq. Translation functions build Coq terms of type $Prop$. Well-formed propositions (or $Prop$s) are assertions one can express about values such as mathematical objects or even programs (e.g. 3 < 8) in Coq. Assertions may be true, false or simply conjectures, however an assertion is only true in general if a proof is provided (~\cite{BC04}).
 
 
-Whether a permission is granted or denied depends on the agreements in question but also on the facts recorded in the environment. For ODRL0 those facts revolve around the number of times a policy has been used to justify an action (see \ref{subsec:odrl0} for more details on odrl0). We encode this information in an \emph{environment} which is a conjunction of equalities of the form \emph{count(s, policyId) = n}. 
+Whether a permission is granted or denied depends on the agreements in question but also on the facts recorded in the environment. For ODRL0 those facts revolve around the number of times a policy has been used to justify an action (see section~\ref{sec:odrl0} for more details on odrl0). We encode this information in an \emph{environment} which is a conjunction of equalities of the form $count(s, policyId) = n$. 
 
 % COQ
-The Coq version of the count equality is a new inductive type called \emph{count_equality}. An environment is defined to be a non-empty list of count_equality objects.
+The Coq version of the count equality is a new inductive type called \emph{count_equality}. An environment is defined to be a non-empty list of $count\_equality$ objects (see listing~\ref{lst:environmentcoq}).
 
 \lstset{language=Coq, frame=single, caption={Environments and Counts},label={lst:environmentcoq}}
-\begin{minipage}[c]{0.95\textwidth}
+%\begin{minipage}[c]{0.95\textwidth}
 \begin{lstlisting}
 Inductive count_equality : Set := 
    | CountEquality : subject -> policyId -> nat -> count_equality.
@@ -29,9 +27,34 @@ Inductive environment : Set :=
   | ConsEnv :  count_equality ->  environment -> environment.
 
 \end{lstlisting}
+%\end{minipage}
+
+We also define a \emph{getCount} function (see listing~\ref{lst:getCountcoq}) that given a pair consisting of a subject and policy id, looks for a corresponding count in the environment.
+$getCount$ assumes the given environment is consistent, so it returns the first matched $count$ it sees for a $(subject, id)$ pair. If a $count$ for a $(subject, id)$ pair is not found it returns 0.
+
+\lstset{language=Coq, frame=single, caption={getCount Function},label={lst:getCountcoq}}
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}
+Fixpoint getCount 
+  (e:environment)(s:subject)(id: policyId): nat :=
+  match e with
+  | SingleEnv f  => 
+      match f with 
+	  | CountEquality s1 id1 n1 => 
+          if (beq_nat s s1) 
+          then if (beq_nat id id1) then n1 else 0 
+          else 0  
+      end			
+  | ConsEnv f rest =>
+      match f with 
+	  | CountEquality s1 id1 n1 => 
+          if (beq_nat s s1)
+          then if (beq_nat id id1) then n1 else (getCount rest s id)  
+          else (getCount rest s id)
+      end
+  end.
+\end{lstlisting}
 \end{minipage}
-
-
 
 \section{Translations}
 
