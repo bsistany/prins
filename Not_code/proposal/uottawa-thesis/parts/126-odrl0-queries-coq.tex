@@ -19,6 +19,7 @@ In this chapter we will review our encoding of queries in Coq and Coq representa
 Queries are tuples of the form $(A, s, action, a, e)$ in ~\cite{pucella2006}. The tuple corresponds to the question of determining whether a set $A$ of agreements imply that a subject $s$ may perform action $action$ on an asset $a$ given the environment $e$. The Coq representation is listed in listing~\ref{lst:querycoq}. We distinguish single agreement queries from multiple agreement queries by defining two separate types: $single\_query$ and $general\_query$.
 
 \lstset{language=Coq, frame=single, caption={Queries},label={lst:querycoq}}
+\begin{minipage}[c]{0.95\textwidth}
 \begin{lstlisting}
 
 Inductive single_query : Set := 
@@ -28,10 +29,11 @@ Inductive single_query : Set :=
 Inductive general_query : Set := 
    | GeneralQuery : nonemptylist agreement -> subject -> act -> asset -> environment -> general_query.
 \end{lstlisting}
+\end{minipage}
 
 \section{Answering Queries}
 
-Answering a query as defined earlier can lead to one of four outcomes: ``Query Inconsistent'',``Permission Granted'', ``Permission Denied'' and ``Permission Unregulated'' (~\cite{pucella2006}). We will use the equivalent short forms: error (~\ref{lst:errordecision}), permitted (~\ref{lst:permitdecision}), denied (~\ref{lst:denydecision}) and ``not applicable'' (~\ref{lst:notapplicabledecision}) defined in ~\cite{Tschantz}.
+Answering a query as defined earlier can lead to one of four outcomes: error (~\ref{lst:errordecision}), permitted (~\ref{lst:permitdecision}), denied (~\ref{lst:denydecision}) and ``not applicable'' (~\ref{lst:notapplicabledecision}) defined in ~\cite{Tschantz}.
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={Answerable Queries: Error},label={lst:errordecision}]
@@ -60,6 +62,55 @@ $(\bigwedge [\![ agreement]\!]) \land E \notimplies Permitted(s, act, a)$ and $(
 $(\bigwedge [\![ agreement]\!]) \land E \notimplies Permitted(s, act, a)$ and $(\bigwedge [\![ agreement]\!]) \land E \notimplies \lnot Permitted(s, act, a)$
 
 \end{lstlisting}
+
+
+In (~\cite{pucella2006}) a slightly different formulation is used to denote the same four decision types. ``Query Inconsistent'',``Permission Granted'', ``Permission Denied'' and ``Permission Unregulated''. 
+
+\lstset{mathescape, language=AST} 
+\begin{lstlisting}[frame=single, caption={$f^{+}_q$},label={lst:fplusformula}]
+
+$f^{+}_q \triangleq (\bigwedge [\![ agreement]\!]) \implies Permitted(s, act, a)$ 
+
+\end{lstlisting}
+
+\lstset{mathescape, language=AST} 
+\begin{lstlisting}[frame=single, caption={$f^{-}_q$},label={lst:fminusformula}]
+
+$f^{-}_q \triangleq (\bigwedge [\![ agreement]\!]) \implies \lnot Permitted(s, act, a)$ 
+
+\end{lstlisting}
+
+
+\lstset{mathescape, language=AST} 
+\begin{lstlisting}[frame=single, caption={Answerable Queries: Query Inconsistent},label={lst:queryinconsistentdecision}]
+
+$f^{+}_q$ and $f^{-}_q$ both hold
+
+\end{lstlisting}
+
+\lstset{mathescape, language=AST} 
+\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Granted},label={lst:permission granteddecision}]
+
+$f^{+}_q$ holds and $f^{-}_q$ does not hold
+
+\end{lstlisting}
+
+\lstset{mathescape, language=AST} 
+\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Denied},label={lst:permission denieddecision}]
+
+$f^{+}_q$ does not hold and $f^{-}_q$ holds
+
+\end{lstlisting}
+
+\lstset{mathescape, language=AST} 
+\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Unregulated},label={lst:permission unregulateddecision}]
+
+$f^{+}_q$ does not hold and $f^{-}_q$ does not hold
+
+\end{lstlisting}
+
+
+
 
 
 
