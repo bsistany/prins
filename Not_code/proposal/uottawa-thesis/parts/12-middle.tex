@@ -1,5 +1,5 @@
 %======================================================================
-\chapter{Middle}
+\chapter{Motivation}
 %======================================================================
 
 %----------------------------------------------------------------------
@@ -10,45 +10,39 @@
 
 Formal logic can represent the statements and facts we express in a natural language like English. Propositional logic is expressive enough to express simple facts as propositions and uses connectives to allow for the negation, conjunction and disjunction of the facts. However propositional logic is not expressive enough to express policies of the kind used in languages like ODRL and XrML. For example, a simple policy expressed in English like ``All who pay 5 dollars can watch the movie Toy Story'' cannot be expressed in propositional logic because the concept of  variables doesn't exist in propositional logic. 
 
-A richer logic called ``Predicate Logic'' or ``First Order Logic'' (\emph{FOL}) is more suitable and has the expressive power to represent policies written in English. Moreover, FOL can be used to capture the meaning of policies in an unambiguous way.
+A richer logic such as ``Predicate Logic'' or ``First Order Logic'' (\emph{FOL}) is more suitable and has the expressive power to represent policies written in English. Moreover, FOL can be used to capture the meaning of policies in an unambiguous way.
 
-Halpern and Weissman [Using First Order Logic to Reason about Policies] propose a fragment of FOL to represent and reason about policies. The fragment of FOL they arrive at is called \emph{Lithium} which is decidable and allows for efficiently answering interesting queries. Lithium restricts policies to be written based on the concept of ``bipolarity'' which disallows by construction policies that both permit and deny an action on an object.
-
-\section{Pucella 2006}
-Pucella and Weissman \cite{pucella2006} specify a predicate logic based based language that represents a subset of ODRL.
-
-\section{what will I do?}
+Halpern and Weissman [REF][Using First Order Logic to Reason about Policies] propose a fragment of FOL to represent and reason about policies. The fragment of FOL they arrive at is called \emph{Lithium} which is decidable and allows for efficiently answering interesting queries. Lithium restricts policies to be written based on the concept of ``bipolarity'' which disallows by construction policies that both permit and deny an action on an object. Pucella and Weissman ~\cite{pucella2006} specify a predicate logic based language that represents a subset of ODRL.
 
 
-\subsection{Coq}
+\section{Specific Problem}
+
+Policy languages and the agreements written in those languages are meant to implement specific goals such as limiting access to specific assets. The tension in designing a policy language is usually between how to make the language expressive enough, such that the design goals for the policy language may be expressed, and how to make the policies verifiable with respect to the stated goals.
+
+As stated earlier, an important part of fulfilling the verifiability goal is to have formal semantics defined for policy languages. For \ac{odrl}, authors of ~\cite{pucella2006} have defined a formal semantics based on which they declare and prove a number of important theorems (their main focus is on stating and proving algorithm complexity results). However as with many paper-proofs, the language used to do the proofs while mathematical in nature, uses a lot of intuitive justifications to show the proofs. As such these proofs are difficult to verify or more importantly to ``derive''. Furthermore the proofs can not be used directly to render a decision on a sample policy (e.g. whether to allow or deny access to an asset). Of course one may (carefully) construct a program based on these proofs for practical purposes but we will have no way of certifying those programs correct, even assuming the original proofs were in fact correct.
+
+While there are paper-proofs for \ac{odrl}, as far as we know, similar paper-proofs do not exist for an important (mandatory) access-control policy system, namely \ac{selinux}. In particular no formal proofs (paper based or otherwise) of decidablity of \ac{selinux} policies exist in the literature. 
 
 
-	• Program correctness
-	• Formal verification of software
-	• Certified programs
-	• Proof assistant
-	• Interactive and mechanized theorem proving
-	• Examples of machine assisted proofs: CompCert, four-color theorem proof
-	• Coq is based on a higher-order functional programming language
-	• Dependent Types
-		○ Subset types
-		○ Easier than writing explicit proofs
-	• Write formal specification and proofs that programs comply to their specification (a-short-intro-to-coq)
-	• Automatically extract code from specifications as Ocaml or Haskell (a-short-intro)
-	• Properties, programs and proofs are all formalized in the same language called CIC (Calculus of inductive Constructions). (a-short-intro)
-	• Coq uses a sort called Prop for propositions
-	• Coq art:
-	• Well-formed propositions are assertions  one can express about values such as mathematical objects or even programs e.g. 3 < 8
-		○ Note that assertions may be true, false or simply conjectures
-		○ An assertion is only true in general if a proof is provided
-		○ However hand written proofs are difficult to verify
-		○ Coq provides an environment for developing proofs including a formal language to express proofs in, the language itself being built using proof theory making it possible to step by step verification of the proofs
-		○ Mechanized proof verification requires a "proof" that the verification algorithm is correct itself in applying all the formal rules correctly
+\section{Contributions}
+
+In this thesis we will build a language representation framework based on \ac{odrl} and definitions in ~\cite{pucella2006}. The framework will in \emph{Coq} which is both a programming language and a proof-assistant. We will declare and prove decidablity results of subsets of \ac{odrl} all the way up to the complete \ac{odrl} fragement defined in ~\cite{pucella2006}. We will extract programs from the proofs and demonstrate how they can be used on specific policies to render a specific decision such as ``a conflict has been detected''. 
+
+Beside ``certified decidablity results'' for \ac{odrl}, we will investigate decidablity for \ac{selinux} policies, proving decidablity or show why a proof is not possible (if that is the case) and provide proposals to make the policy language decidable.
+
+By using the Coq framework originally built for \ac{odrl} to encode and verify agreements written in a second policy language (albeit a different class of policy language: \ac{rel} vs access-control) we will demonstrate the suitability of this Coq based framework for other policy languages such as \ac{xacml}.
+
+\section{What specific work has been accomplished until this point in time? what results were obtained so far?}
+
+The encodings for a subset of \ac{odrl} called ODRL0 (see ~\ref{sec:odrl0}) plus some important functions implementing some of the algorithms in ~\cite{pucella2006} have been implemented in Coq. Some of the intermediate theorems have been also been defined and proved.
+
+\section{What remains to be done to complete the thesis research?}
+The main decidablity result and its proof for ODRL0 will be completed first. We will add the remaining \ac{odrl} constructs incrementally while maintaining decidablity for the main decision algorithm. The remaining constructs include a trouble-some construct (~\cite{pucella2006}), namely $not[policySet]$. We will show this construct does not change the decidablity result already established. 
+
+ODRL0 is enough to be used as a basis for \ac{selinux} policies without \emph{constrain}s. \ac{selinux} constrains are extra  conditions that need to be satisfied (in addition to policies) in order for a permission to be granted. We will investigate decidablity for this subset first. We will then add constrains to the ODRL0 subset (as pre-requisites) and investigate decidablity.
 
 
 
+\section{What is the timetable to complete the work?}
 
-
-
-
-
+The study plan calls for August of 2015 for everything to be completed.
