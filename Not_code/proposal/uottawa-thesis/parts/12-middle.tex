@@ -21,7 +21,7 @@ Policy languages and the agreements written in those languages are meant to impl
 
 As stated earlier, an important part of fulfilling the verifiability goal is to have formal semantics defined for policy languages. For \ac{odrl}, authors of ~\cite{pucella2006} have defined a formal semantics based on which they declare and prove a number of important theorems (their main focus is on stating and proving algorithm complexity results). However as with many paper-proofs, the language used to do the proofs while mathematical in nature, uses a lot of intuitive justifications to show the proofs. As such these proofs are difficult to verify or more importantly to ``derive''. Furthermore the proofs can not be used directly to render a decision on a sample policy (e.g. whether to allow or deny access to an asset). Of course one may (carefully) construct a program based on these proofs for practical purposes but we will have no way of certifying those programs correct, even assuming the original proofs were in fact correct.
 
-While there are paper-proofs for \ac{odrl}, as far as we know, similar paper-proofs do not exist for an important (mandatory) access-control policy system, namely \ac{selinux}. In particular no formal proofs (paper based or otherwise) of decidablity of \ac{selinux} policies exist in the literature. 
+While there are paper-proofs for \ac{odrl}, as far as we know, similar paper-proofs do not exist for an important (mandatory) access-control policy system, namely \ac{selinux}[REF]. In particular no formal proofs (paper based or otherwise) of decidablity of \ac{selinux} policies exist in the literature. 
 
 
 \section{Contributions}
@@ -30,7 +30,7 @@ In this thesis we will build a language representation framework based on \ac{od
 
 Beside ``certified decidablity results'' for \ac{odrl}, we will investigate decidablity for \ac{selinux} policies, proving decidablity or show why a proof is not possible (if that is the case) and provide proposals to make the policy language decidable.
 
-By using the Coq framework originally built for \ac{odrl} to encode and verify agreements written in a second policy language (albeit a different class of policy language: \ac{rel} vs access-control) we will demonstrate the suitability of this Coq based framework for other policy languages such as \ac{xacml}.
+By using the Coq framework originally built for \ac{odrl} to encode and verify agreements written in a second policy language (albeit a different class of policy language: \ac{rel} vs access-control) we will demonstrate the suitability of this Coq based framework for other policy languages such as \ac{xacml}[REF].
 
 \section{What specific work has been accomplished until this point in time? what results were obtained so far?}
 

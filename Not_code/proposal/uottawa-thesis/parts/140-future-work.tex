@@ -32,7 +32,7 @@ Inductive general_query : Set :=
 
 \section{Answering Queries}\label{sec:answerqueriesodrl}
 
-Answering a query as defined earlier can lead to one of four outcomes: error (~\ref{lst:errordecision}), permitted (~\ref{lst:permitdecision}), denied (~\ref{lst:denydecision}) and ``not applicable'' (~\ref{lst:notapplicabledecision}) defined in ~\cite{Tschantz}.
+Answering a query as defined earlier can lead to one of four outcomes: error(listing ~\ref{listing lst:errordecision}), permitted(listing~\ref{lst:permitdecision}), denied(listing~\ref{lst:denydecision}) and ``not applicable''(listing~\ref{lst:notapplicabledecision}) defined in ~\cite{Tschantz}.
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={Answerable Queries: Error},label={lst:errordecision}]
@@ -118,7 +118,7 @@ The problem of deciding, for a query $q = (A, s, act, a, E)$, whether $f^{+}_q$ 
 
 The authors of ~\cite{pucella2006} then prove that by removing the construct $not[policySet]$ from \ac{odrl}'s syntax answering the same query remains decidable and efficient (polynomial time complexity). 
 
-We will prove equivalent results as above starting with the decidability result of answering a query in ODRL0 (which does not include $not[policySet]$). The theorem in listing ~\ref{lst:decidabilityodrl0coq} states that for all environments, all single agreements, all subjects, all actions and all assets, either permission is granted, permission is denied, permission is unregulated or query is inconsistent. 
+We will prove equivalent results as above starting with the decidability result of answering a query in ODRL0 (which does not include $not[policySet]$). The theorem in listing~\ref{lst:decidabilityodrl0coq} states that for all environments, all single agreements, all subjects, all actions and all assets, either permission is granted, permission is denied, permission is unregulated or query is inconsistent. 
 
 \lstset{language=Coq, frame=single, caption={Environments and Counts},label={lst:decidabilityodrl0coq}}
 \begin{minipage}[c]{0.95\textwidth}
@@ -137,7 +137,7 @@ Theorem queriesAreDecidable: forall (e:environment),
 \end{lstlisting}
 \end{minipage}
 
-We will then augment ODRL0 with the constructs we omitted from the full ODRL (resulting in what we have earlier called ODRL1 or ODRL2) including the troublesome construct $not[policySet]$ and attempt to prove that the decidability results remain intact. There is a chance that a proof is not possible due to particulars of the Coq encoding we have used, in which case the we will detail the specifics.
+We will then augment ODRL0 with the constructs we omitted from the full ODRL (resulting in what we have earlier called ODRL1 or ODRL2) including the troublesome construct $not[policySet]$ and attempt to prove that the decidability results remain intact. There is a chance that a proof is not possible due to particulars of the Coq encoding we have used, in in which case, we will adjust our encoding.
 
 \section{SELinux}
  
@@ -168,7 +168,7 @@ type t, attrib_{1}, ..., attrib_{n};
 
 \end{lstlisting}
 
-Rule statements define access vector rules and type transition rules. Access vector (AV) rules (see ~\ref{lst:avruleselinux}) specify which operations are allowed and whether to audit (log). Any operation not covered by AV rules are denied and all denied operations are logged. The semantics of the AV rule with avkind \emph{allow} is: processes with type \emph{sourcetype} are allowed to perform operations in \emph{perm} on objects with class \emph{obj-class} and type \emph{targettype}. \emph{auditallow} means to allow and audit, \emph{dontaudit} means to never audit and finally \emph{neverallow} provides a mechanism to override allow rules. When a process changes security context, the role may change, assuming a role transition rule exists relating the old and the new roles (~\ref{lst:roletransitionselinux}).
+Rule statements define access vector rules and type transition rules. Access vector (AV) rules (see listing~\ref{lst:avruleselinux}) specify which operations are allowed and whether to audit (log). Any operation not covered by AV rules are denied and all denied operations are logged. The semantics of the AV rule with avkind \emph{allow} is: processes with type \emph{sourcetype} are allowed to perform operations in \emph{perm} on objects with class \emph{obj-class} and type \emph{targettype}. \emph{auditallow} means to allow and audit, \emph{dontaudit} means to never audit and finally \emph{neverallow} provides a mechanism to override allow rules. When a process changes security context, the role may change, assuming a role transition rule exists relating the old and the new roles (listing~\ref{lst:roletransitionselinux}).
 
 \lstset{language=selinux}
 \begin{lstlisting}[frame=single, caption={AV rule},label={lst:avruleselinux}]
@@ -178,7 +178,7 @@ avkind sourcetype targettype:object-class perm
 avkind=allow, auditallow, dontaudit, neverallow
 \end{lstlisting}
 
-Constraints are additional conditions that must hold for an attempted operation to be allowed. Constrains relate all of their arguments (the security contexts) to the server (see ~\ref{lst:constrainselinux}. Whenever a permission is requested on an obj-class, the security server checks that the two security contexts are related by a constrain statement.
+Constraints are additional conditions that must hold for an attempted operation to be allowed. Constrains relate all of their arguments (the security contexts) to the server (see listing~\ref{lst:constrainselinux}. Whenever a permission is requested on an obj-class, the security server checks that the two security contexts are related by a constrain statement.
 
 \lstset{language=selinux}
 \begin{lstlisting}[frame=single, caption={Constrain rule},label={lst:constrainselinux}]
@@ -189,7 +189,7 @@ constrain classes, perms, sourcetype, sourcerole, sourceuser, targettype, target
 
 \section{Agreements in \ac{selinux}}
 
-As with \ac{odrl} we will start by limiting the policy language to only allow AV rules. As mentioned earlier an operation not covered by a allow rule is denied by \ac{selinux}. We will make up explicit \emph{deny} as required therefore an agreement is defined to be a combination of allow and deny rules. Allow and deny rules are mappings defined in listing ~\ref{lst:allowmappingastselinux}.
+As with \ac{odrl} we will start by limiting the policy language to only allow AV rules. As mentioned earlier an operation not covered by a allow rule is denied by \ac{selinux}. We will make up explicit \emph{deny} as required therefore an agreement is defined to be a combination of allow and deny rules. Allow and deny rules are mappings defined in listing~\ref{lst:allowmappingastselinux}.
 
 \lstset{language=AST}
 \begin{lstlisting}[frame=single, caption={allow/deny rule as a mapping},label={lst:allowmappingastselinux}]
@@ -237,7 +237,7 @@ $deny (T1, T2, C, P)$ $\lor$ $\lnot (E$ $consistent$ $wrt$ $<T1, R1, U1>$ and $<
 
 \section{Decidability of Queries in \ac{selinux}}
 
-In this thesis we will be investigating the question of decidability for answering queries in \ac{selinux} policies based on the same four outcomes we encountered earlier in ~\ref{sec:answerqueriesodrl} namely error, permitted, denied and ``not applicable''. We will first state a decidability theorem similar to theorem ~\ref{lst:decidabilityodrl0coq} (minor adjustments may be needed to allow for differences with \ac{selinux} policy language) and present a proof for it in Coq. The literature in the \ac{selinux} implies only two outcomes are possible: permitted or denied. We will next attempt to prove this conjecture in Coq. Finally we will add constrain relations (see ~\ref{lst:fqplusconstsel} and ~\ref{lst:fqminusconstsel}) to \ac{selinux} policies (which we have not included so far) and prove the same decidability results again for the augmented policy.
+In this thesis we will be investigating the question of decidability for answering queries in \ac{selinux} policies based on the same four outcomes we encountered earlier in ~\ref{sec:answerqueriesodrl} namely error, permitted, denied and ``not applicable''. We will first state a decidability theorem similar to theorem in listing~\ref{lst:decidabilityodrl0coq} (minor adjustments may be needed to allow for differences with \ac{selinux} policy language) and present a proof for it in Coq. The literature in the \ac{selinux} implies only two outcomes are possible: permitted or denied. We will next attempt to prove this conjecture in Coq. Finally we will add constrain relations (see listing~\ref{lst:fqplusconstsel} and listing~\ref{lst:fqminusconstsel}) to \ac{selinux} policies (which we have not included so far) and prove the same decidability results again for the augmented policy.
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={$f^{+}_q$ for \ac{selinux}},label={lst:fqplusconstsel}]

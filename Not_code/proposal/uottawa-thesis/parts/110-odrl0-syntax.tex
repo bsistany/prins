@@ -30,7 +30,7 @@ Authors of \cite{pucella2006} use abstract syntax instead of XML (ODRL 2.0 can a
 </agreement>
 \end{lstlisting}
 
-The agreement ~\ref{lst:agreementxml} is shown below using the syntax from \cite{pucella2006}.
+The agreement in listing~\ref{lst:agreementxml} is shown below using the syntax from \cite{pucella2006}.
 
 \lstset{language=Pucella2006}
 \begin{minipage}[c]{0.95\textwidth}
@@ -56,9 +56,9 @@ This means \emph{Paid} and \emph{Attributed} predicates are not used in ODRL0. A
 
 In ODRL a \emph{prerequisite} is either $true$, a $constraint$, a $requirement$ or a $condition$. $true$ is the prerequisite that always holds. Constraints are facts that are outside of control of users. For example, there is nothing $Alice$ can do to satisfy the constraint ``user must be Bob''. Requirements are facts that are in users' control. For example, $Alice$ may satisfy the requirement ``The user must pay 5 dollars''. Finally conditions are constraints that must not hold.
 
-In ODRL0, a prerequisite is either $true$, a $constraint$, or the negation of a $constraint$. So we have removed requirements from the picture and don't have explicit conditions. Conditions are replaced by a category called $NotCons$ directly in the production for prerequisites (see \ref{lst:preRequisiteast}). Note that we have also removed the condition $not[policySet]$ from ODRL since the authors in \cite{pucella2006} have shown the semantics of this component are not well-defined and including it leads to intractability results.
+In ODRL0, a prerequisite is either $true$, a $constraint$, or the negation of a $constraint$. So we have removed requirements from the picture and don't have explicit conditions. Conditions are replaced by a category called $NotCons$ directly in the production for prerequisites (see listing~\ref{lst:preRequisiteast}). Note that we have also removed the condition $not[policySet]$ from ODRL since the authors in \cite{pucella2006} have shown the semantics of this component are not well-defined and including it leads to intractability results.
 
-We will add the missing pieces as described above (except for $not[policySet]$) making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing ~\ref{lst:agreementpucella2006} would look like in ODRL0's Coq version.
+We will add the missing pieces as described above (except for $not[policySet]$) making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing~\ref{lst:agreementpucella2006} would look like in ODRL0's Coq version.
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Coq version of agreement for Mary Smith},label={lst:marysmithagreementcoq}]

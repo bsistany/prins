@@ -12,7 +12,7 @@ Propositions are types in Coq whose type is the sort $Prop$. Any term $t$ whose 
 
 To build a proof in Coq the user states the proposition to prove; this is called a goal to be proved or discharge, along with some hypothesis that makes up the local context. The user then uses commands called tactics to manipulate the local context and to decompose the goal into simpler goals. The goal simplification into sub-goals will continue until all the sub-goals are solved.
 
-In listing ~\ref{lst:proofexample} we have declared a theorem called $example1$ and the corresponding proposition $forall x:nat, x < x + 1.$
+In listing~\ref{lst:proofexample} we have declared a theorem called $example1$ and the corresponding proposition $forall x:nat, x < x + 1.$
  
 Note that the notation $P : T$ is also used to declare program $P$ has type $T$. This duality of notation is due to Curry-Howard isomorphism which relates the two worlds of type theory and structural logic together. Once the Theorem has been declared Coq displays the proposition to be proved under a horizontal line written --------, and displays the context of local facts and hypothesis, if any, above the horizontal line. At this point one can enter proof mode by using \emph{Proof.} upon which Coq is ready to accept tactics. Entering tactics that can break the stated goal (under the horizontal line) into one or more sub-goals is how one progresses until no goals left at which point Coq responds with ``No more subgoals'' (~\cite{CoqHurry}).
 
@@ -23,11 +23,11 @@ Theorem example1: forall x:nat, x < x + 1.
 
 \section{Theorem One}
 
-In listing ~\ref{lst:theoremone} we define a $policySet$ with a $constraint$ such that if $Alice$ has used the policy with $id1$ to justify her printing $a_{1}$ times, she may do so again if $a_{1} < 5$. The agreement $AgreeCan$ simply links the asset $TheReport$ with the subject $Alice$ and the $policySet$ previously defined. 
+In listing~\ref{lst:theoremone} we define a $policySet$ with a $constraint$ such that if $Alice$ has used the policy with $id1$ to justify her printing $a_{1}$ times, she may do so again if $a_{1} < 5$. The agreement $AgreeCan$ simply links the asset $TheReport$ with the subject $Alice$ and the $policySet$ previously defined. 
 
-We capture the fact that $Alice$ has used the policy with $id1$ to justify her printing $2$ times in an environment called $eA1$. Recall that environments are defined to be non-empty lists of $count_equality$ objects (see ~\ref{lst:environmentcoq}). 
+We capture the fact that $Alice$ has used the policy with $id1$ to justify her printing $2$ times in an environment called $eA1$. Recall that environments are defined to be non-empty lists of $count_equality$ objects (see listing~\ref{lst:environmentcoq}). 
 
-We also declare a hypothesis $H$ with the proposition that results from the translation of the agreement (see definition of $trans_agreement$ in listing ~\ref{lst:transagreement}) and the environment. The proposition can be shown in Coq after some clean-up (e.g. replaced 101 by Alice) and using the form $Eval$ $compute$ : 
+We also declare a hypothesis $H$ with the proposition that results from the translation of the agreement (see definition of $trans_agreement$ in listing~\ref{lst:transagreement}) and the environment. The proposition can be shown in Coq after some clean-up (e.g. replaced 101 by Alice) and using the form $Eval$ $compute$ : 
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Hypothesis for Theorem One},label={lst:theoremonehypo}]
@@ -60,7 +60,7 @@ Proof. simpl in H. apply H. split. reflexivity. auto.  omega. Qed.
 
 \section{Theorem Two}
 
-In listing ~\ref{lst:theoremtwo} we define an exclusive policy set $policySet$ containing a policy $pol$ that allows printing. The agreement $AgreeA5$ includes the exclusive policy set to express that Bob may print $LoveAndPeace$. However any subject that is not the agreement's user (e.g. Bob) is forbidden from printing $LoveAndPeace$. 
+In listing~\ref{lst:theoremtwo} we define an exclusive policy set $policySet$ containing a policy $pol$ that allows printing. The agreement $AgreeA5$ includes the exclusive policy set to express that Bob may print $LoveAndPeace$. However any subject that is not the agreement's user (e.g. Bob) is forbidden from printing $LoveAndPeace$. 
 
 Notice that due to the fact that environments are defined as non-empty lists, we have added a Null count to it (see $eA5$). We continue to capture the relevant facts from the environment and the agreement through defining a hypothesis (e.g. $H$). The hypothesis is shown below : 
 
@@ -101,7 +101,7 @@ End A5.
 
 \section{Theorem Three}
 
-In listing ~\ref{lst:environmentcoq} we defined environments as non-empty lists of $count_equality$ objects which are in turn defined as counts per each subject, policy-id pair. These count formulas represent how many times each policy has been used to justify an action by a subject wrt a policy (specified by the policy id) and semantically it makes sense that they are unique in time. When and if two $count_equality$ objects with the same subject and policy id refer to different counts, we say we have \emph{inconsistent} count formulas. The listing ~\ref{lst:inconsistentcounts} defines the binary predicate $inconsistent$.
+In listing~\ref{lst:environmentcoq} we defined environments as non-empty lists of $count_equality$ objects which are in turn defined as counts per each subject, policy-id pair. These count formulas represent how many times each policy has been used to justify an action by a subject wrt a policy (specified by the policy id) and semantically it makes sense that they are unique in time. When and if two $count_equality$ objects with the same subject and policy id refer to different counts, we say we have \emph{inconsistent} count formulas. The listing~\ref{lst:inconsistentcounts} defines the binary predicate $inconsistent$.
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Inconsistent Count Formulas}, label={lst:inconsistentcounts}]
@@ -116,7 +116,7 @@ Definition inconsistent (f1 f2 : count_equality) : Prop :=
 \end{lstlisting}
 
 
-Next we would like to expand the notion of inconsistency to more than two count formulas. We first define a predicate over a count formula and an environment as in listing ~\ref{lst:inconsistentcountandenv}. If the environment is a singleton then we just compare the two count formulas for inconsistency, else we build the disjunction of the inconsistency between the count formula on one hand and the head of the environment and the rest of the environment, respectively. 
+Next we would like to expand the notion of inconsistency to more than two count formulas. We first define a predicate over a count formula and an environment as in listing~\ref{lst:inconsistentcountandenv}. If the environment is a singleton then we just compare the two count formulas for inconsistency, else we build the disjunction of the inconsistency between the count formula on one hand and the head of the environment and the rest of the environment, respectively. 
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Inconsistent Count Formula And Environment}, label={lst:inconsistentcountandenv}]
@@ -128,7 +128,7 @@ Fixpoint formula_inconsistent_with_env (f: count_equality)
   end.
 \end{lstlisting}
 
-Finally we define a new inductive data type that represents $consistent$ environments (see ~\ref{lst:inconsistentenv}). An environment is consistent if it is a singleton count formula, if it consists of only two consistent count formulas and finally if the environment consists of a consistent environment and the consistent  composition of a count formula and the consistent environment (see constructor \emph{consis_more}.
+Finally we define a new inductive data type that represents $consistent$ environments (see listing~\ref{lst:inconsistentenv}). An environment is consistent if it is a singleton count formula, if it consists of only two consistent count formulas and finally if the environment consists of a consistent environment and the consistent  composition of a count formula and the consistent environment (see constructor \emph{consis_more}.
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Inconsistent Environment}, label={lst:inconsistentenv}]
@@ -142,7 +142,7 @@ Inductive env_consistent : environment -> Prop :=
 \end{lstlisting}
 
 
-We will now pose several small theorems about consistency of count formulas and environments and provide proofs for them (see listing ~\ref{lst:inconsistenttheorems}).
+We will now pose several small theorems about consistency of count formulas and environments and provide proofs for them (see listing~\ref{lst:inconsistenttheorems}).
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Inconsistent Environment}, label={lst:inconsistenttheorems}]

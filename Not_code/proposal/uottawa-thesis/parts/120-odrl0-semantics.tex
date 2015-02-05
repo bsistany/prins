@@ -24,7 +24,7 @@ $[\![ agreement$ $for$ $prin_{u}$ $about$ $a$ $with$ $policySet]\!]$ $\triangleq
 \end{lstlisting}
 
 \section{Policy Set Translation}
-The translation for a $policySet$ ($[\![policySet]\!]^{prin_{u}, a}$) is defined by cases, one for each clause of the grammar in listing ~\ref{lst:policySetast}. Recall that a $policySet$ is either a $PrimitivePolicySet$, a $\linebreak PrimitiveExclusivePolicySet$ or a $AndPolicySet$. Each of these has its own translation function, which will be defined in the next 3 subsections.
+The translation for a $policySet$ ($[\![policySet]\!]^{prin_{u}, a}$) is defined by cases, one for each clause of the grammar in listing~\ref{lst:policySetast}. Recall that a $policySet$ is either a $PrimitivePolicySet$, a $\linebreak PrimitiveExclusivePolicySet$ or a $AndPolicySet$. Each of these has its own translation function, which will be defined in the next 3 subsections.
 
 \subsection{PrimitivePolicySet Translation}
 Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields a formula that includes a test on whether the subject is in the set of agreements' users, the translation of the policy and the translation of the $prerequisite$. Basically if the subject in question is a user of the agreement and the policySet prerequisites hold, then the policy holds. Translation of the policy for a $PrimitivePolicySet$ is called a \emph{positive translation}. A positive translation is one where the actions described by the policies are permitted.   
@@ -126,7 +126,7 @@ The translation for a $TruePrq$ yields a formula that is always \emph{true}.
 \end{lstlisting}
 
 \subsection{Constraint Prerequisite Translation}
-The translation for a $Constraint$ is handled by a specialized constraint translation function (coverage of which starts at ~\ref{lst:transconstraintPrin}.
+The translation for a $Constraint$ is handled by a specialized constraint translation function (coverage of which starts at listing~\ref{lst:transconstraintPrin}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Constraint},label={lst:transpreRequisiteConstraint}]
@@ -135,7 +135,7 @@ $[\![ prerequisite::constraint ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\tri
 \end{lstlisting}
 
 \subsection{ForEachMember Prerequisite Translation}
-The translation for a $ForEachMember$ is also is handled by a specialized translation function (covered at ~\ref{lst:transforEachMember}.
+The translation for a $ForEachMember$ is also is handled by a specialized translation function (listing~\ref{lst:transforEachMember}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} ForEachMember},label={lst:transpreRequisiteForEachMember}]
@@ -189,7 +189,7 @@ $[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}],
 Translation for a constraint is a formula $[\![constraint]\!]^{[id_{1}, ..., id_{m}], prin_{u}, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the constraint, $prin_{u}$ is the agreement's user(s) (and to which the constraint applies), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $constraint$ is described by translation formulas for each type of $constraint$. A $constraint$ is either a $Principal$, a $Count$, or a $CountByPrin$. Each of these has its own translation function, which will be defined in the following subsections.
 
 \subsection{Principal Constraint Translation}
-The translation for a $Principal$ is handled by a specialized translation function (covered at ~\ref{lst:transprin}.   
+The translation for a $Principal$ is handled by a specialized translation function (listing~\ref{lst:transprin}.   
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Principal},label={lst:transconstraintPrin}]
@@ -198,7 +198,7 @@ $[\![ constraint::prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ $\triangleq$ 
 \end{lstlisting}
 
 \subsection{Count Constraint Translation}
-The translation for a $Count$ is handled by a specialized translation function (covered at ~\ref{lst:transcount}.
+The translation for a $Count$ is handled by a specialized translation function (listing~\ref{lst:transcount}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count},label={lst:transconstraintCount}]
@@ -207,7 +207,7 @@ $[\![ constraint::count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triang
 \end{lstlisting}
 
 \subsection{CountByPrin Constraint Translation}
-The translation for a $CountByPrin$ is handled by the same specialized translation function as that for $Count$. The difference is that $CountByPrin$ overrides the subjects in $prin_{u}$ by a different set of subjects (covered at ~\ref{lst:transcount}.
+The translation for a $CountByPrin$ is handled by the same specialized translation function as that for $Count$. The difference is that $CountByPrin$ overrides the subjects in $prin_{u}$ by a different set of subjects (listing~\ref{lst:transcount}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count by Principal},label={lst:transconstraintCountbyPrin}]
@@ -227,7 +227,7 @@ $[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ...,
 
 \subsection{''Not Constraint" Translation}
 
-The translation for ``Not Constraint'' was listed in listing ~\ref{lst:transpreRequisiteNotConstraint} earlier but we repeat it here to go along the Coq version. 
+The translation for ``Not Constraint'' was listed in ~\ref{lst:transpreRequisiteNotConstraint} earlier but we repeat it here to go along the Coq version. 
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Not Constraint Translation},label={lst:transnotCons}]
@@ -251,15 +251,8 @@ $[\![ count [N] ]\!]^{subject_{1}, id_{1}}_{x}$ $\triangleq$ $getCount(subject_{
 \subsection{Count Translation For Subject/ID Pairs}
 The translation for $Count$ or $CountByPrin$ for subject and policy identifier pairs is a formula that is true if the total number of times that a subject has invoked a policy with policy identifier $id_{i}$ is smaller than $N$.
 
-\lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Count Translation {$\colon$} subject and policyId pairs},label={lst:transcountPairs}]
-
-$[\![ count [N] ]\!]^{[id_{1}, ..., id_{m}], prn}_{x}$ $\triangleq$ 
-
-$(getCount(getSubject(prn)_{1}, id_{1})$ $+ ... +$ $getCount(getSubject(prn)_{1}, id_{m})$ $+ ... +$ $getCount(getSubject(prn)_{k}, id_{1})$ $+ ... +$ $getCount(getSubject(prn)_{k}, id_{m}))$ < $N$
 
 
-\end{lstlisting}
 
 
 
