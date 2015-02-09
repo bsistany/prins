@@ -50,7 +50,7 @@ While there are paper-proofs for \ac{odrl}, as far as we know, similar paper-pro
 
 \section{Contributions}
 
-In this thesis we will build a language representation framework based on \ac{odrl} and definitions in ~\cite{pucella2006}. The framework will in \emph{Coq} which is both a programming language and a proof-assistant. We will declare and prove decidablity results of subsets of \ac{odrl} all the way up to the complete \ac{odrl} fragement defined in ~\cite{pucella2006}. We will extract programs from the proofs and demonstrate how they can be used on specific policies to render a specific decision such as ``a conflict has been detected''. 
+In this thesis we will build a language representation framework based on \ac{odrl} and definitions in ~\cite{pucella2006}. The framework will be in \emph{Coq} which is both a programming language and a proof-assistant. We will declare and prove decidablity results of subsets of \ac{odrl} all the way up to the complete \ac{odrl} fragement defined in ~\cite{pucella2006}. We will extract programs from the proofs and demonstrate how they can be used on specific policies to render a specific decision such as ``a conflict has been detected''. 
 
 Beside ``certified decidablity results'' for \ac{odrl}, we will investigate decidablity for \ac{selinux} policies, proving decidablity or show why a proof is not possible (if that is the case) and provide proposals to make the policy language decidable.
 
@@ -71,6 +71,10 @@ ODRL0 is enough to be used as a basis for \ac{selinux} policies without \emph{co
 
 The study plan calls for August of 2015 for everything to be completed.
 
+
+\section{Introduction to Coq}
+
+Coq is known first and foremost as a proof-assistant. However if one ignores all the proof-related features of Coq, one is left with a higher-order functional programming language equivalent in expressive power to lambda calculus. Adding other features such as polymorphism (where terms may depend on types), dependent types (where types may depend on terms) 
 
 
 
