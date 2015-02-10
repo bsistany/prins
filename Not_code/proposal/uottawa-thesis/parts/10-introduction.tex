@@ -4,13 +4,14 @@
 
 \section{Digital Rights} 
 
-\ac{drm} refers to the digital management of rights associated with the access or usage of digital assets. There are various aspects of rights management however. According to the authors of the whitepaper ``A digital rights management ecosystem model for the education community,'' digital rights management systems cover the following four areas: 1) defining rights 2) distributing/acquiring rights 3) enforcing rights and 4) tracking usage \cite{collier}. [REF]
+\ac{drm} refers to the digital management of rights associated with the access or usage of digital assets. There are various aspects of rights management however. According to the authors of the whitepaper ``A digital rights management ecosystem model for the education community,''(~\cite{collier})
+ digital rights management systems cover the following four areas: 1) defining rights 2) distributing/acquiring rights 3) enforcing rights and 4) tracking usage.
 
 \section{Policy Expression Languages}
 
 \ac{rel}s, or more precisely \ac{drel}s when dealing with digital assets deal with the ``rights definition'' aspect of the \ac{drm} ecosystem. A \ac{drel}, allows the expression and definition of digital asset usage rights such that other areas of the \ac{drm} ecosystem, namely the enforcement mechanism and the usage tracking components can function correctly.
 
-Currently the most popular \ac{rel}s are the \ac{xrml} [REF], and the \ac{odrl}[REF]. Both of these languages are XML based and are considered declarative languages. \ac{xrml} has been selected to be the REL for \emph{MPEG-21} which is an ISO standard for multimedia applications. \ac{odrl} is also a standards based \ac{rel} which has been accepted as part of the W3C community with the mandate of standardizing how rights and policies, related to the usage of digital content on the Open Web Platform, \emph{OWP}, are expressed [REF][wikipedia]. \ac{odrl} 2.0 supports expression of rights and also privacy rules for social media while \ac{odrl} 1.0 was only dealing with the mobile ecosystem -- \ac{odrl} 1.0 was adopted by the Open Mobile Alliance, \emph{OMA} in 2000.
+Currently the most popular \ac{rel}s are the \ac{xrml}~\cite{Wang}, and the \ac{odrl}~\cite{odrloneone}. Both of these languages are XML based and are considered declarative languages. \ac{xrml} has been selected to be the REL for \emph{MPEG-21} which is an ISO standard for multimedia applications. \ac{odrl} is also a standards based \ac{rel} which has been accepted as part of the W3C community with the mandate of standardizing how rights and policies, related to the usage of digital content on the Open Web Platform, \emph{OWP}, are expressed [REF][wikipedia]. \ac{odrl} 2.0 supports expression of rights and also privacy rules for social media while \ac{odrl} 1.0 was only dealing with the mobile ecosystem -- \ac{odrl} 1.0 was adopted by the Open Mobile Alliance, \emph{OMA} in 2000.
 
 As popular as both \ac{xrml} and \ac{odrl} are, their adoption and usage is still somewhat limited in practice. Both Apple and Microsoft for example have defined their own lightweight \ac{rel}s [REF][problem with \ac{rel}s paper] in \emph{Fair Play} (Apple) and in \emph{PlayReady} (Microsoft). The authors of [REF][the problem with \ac{rel}s] argue that both these \ac{rel}s and other ones are simply too complex to be used effectively since they try to cover much of the \ac{drm} ecosystem. 
 
@@ -74,7 +75,25 @@ The study plan calls for August of 2015 for everything to be completed.
 
 \section{Introduction to Coq}
 
-Coq is known first and foremost as a proof-assistant. However if one ignores all the proof-related features of Coq, one is left with a higher-order functional programming language equivalent in expressive power to lambda calculus. Adding other features such as polymorphism (where terms may depend on types), dependent types (where types may depend on terms) 
+Coq is known first and foremost as a proof-assistant. The underlying formal language that Coq uses is a much more expressive version of typed lambda calculus called \emph{Calculus of (Co)Inductive Constructions} or \emph{CIC} where proofs and programs can both be represented. For example, CIC adds polymorphisn (terms depending on types), type operators (types depending on types) and dependent types (types depending on terms).
+
+Specifications of programs in Coq may be expressed using the specification language \emph{Gallina} [REF]. Coq is then used to develop proofs to show that a program satisfies its specification. Such programs are called \emph{certified} because they are formally verified and confirmed to conform to their specifications.
+
+Assertions or propositions are statements about values in Coq such as $3<8$ or $8<3$ that may be true, false or even be only conjectures. To verify that a proposition is true a proof needs to constructed. While paper-proofs use a combination of mathematics and natural language to describe their proofs, Coq provides a formal (and therefore unambiguous) language that is based on proof-theory to develop proofs in. Verification of complex proofs is possible because one can verify the intermediate proofs or sub-goals in steps, each step being derived from the previous by following precise derivation rules. The Coq proof engine solves successive goals by using predefined \emph{tactics}. Coq tactics are commands to manipulate the local context and to decompose a goal into simpler goals or sub-goals.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Adding other features such as polymorphism (where terms may depend on types), dependent types (where types may depend on terms) 
 
 
 
