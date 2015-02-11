@@ -64,7 +64,7 @@ $(\bigwedge [\![ agreement]\!]) \land E \notimplies Permitted(s, act, a)$ and $(
 \end{lstlisting}
 
 
-In (~\cite{pucella2006}) a slightly different formulation is used to denote the same four decision types. ``Query Inconsistent'',``Permission Granted'', ``Permission Denied'' and ``Permission Unregulated''. 
+In~\cite{pucella2006} a slightly different formulation is used to denote the same four decision types. ``Query Inconsistent'',``Permission Granted'', ``Permission Denied'' and ``Permission Unregulated''. Define the formulas $f^{+}_q$ and $f^{-}_q$ (see listings~\ref{lst:fplusformula} and~\ref{lst:fminusformula}).
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={$f^{+}_q$},label={lst:fplusformula}]
@@ -80,6 +80,8 @@ $f^{-}_q \triangleq (\bigwedge [\![ agreement]\!]) \implies \lnot Permitted(s, a
 
 \end{lstlisting}
 
+Now answering the queries will depend on the \emph{E-validity} of $f^{+}_q$ and $f^{-}_q$. E-validity or the consistency of the environment is not captured explicitly in~\cite{pucella2006} (see listings~\ref{lst:queryinconsistentdecision}, ~\ref{lst:permissiongranteddecision}, ~\ref{lst:permissiondenieddecision} and~\ref{lst:permissionunregulateddecision}) however the decision of which answer a query results in takes the consistency of the environment into account. In this thesis we will encode and use the decision algorithms in~\cite{pucella2006}.
+
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={Answerable Queries: Query Inconsistent},label={lst:queryinconsistentdecision}]
@@ -89,21 +91,21 @@ $f^{+}_q$ and $f^{-}_q$ both hold
 \end{lstlisting}
 
 \lstset{mathescape, language=AST} 
-\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Granted},label={lst:permission granteddecision}]
+\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Granted},label={lst:permissiongranteddecision}]
 
 $f^{+}_q$ holds and $f^{-}_q$ does not hold
 
 \end{lstlisting}
 
 \lstset{mathescape, language=AST} 
-\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Denied},label={lst:permission denieddecision}]
+\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Denied},label={lst:permissiondenieddecision}]
 
 $f^{+}_q$ does not hold and $f^{-}_q$ holds
 
 \end{lstlisting}
 
 \lstset{mathescape, language=AST} 
-\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Unregulated},label={lst:permission unregulateddecision}]
+\begin{lstlisting}[frame=single, caption={Answerable Queries: Permission Unregulated},label={lst:permissionunregulateddecision}]
 
 $f^{+}_q$ does not hold and $f^{-}_q$ does not hold
 

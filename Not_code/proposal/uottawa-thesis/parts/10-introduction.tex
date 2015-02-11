@@ -51,7 +51,7 @@ While there are paper-proofs for \ac{odrl}, as far as we know, similar paper-pro
 
 \section{Contributions}
 
-In this thesis we will build a language representation framework based on \ac{odrl} and definitions in ~\cite{pucella2006}. The framework will be in \emph{Coq} which is both a programming language and a proof-assistant. We will declare and prove decidablity results of subsets of \ac{odrl} all the way up to the complete \ac{odrl} fragement defined in ~\cite{pucella2006}. We will extract programs from the proofs and demonstrate how they can be used on specific policies to render a specific decision such as ``a conflict has been detected''. 
+In this thesis we will build a language representation framework based on \ac{odrl} and definitions in ~\cite{pucella2006}. The framework will be in \emph{Coq}~\cite{coqref} which is both a programming language and a proof-assistant. We will declare and prove decidablity results of subsets of \ac{odrl} all the way up to the complete \ac{odrl} fragement defined in ~\cite{pucella2006}. We will extract programs from the proofs and demonstrate how they can be used on specific policies to render a specific decision such as ``a conflict has been detected''. 
 
 Beside ``certified decidablity results'' for \ac{odrl}, we will investigate decidablity for \ac{selinux} policies, proving decidablity or show why a proof is not possible (if that is the case) and provide proposals to make the policy language decidable.
 
@@ -77,23 +77,10 @@ The study plan calls for August of 2015 for everything to be completed.
 
 Coq is known first and foremost as a proof-assistant. The underlying formal language that Coq uses is a much more expressive version of typed lambda calculus called \emph{Calculus of (Co)Inductive Constructions} or \emph{CIC} where proofs and programs can both be represented. For example, CIC adds polymorphisn (terms depending on types), type operators (types depending on types) and dependent types (types depending on terms).
 
-Specifications of programs in Coq may be expressed using the specification language \emph{Gallina} [REF]. Coq is then used to develop proofs to show that a program satisfies its specification. Such programs are called \emph{certified} because they are formally verified and confirmed to conform to their specifications.
+Specifications of programs in Coq may be expressed using the specification language \emph{Gallina}~\cite{gallinaref}. Coq is then used to develop proofs to show that a program's run-time behavior satisfies its specification. Such programs are called \emph{certified} because they are formally verified and confirmed to conform to their specifications.
 
 Assertions or propositions are statements about values in Coq such as $3<8$ or $8<3$ that may be true, false or even be only conjectures. To verify that a proposition is true a proof needs to constructed. While paper-proofs use a combination of mathematics and natural language to describe their proofs, Coq provides a formal (and therefore unambiguous) language that is based on proof-theory to develop proofs in. Verification of complex proofs is possible because one can verify the intermediate proofs or sub-goals in steps, each step being derived from the previous by following precise derivation rules. The Coq proof engine solves successive goals by using predefined \emph{tactics}. Coq tactics are commands to manipulate the local context and to decompose a goal into simpler goals or sub-goals.
 
-
-
-
-
-
-
-
-
-
-
-
-
-Adding other features such as polymorphism (where terms may depend on types), dependent types (where types may depend on terms) 
 
 
 
