@@ -73,14 +73,6 @@ ODRL0 is enough to be used as a basis for \ac{selinux} policies without \emph{co
 The study plan calls for August of 2015 for everything to be completed.
 
 
-\section{Introduction to Coq}
-
-Coq is known first and foremost as a proof-assistant. The underlying formal language that Coq uses is a much more expressive version of typed lambda calculus called \emph{Calculus of (Co)Inductive Constructions} or \emph{CIC} where proofs and programs can both be represented. For example, CIC adds polymorphisn (terms depending on types), type operators (types depending on types) and dependent types (types depending on terms).
-
-Specifications of programs in Coq may be expressed using the specification language \emph{Gallina}~\cite{gallinaref}. Coq is then used to develop proofs to show that a program's run-time behavior satisfies its specification. Such programs are called \emph{certified} because they are formally verified and confirmed to conform to their specifications.
-
-Assertions or propositions are statements about values in Coq such as $3<8$ or $8<3$ that may be true, false or even be only conjectures. To verify that a proposition is true a proof needs to constructed. While paper-proofs use a combination of mathematics and natural language to describe their proofs, Coq provides a formal (and therefore unambiguous) language that is based on proof-theory to develop proofs in. Verification of complex proofs is possible because one can verify the intermediate proofs or sub-goals in steps, each step being derived from the previous by following precise derivation rules. The Coq proof engine solves successive goals by using predefined \emph{tactics}. Coq tactics are commands to manipulate the local context and to decompose a goal into simpler goals or sub-goals.
-
 
 
 
