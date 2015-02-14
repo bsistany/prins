@@ -9,7 +9,7 @@
 
 \section{Machine-Checked Proof of Decidability of Queries}
 
-By defining formal semantics for \ac{odrl} authors of ~\cite{pucella2006} were able to show some important results. First result is that answering the question of whether a set of ODRL statements imply a permission, denial or other possibilities is decidable and also that its complexity is NP-hard (see Theorem ~\ref{customthm41} from ~\cite{pucella2006} re-printed here below).
+By defining formal semantics for \ac{odrl} authors of ~\cite{pucella2006} were able to show some important results. First result is that answering the question of whether a set of ODRL statements imply a permission, denial or other possibilities is decidable and also that its complexity is NP-hard (see Theorem ~\ref{customthm41} from ~\cite{pucella2006} re-printed below).
 
 \begin{customthm}{4.1}\label{customthm41}
 The problem of deciding, for a query $q = (A, s, act, a, E)$, whether $f^{+}_q$ is E-valid is decidable but NP-hard. Similarly for $f^{-}_q$.
@@ -48,7 +48,7 @@ While \ac{xacml} is a high-level and platform independent access control system 
 
 
 The enforcement of \ac{selinux} policies are performed by the \emph{security server}. Whenever a security operation is requested from user space by a system call, the security server is invoked to arbitrate the operation and either allow the operation or to deny it. Each operation is identified by two pieces of information: an object class (e.g. file) and a permission (e.g. read, write). When an operation is requested to be performed on an object, the class and the permissions associated with the object along with security contexts of the source (typically the source entity is a process) and the object are passed to the security server. The security server consults the loaded policy (loaded at 
-boot time) and allows or denies the access request [sarna-starosta]
+boot time) and allows or denies the access request~\cite{Sarna}.
 
 \section{SELinux Policy Language}
 
