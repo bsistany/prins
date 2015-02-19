@@ -9,14 +9,14 @@
 
 We first mentioned queries in chapter~\ref{chap:semantics} on page~\pageref{chap:semantics}. Ultimately policy statements describing an agreement will be used to enforce those agreements. To enforce policy agreements, access queries are asked from the policy engine and access is granted or denied based on the answer.
 
-By defining formal semantics for \ac{odrl} the authors of ~\cite{pucella2006} were able to prove that answering a query on whether access should be granted or not, is decidable and NP-hard for the full \ac{odrl}. 
+By defining formal semantics for \ac{odrl} the authors of~\cite{pucella2006} were able to prove that answering a query on whether access should be granted or not, is decidable and NP-hard for the full \ac{odrl}. 
 
-In this chapter we will review our encoding of queries in Coq and Coq representations of other definitions used in ~\cite{pucella2006} which we will use to prove decidability results of our own. 
+In this chapter we will review our encoding of queries in Coq and Coq representations of other definitions used in~\cite{pucella2006} which we will use to prove decidability results of our own. 
 
 
 \section{Queries}
 
-Queries are tuples of the form $(A, s, action, a, e)$ in ~\cite{pucella2006}. The tuple corresponds to the question of determining whether a set $A$ of agreements imply that a subject $s$ may perform action $action$ on an asset $a$ given the environment $e$. The Coq representation is listed in listing~\ref{lst:querycoq}. We distinguish single agreement queries from multiple agreement queries by defining two separate types: $single\_query$ and $general\_query$.
+Queries are tuples of the form $(A, s, action, a, e)$ in~\cite{pucella2006}. The tuple corresponds to the question of determining whether a set $A$ of agreements imply that a subject $s$ may perform action $action$ on an asset $a$ given the environment $e$. The Coq representation is listed in listing~\ref{lst:querycoq}. We distinguish single agreement queries from multiple agreement queries by defining two separate types: $single\_query$ and $general\_query$.
 
 \lstset{language=Coq, frame=single, caption={Queries},label={lst:querycoq}}
 \begin{minipage}[c]{0.95\textwidth}
@@ -33,7 +33,7 @@ Inductive general_query : Set :=
 
 \section{Answering Queries}
 
-Answering a query as defined earlier can lead to one of four outcomes: error(listing~\ref{lst:errordecision}), permitted(listing~\ref{lst:permitdecision}), denied(listing~\ref{lst:denydecision}) and ``not applicable'' (listing~\ref{lst:notapplicabledecision}) defined in ~\cite{Tschantz}.
+Answering a query as defined earlier can lead to one of four outcomes: error(listing~\ref{lst:errordecision}), permitted(listing~\ref{lst:permitdecision}), denied(listing~\ref{lst:denydecision}) and ``not applicable'' (listing~\ref{lst:notapplicabledecision}) defined in~\cite{Tschantz}.
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={Answerable Queries: Error},label={lst:errordecision}]

@@ -12,21 +12,21 @@ Formal logic can represent the statements and facts we express in a natural lang
 
 A richer logic such as ``Predicate Logic'' or ``First Order Logic'' (\emph{FOL}) is more suitable and has the expressive power to represent policies written in English. Moreover, FOL can be used to capture the meaning of policies in an unambiguous way.
 
-Halpern and Weissman [REF][Using First Order Logic to Reason about Policies] propose a fragment of FOL to represent and reason about policies. The fragment of FOL they arrive at is called \emph{Lithium} which is decidable and allows for efficiently answering interesting queries. Lithium restricts policies to be written based on the concept of ``bipolarity'' which disallows by construction policies that both permit and deny an action on an object. Pucella and Weissman ~\cite{pucella2006} specify a predicate logic based language that represents a subset of ODRL.
+Halpern and Weissman [REF][Using First Order Logic to Reason about Policies] propose a fragment of FOL to represent and reason about policies. The fragment of FOL they arrive at is called \emph{Lithium} which is decidable and allows for efficiently answering interesting queries. Lithium restricts policies to be written based on the concept of ``bipolarity'' which disallows by construction policies that both permit and deny an action on an object. Pucella and Weissman~\cite{pucella2006} specify a predicate logic based language that represents a subset of ODRL.
 
 
 \section{Specific Problem}
 
 Policy languages and the agreements written in those languages are meant to implement specific goals such as limiting access to specific assets. The tension in designing a policy language is usually between how to make the language expressive enough, such that the design goals for the policy language may be expressed, and how to make the policies verifiable with respect to the stated goals.
 
-As stated earlier, an important part of fulfilling the verifiability goal is to have formal semantics defined for policy languages. For \ac{odrl}, authors of ~\cite{pucella2006} have defined a formal semantics based on which they declare and prove a number of important theorems (their main focus is on stating and proving algorithm complexity results). However as with many paper-proofs, the language used to do the proofs while mathematical in nature, uses a lot of intuitive justifications to show the proofs. As such these proofs are difficult to verify or more importantly to ``derive''. Furthermore the proofs can not be used directly to render a decision on a sample policy (e.g. whether to allow or deny access to an asset). Of course one may (carefully) construct a program based on these proofs for practical purposes but we will have no way of certifying those programs correct, even assuming the original proofs were in fact correct.
+As stated earlier, an important part of fulfilling the verifiability goal is to have formal semantics defined for policy languages. For \ac{odrl}, authors of~\cite{pucella2006} have defined a formal semantics based on which they declare and prove a number of important theorems (their main focus is on stating and proving algorithm complexity results). However as with many paper-proofs, the language used to do the proofs while mathematical in nature, uses a lot of intuitive justifications to show the proofs. As such these proofs are difficult to verify or more importantly to ``derive''. Furthermore the proofs can not be used directly to render a decision on a sample policy (e.g. whether to allow or deny access to an asset). Of course one may (carefully) construct a program based on these proofs for practical purposes but we will have no way of certifying those programs correct, even assuming the original proofs were in fact correct.
 
 While there are paper-proofs for \ac{odrl}, as far as we know, similar paper-proofs do not exist for an important (mandatory) access-control policy system, namely \ac{selinux}[REF]. In particular no formal proofs (paper based or otherwise) of decidablity of \ac{selinux} policies exist in the literature. 
 
 
 \section{Contributions}
 
-In this thesis we will build a language representation framework based on \ac{odrl} and definitions in ~\cite{pucella2006}. The framework will in \emph{Coq} which is both a programming language and a proof-assistant. We will declare and prove decidablity results of subsets of \ac{odrl} all the way up to the complete \ac{odrl} fragement defined in ~\cite{pucella2006}. We will extract programs from the proofs and demonstrate how they can be used on specific policies to render a specific decision such as ``a conflict has been detected''. 
+In this thesis we will build a language representation framework based on \ac{odrl} and definitions in~\cite{pucella2006}. The framework will in \emph{Coq} which is both a programming language and a proof-assistant. We will declare and prove decidablity results of subsets of \ac{odrl} all the way up to the complete \ac{odrl} fragement defined in~\cite{pucella2006}. We will extract programs from the proofs and demonstrate how they can be used on specific policies to render a specific decision such as ``a conflict has been detected''. 
 
 Beside ``certified decidablity results'' for \ac{odrl}, we will investigate decidablity for \ac{selinux} policies, proving decidablity or show why a proof is not possible (if that is the case) and provide proposals to make the policy language decidable.
 
@@ -34,7 +34,7 @@ By using the Coq framework originally built for \ac{odrl} to encode and verify a
 
 \section{What specific work has been accomplished until this point in time? what results were obtained so far?}
 
-The encodings for a subset of \ac{odrl} called ODRL0 (see ~\ref{sec:odrl0}) plus some important functions implementing some of the algorithms in ~\cite{pucella2006} have been implemented in Coq. Some of the intermediate theorems have been also been defined and proved.
+The encodings for a subset of \ac{odrl} called ODRL0 (see ~\ref{sec:odrl0}) plus some important functions implementing some of the algorithms in~\cite{pucella2006} have been implemented in Coq. Some of the intermediate theorems have been also been defined and proved.
 
 \section{What remains to be done to complete the thesis research?}
 The main decidablity result and its proof for ODRL0 will be completed first. We will add the remaining \ac{odrl} constructs incrementally while maintaining decidablity for the main decision algorithm. The remaining constructs include a trouble-some construct (~\cite{pucella2006}), namely $not[policySet]$. We will show this construct does not change the decidablity result already established. 

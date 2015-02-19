@@ -9,13 +9,13 @@
 
 \section{Machine-Checked Proof of Decidability of Queries}
 
-By defining formal semantics for \ac{odrl} authors of ~\cite{pucella2006} were able to show some important results. First result is that answering the question of whether a set of ODRL statements imply a permission, denial or other possibilities is decidable and also that its complexity is NP-hard (see Theorem ~\ref{customthm41} from ~\cite{pucella2006} re-printed below).
+By defining formal semantics for \ac{odrl} authors of~\cite{pucella2006} were able to show some important results. First result is that answering the question of whether a set of ODRL statements imply a permission, denial or other possibilities is decidable and also that its complexity is NP-hard (see Theorem~\ref{customthm41} from~\cite{pucella2006} re-printed below).
 
 \begin{customthm}{4.1}\label{customthm41}
 The problem of deciding, for a query $q = (A, s, act, a, E)$, whether $f^{+}_q$ is E-valid is decidable but NP-hard. Similarly for $f^{-}_q$.
 \end{customthm}
 
-The authors of ~\cite{pucella2006} then prove that by removing the construct $not[policySet]$ from \ac{odrl}'s syntax answering the same query remains decidable and efficient (polynomial time complexity). 
+The authors of~\cite{pucella2006} then prove that by removing the construct $not[policySet]$ from \ac{odrl}'s syntax answering the same query remains decidable and efficient (polynomial time complexity). 
 
 We will prove equivalent results as above starting with the decidability result of answering a query in ODRL0 (which does not include $not[policySet]$). The theorem in listing~\ref{lst:decidabilityodrl0coq} states that for all environments, all single agreements, all subjects, all actions and all assets, either permission is granted, permission is denied, permission is unregulated or query is inconsistent. 
 
