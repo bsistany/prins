@@ -70,7 +70,7 @@ type t, attrib_{1}, ..., attrib_{n};
 Rule statements define access vector rules and type transition rules. Access vector (AV) rules (see listing~\ref{lst:avruleselinux}) specify which operations are allowed and whether to audit (log). Any operation not covered by AV rules are denied and all denied operations are logged. The semantics of the AV rule with avkind \emph{allow} is: processes with type \emph{sourcetype} are allowed to perform operations in \emph{perm} on objects with class \emph{obj-class} and type \emph{targettype}. \emph{auditallow} means to allow and audit, \emph{dontaudit} means to never audit and finally \emph{neverallow} provides a mechanism to override allow rules. When a process changes security context, the role may change, assuming a role transition rule exists relating the old and the new roles (listing~\ref{lst:roletransitionselinux}).
 
 \lstset{language=selinux}
-\begin{lstlisting}[frame=single, caption={AV rule},label={lst:avruleselinux}]
+\begin{lstlisting}[frame=single, caption={AV Rule},label={lst:avruleselinux}]
 
 avkind sourcetype targettype:object-class perm
 
@@ -80,7 +80,7 @@ avkind=allow, auditallow, dontaudit, neverallow
 Constraints are additional conditions that must hold for an attempted operation to be allowed. Constrains relate all of their arguments (the security contexts) to the server (see listing~\ref{lst:constrainselinux}. Whenever a permission is requested on an obj-class, the security server checks that the two security contexts are related by a constrain statement.
 
 \lstset{language=selinux}
-\begin{lstlisting}[frame=single, caption={Constrain rule},label={lst:constrainselinux}]
+\begin{lstlisting}[frame=single, caption={Constrain Rule},label={lst:constrainselinux}]
 
 constrain classes, perms, sourcetype, sourcerole, sourceuser, targettype, targetrole, targetuser
 \end{lstlisting}
@@ -91,12 +91,12 @@ constrain classes, perms, sourcetype, sourcerole, sourceuser, targettype, target
 As with \ac{odrl} we will start by limiting the policy language to only allow AV rules. As mentioned earlier an operation not covered by a allow rule is denied by \ac{selinux}. We will make up explicit \emph{deny} as required therefore an agreement is defined to be a combination of allow and deny rules. Allow and deny rules are mappings defined in listing~\ref{lst:allowmappingastselinux}.
 
 \lstset{language=AST}
-\begin{lstlisting}[frame=single, caption={allow/deny rule as a mapping},label={lst:allowmappingastselinux}]
+\begin{lstlisting}[frame=single, caption={'allow'/'deny' Rule as a Mapping},label={lst:allowmappingastselinux}]
 allow/deny rule : $T \times (T \times C) \rightarrow 2^{P}$
 \end{lstlisting}
 
 \lstset{language=AST}
-\begin{lstlisting}[frame=single, caption={\ac{selinux} agreement},label={lst:agreementastselinux}]
+\begin{lstlisting}[frame=single, caption={\ac{selinux} Agreement},label={lst:agreementastselinux}]
 <agreement> ::= <avRule> 
 \end{lstlisting}
 

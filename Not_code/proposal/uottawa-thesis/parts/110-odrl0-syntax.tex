@@ -5,10 +5,11 @@
 
 \section{Introduction}
 
-Authors of~\cite{pucella2006} use abstract syntax instead of XML (ODRL 2.0 can also be encoded in \emph{JSON} and \emph{RDF/OWL Ontology}) to express statements in the \ac{odrl} language. Abstract syntax is a more compact representation than XML in which ODRL policies may be written in and furthermore abstract syntax simplifies specifying the semantics as we shall see later. As an example the agreement ``If Mary Smith pays five dollars, then she is allowed to print the eBook 'Treasure Island' twice and she is allowed to display it on her computer as many times as she likes'' written in ODRL's XML encoding and the equivalent one expressed in the abstract syntax \cite{pucella2006}.
+Authors of~\cite{pucella2006} use abstract syntax instead of XML (ODRL 2.0 can also be encoded in \emph{JSON} and \emph{RDF/OWL Ontology}) to express statements in the \ac{odrl} language. Abstract syntax is a more compact representation than XML in which \ac{odrl} policies may be written in and furthermore abstract syntax simplifies specifying the semantics as we shall see later. As an example the agreement ``If Mary Smith pays five dollars, then she is allowed to print the eBook 'Treasure Island' twice and she is allowed to display it on her computer as many times as she likes'' written in \ac{odrl}'s XML encoding is illustrated in Listing~\ref{lst:agreementxml}~\cite{pucella2006}. 
+
 
 \lstset{language=XML}
-\begin{lstlisting}[caption={agreement for Mary Smith in XML},label={lst:agreementxml}]
+\begin{lstlisting}[caption={Agreement for Mary Smith in XML},label={lst:agreementxml}]
 <agreement>
  <asset> <context> <uid> Treasure Island </uid> </context> </asset>
  <permission>
@@ -30,11 +31,11 @@ Authors of~\cite{pucella2006} use abstract syntax instead of XML (ODRL 2.0 can a
 </agreement>
 \end{lstlisting}
 
-The agreement in listing~\ref{lst:agreementxml} is shown below using the syntax from \cite{pucella2006}.
+The agreement in Listing~\ref{lst:agreementxml} is shown in~\ref{lst:agreementpucella2006} using the syntax from~\cite{pucella2006}.
 
 \lstset{language=Pucella2006}
 \begin{minipage}[c]{0.95\textwidth}
-\begin{lstlisting}[frame=single, caption={agreement for Mary Smith as BNF (as used in~\cite{pucella2006})},label={lst:agreementpucella2006}]
+\begin{lstlisting}[frame=single, caption={Agreement for Mary Smith as BNF (as used in~\cite{pucella2006})},label={lst:agreementpucella2006}]
 agreement
  for Mary Smith 
  about Treasure Island 
@@ -54,14 +55,16 @@ In ODRL0, agreements and facts (i.e. environments) will only contain the number 
 
 This means \emph{Paid} and \emph{Attributed} predicates are not used in ODRL0. Also removed are related constructs \emph{prepay} and \emph{attribution}. We also had to remove two other constructs based on $prepay$ and $attribution$ out of ODRL0 in \emph{inSeq} and \emph{anySeq}. $prepay$, $attribution$, $inSeq$ and $anySeq$ make up what is called \emph{requirements} in ODRL.
 
-In ODRL a \emph{prerequisite} is either $true$, a $constraint$, a $requirement$ or a $condition$. $true$ is the prerequisite that always holds. Constraints are facts that are outside of control of users. For example, there is nothing $Alice$ can do to satisfy the constraint ``user must be Bob''. Requirements are facts that are in users' control. For example, $Alice$ may satisfy the requirement ``The user must pay 5 dollars''. Finally conditions are constraints that must not hold.
+In ODRL a \emph{prerequisite} is either $true$, a $constraint$, a $requirement$ or a $condition$. $true$ is the prerequisite that always holds. Constraints are facts that are outside of control of users. For example, there is nothing $Alice$ can do to satisfy the constraint ``user must be Bob''. Requirements are facts that are in users' control~\cite{pucella2006}. For example, $Alice$ may satisfy the requirement ``The user must pay 5 dollars''. Finally conditions are constraints that must not hold.
+BAHMAN
 
-In ODRL0, a prerequisite is either $true$, a $constraint$, or the negation of a $constraint$. So we have removed requirements from the picture and don't have explicit conditions. Conditions are replaced by a category called $NotCons$ directly in the production for prerequisites (see listing~\ref{lst:preRequisiteast}). Note that we have also removed the condition $not[policySet]$ from ODRL since the authors in \cite{pucella2006} have shown the semantics of this component are not well-defined and including it leads to intractability results.
+In ODRL0, a prerequisite is either $true$, a $constraint$, or the negation of a $constraint$. So we have removed requirements from the picture and don't have explicit conditions. Conditions are replaced by a category called $NotCons$ directly in the production for prerequisites (see listing~\ref{lst:preRequisiteast}). Note that we have also removed the condition $not[policySet]$ from ODRL since the authors in~\cite{pucella2006} have shown the semantics of this component are not well-defined and including it leads to intractability results.
 
-We will add the missing pieces as described above (except for $not[policySet]$) making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions [Pierce1] without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0 [Pierce1]. To get started let's see what the listing~\ref{lst:agreementpucella2006} would look like in ODRL0's Coq version.
+We will add the missing pieces as described above (except for $not[policySet]$) making up what we will call \emph{ODRL1} and perhaps \emph{ODRL2} (the latter only if needed). We will also describe ODRL0 in a \emph{BNF} grammar that looks more like Pucella's ODRL grammar~\cite{pucella2006}. BNF style grammars are less formal as they give some suggestions about the surface syntax of expressions~\cite{piercesf2011} without getting into lexical analysis and parsing related aspects such as precedence order of operators. The Coq version in contrast is more formal and could be directly used for building compilers and interpreters. We will present both the BNF version and the Coq version for each construct of ODRL0. The listing~\ref{lst:agreementpucella2006}'s Coq version (for ODRL0) is illustrated in listing~\ref{lst:marysmithagreementcoq}.
+
 
 \lstset{language=Coq}
-\begin{lstlisting}[frame=single, caption={Coq version of agreement for Mary Smith},label={lst:marysmithagreementcoq}]
+\begin{lstlisting}[frame=single, caption={Coq Version of Agreement for Mary Smith},label={lst:marysmithagreementcoq}]
 
 Agreement (Single MarySmith) Treasure Island 
  (PrimitivePolicySet (Constraint (PrePay 5.00))

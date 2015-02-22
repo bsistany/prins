@@ -61,7 +61,7 @@ Fixpoint getCount
 Translation of the top level $agreement$ element proceeds by case analysis on the structure of the agreement. However an agreement can only be built one way; by calling the constructor $Agreement$. The translation proceeds by calling the translation function for the corresponding $policySet$ namely the parameter to $Agreement$ called $ps$.
 
 
-\lstset{language=Coq, frame=single, caption={Translation of agreement},label={lst:transagreement}}
+\lstset{language=Coq, frame=single, caption={Translation of Agreement},label={lst:transagreement}}
 \begin{lstlisting}
 
 Definition trans_agreement (e:environment)(ag:agreement) : Prop :=
@@ -126,7 +126,7 @@ $Permitted$ is a predicate specified as $Parameter Permitted : subject -> act ->
 
 Note that to implement the translation for an $AndPolicy$ a local function $trans\_p\_list$ has been defined where for a single $policy$, $trans\_policy\_positive$ is returned, and for a list of $policy$s, the conjunction of $trans\_policy\_positive$s are returned.
 
-\lstset{language=Coq, frame=single, caption={Translation of a positive policy},label={lst:transpolicypositiveCoq}}
+\lstset{language=Coq, frame=single, caption={Translation of a Positive Policy},label={lst:transpolicypositiveCoq}}
 \begin{lstlisting}
 
 Fixpoint trans_policy_positive
@@ -151,7 +151,7 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(
 A negative translation for a policy (called $trans\_policy\_negative$ in listing~\ref{lst:transpolicynegativeCoq}) takes as input $e$, the $environment$, $x$, the $subject$, $p$, the $policy$ to translate, and $a$ the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is forbidden to do $action$ to $a$ regardless of whether $preRequisite$ holds. Note that the notation $(\lnot)$ indicates that $Permitted$ may be negated. As the case for the positive translation, to implement the translation for an $AndPolicy$ a local function $trans\_p\_list$ has been defined where for a single $policy$, $trans\_policy\_negative$ is returned, and for a list of $policy$s, the conjunction of $trans\_policy\_negative$s are returned.
 
 
-\lstset{language=Coq, frame=single, caption={Translation of a negative policy},label={lst:transpolicynegativeCoq}}
+\lstset{language=Coq, frame=single, caption={Translation of a Negative Policy},label={lst:transpolicynegativeCoq}}
 \begin{minipage}[c]{0.95\textwidth}
 \begin{lstlisting}
 
@@ -250,7 +250,7 @@ let trans_forEachMember_Aux
 The translation of a $NotCons$ (called $trans\_notCons$ in listing~\ref{lst:transnotConsCoq}) takes as input $e$ the $environment$, $x$ the $subject$, $const$, the $constraint$ to translate, $IDs$, the set of identifiers (of policies implied by the parent $preRequisite$) and $prin_{u}$, the agreement's user and proceeds to return the negation of $trans\_constraint$ (see listing~\ref{lst:transconstraintCoq}).
 
 
-\lstset{language=Coq, frame=single, caption={Translation of not cons},label={lst:transnotConsCoq}}
+\lstset{language=Coq, frame=single, caption={Translation of NotCons},label={lst:transnotConsCoq}}
 \begin{lstlisting}
 
 Definition trans_notCons
