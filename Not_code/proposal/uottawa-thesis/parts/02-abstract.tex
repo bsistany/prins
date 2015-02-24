@@ -3,10 +3,12 @@
 
 \begin{center}\textbf{Abstract}\end{center}
 
-\section{Research question to be answered}
 
-\section{the proposed methodology} 
-\section{the expected results}
+Digital asset usage rights are expressed and defined using \ac{rel}s. A rule in such languages expresses the access rights of users when accessing a resource. However because of the fact that access rules are expressed using fragments of a natural language like English, it isn't always clear what the intended behavior of the system encoded in the access rules should be. Even when the behavior is formally specified, typically using a subset of predicate logic, proofs that certain properties of the system hold, are hard to formally verify.
+
+The verification difficulty is partly due to the fact that the language used to do the proofs while mathematical in nature, utilize intuitive justifications to derive the proofs. The Coq proof assistant is used to encode and model the behavior of a \ac{rel} called \ac{odrl}. Decidablity criteria are expressed and proofs are developed in Coq for a subset of \ac{odrl}. Programs are then extracted from the proofs that can be used directly to render a decision on a sample policy (e.g. whether to allow or deny access to an asset). 
+
+The \ac{odrl} encodings and the formal behavior model are adapted and used to investigate whether decidablity results hold for a different class of policy language, namely \ac{selinux} policy language, which is a fine-grained access-control policy language.
 
 
 \cleardoublepage
