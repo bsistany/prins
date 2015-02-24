@@ -6,7 +6,7 @@
 
 \usepackage{coqdoc}
 \usepackage{color}
-\usepackage{listings}
+\usepackage{listings,lstautogobble}
 \usepackage{etoolbox}
 \usepackage{fixltx2e}
 \usepackage{syntax}
@@ -28,7 +28,8 @@
   moredelim=[s][\color{black}]{>}{<},
   moredelim=[s][\color{red}]{\ }{=},
   stringstyle=\color{blue},
-  identifierstyle=\color{maroon}
+  identifierstyle=\color{maroon},
+  autogobble=true
 }
 \lstdefinelanguage{Pucella2006}
 {
