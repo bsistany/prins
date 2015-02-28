@@ -24,7 +24,8 @@ $[\![ agreement$ $for$ $prin_{u}$ $about$ $a$ $with$ $policySet]\!]$ $\triangleq
 \end{lstlisting}
 
 \section{Policy Set Translation}
-The translation for a $policySet$ ($[\![policySet]\!]^{prin_{u}, a}$) is defined by cases, one for each clause of the grammar in listing~\ref{lst:policySetast}. Recall that a $policySet$ is either a $PrimitivePolicySet$, a $\linebreak PrimitiveExclusivePolicySet$ or a $AndPolicySet$. Each of these has its own translation function, which will be defined in the next 3 subsections.
+The translation for a $policySet$ ($[\![policySet]\!]^{prin_{u}, a}$) is defined by cases, one for each clause of the grammar in listing~\ref{lst:policySetast}. Recall that a $policySet$ is either a $PrimitivePolicySet$, a $\linebreak PrimitiveExclusivePolicySet$ or a $AndPolicySet$. Each of these has its own translation function, which will be defined in the next 3 subsections. See~\ref{sec:getIdtranslation} for the translation of $getId$ and~\ref{sec:acttranslation} for the translation of $act$ mentioned below.
+
 
 \subsection{PrimitivePolicySet Translation}
 Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields a formula that includes a test on whether the subject is in the set of agreements' users, the translation of the policy and the translation of the $prerequisite$. Basically if the subject in question is a user of the agreement and the policySet prerequisites hold, then the policy holds. Translation of the policy for a $PrimitivePolicySet$ is called a \emph{positive translation}. A positive translation is one where the actions described by the policies are permitted.   
@@ -87,6 +88,33 @@ $AndPolicySet$ translates to conjunctions of the corresponding policy set transl
 $[\![ and [policySet_{1}, ..., policySet_{m}]]\!]^{e, prin_{u}, a}$ $\triangleq$ $[\![policySet_{1}]\!]^{e, prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policySet_{m}]\!]^{e, prin_{u}, a}$
 
 \end{lstlisting}
+
+\subsection{getId Translation}\label{sec:getIdtranslation}
+
+The $getId$ function when applied to a single $policy$(see~\ref{lst:policyast}) is defined to return the $policyId$ of the $policy$.
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={getId for a Single policy},label={lst:getIdSinglePolicyAST}]
+$[\![ getId (policy) ]\!]$ $\triangleq$ $[\![ getId (preRequisite \Rightarrow_{policyId} act) ]\!]$ $\triangleq$ $policyId$
+\end{lstlisting}
+
+$getId$ function when applied to a set of policies is the set union of the translations for each individual policy(see~\ref{lst:getIdSinglePolicyAST}).
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={getId for Policies},label={lst:getIdAndPolicyAST}]
+
+$[\![ getId (and [policy_{1}, ..., policy_{m}) ]\!]$ $\triangleq$ $getId (policy_{1})$ $\cup$ $...$ $\cup$ $getId (policy_{m})$
+\end{lstlisting}
+
+\subsection{action Translation}\label{sec:acttranslation}
+
+Translation of actions, such as $Play$ and $Display$ is simply the constant corresponding to each action instance.
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={act Translation},label={lst:actiontranslationAST}]
+$[\![act]\!]$ $\triangleq$ $N$
+\end{lstlisting}
+
 
 \section{Principal Translation}
 Translation for a \emph{prin} ($[\![ prin ]\!]_{x}$) is a formula that is true if and only if the subject $x$ is in the prin set. A $prin$ is either a single subject or a list of subjects ($\{ subject_{1}, ..., subject_{m} \}$ so the translation covers both cases. Each of these has its own translation function, which will be defined in the following 2 subsections.
@@ -198,7 +226,7 @@ $[\![ constraint::prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ $\triangleq$ 
 \end{lstlisting}
 
 \subsection{Count Constraint Translation}
-The translation for a $Count$ is handled by a specialized translation function (listing~\ref{lst:transcount}.
+The translation for a $Count$ is handled by a specialized translation function (listing~\ref{lst:transconstraintCount}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count},label={lst:transconstraintCount}]
@@ -207,7 +235,7 @@ $[\![ constraint::count [N] ]\!]^{[id_{1}, ..., id_{m}], prin_{u}}_{x}$ $\triang
 \end{lstlisting}
 
 \subsection{CountByPrin Constraint Translation}
-The translation for a $CountByPrin$ is handled by the same specialized translation function as that for $Count$. The difference is that $CountByPrin$ overrides the subjects in $prin_{u}$ by a different set of subjects (listing~\ref{lst:transcount}.
+The translation for a $CountByPrin$ is handled by the same specialized translation function as that for $Count$. The difference is that $CountByPrin$ overrides the subjects in $prin_{u}$ by a different set of subjects (listing~\ref{lst:transconstraintCountbyPrin}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count by Principal},label={lst:transconstraintCountbyPrin}]
