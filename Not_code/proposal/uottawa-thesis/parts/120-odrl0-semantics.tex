@@ -32,7 +32,7 @@ Translation of a $PrimitivePolicySet$ ($preRequisite \rightarrow policy$) yields
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitivePolicySet},label={lst:transpolicyformulaPrimitivePolicySet}]
-$[\![ preRequisite \rightarrow policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, prin_{u}, a}_{x}\!)$
+$[\![ preRequisite \rightarrow policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{getId (policy), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, prin_{u}, a}_{x}\!)$
 \end{lstlisting}
 
 
@@ -40,7 +40,7 @@ $[\![ preRequisite \rightarrow policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={Positive Policy Translation {$\colon$} Single policy},label={lst:transpolicypositiveSingle}]
 
-$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{positive, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{policyId, prin_{u}}_{x}) \Rightarrow Permitted(x, [\![act]\!], a)$
+$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{positive, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{\left\{{policyId}\right\}, prin_{u}, a}_{x}) \Rightarrow Permitted(x, [\![act]\!], a)$
 
 \end{lstlisting}
 
@@ -50,7 +50,7 @@ If the policy is a $AndPolicy$, the translation yields a conjunction of positive
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Positive Policy Translation {$\colon$} List of policies},label={lst:transpolicypositiveListOfPolicies}]
 
-$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{positive, prin_{u}, a}$ $\triangleq$ $[\![policy_{1}]\!]^{positive, prin_{u}, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{positive, prin_{u}, a}$
+$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{positive, prin_{u}, a}_{x}$ $\triangleq$ $[\![policy_{1}]\!]^{positive, prin_{u}, a}_{x}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{positive, prin_{u}, a}_{x}$
 
 \end{lstlisting}
 
@@ -61,14 +61,14 @@ $PrimitiveExclusivePolicySet$ ($preRequisite \mapsto policy$) yields the conjunc
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Policy Set Translation {$\colon$} PrimitiveExclusivePolicySet},label={lst:transpolicyformulaPrimitiveExclusivePolicySet}]
-$[\![ preRequisite \mapsto policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{getId (p), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, prin_{u}, a}_{x}\!)$ $\land$ $\forall x$ $(\neg[\![prin_{u}]\!]_{x} \rightarrow [\![policy]\!]^{negative, a}_{x})$
+$[\![ preRequisite \mapsto policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(\!( [\![prin_{u}]\!]_{x}$ $\land$ $[\![preRequisite]\!]^{getId (policy), prin_{u}, a}_{x}) \rightarrow [\![policy]\!]^{positive, prin_{u}, a}_{x}\!)$ $\land$ $\forall x$ $(\neg[\![prin_{u}]\!]_{x} \rightarrow [\![policy]\!]^{negative, a}_{x})$
 \end{lstlisting}
 
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Negative Policy Translation {$\colon$} Single policy},label={lst:transpolicynegativeSingle}]
 
-$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{negative, prin_{u}, a}_{x}$ $\triangleq$ $([\![ preRequisite ]\!]^{policyId, prin_{u}}_{x}) \Rightarrow \lnot (Permitted(x, [\![act]\!], a))$
+$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{negative, prin_{u}, a}_{x}$ $\triangleq$ $\lnot (Permitted(x, [\![act]\!], a))$
 \end{lstlisting}
 
 If the policy is a $AndPolicy$, the translation yields a conjunction of negative translations of each policy in turn.
@@ -76,7 +76,7 @@ If the policy is a $AndPolicy$, the translation yields a conjunction of negative
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Negative Policy Translation {$\colon$} List of policies},label={lst:transpolicynegativeListOfPolicies}]
 
-$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{negative, a}$ $\triangleq$ $[\![policy_{1}]\!]^{negative, a}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{negative, a}$
+$[\![ and [policy_{1}, ..., policy_{m}]]\!]^{negative, a}_{x}$ $\triangleq$ $[\![policy_{1}]\!]^{negative, a}_{x}$ $\land$ $...$ $\land$ $[\![policy_{m}]\!]^{negative, a}_{x}$
 
 \end{lstlisting}
 
