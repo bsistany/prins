@@ -68,7 +68,7 @@ $[\![ preRequisite \mapsto policy]\!]^{prin_{u}, a}$ $\triangleq$ $\forall x$ $(
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Negative Policy Translation {$\colon$} Single policy},label={lst:transpolicynegativeSingle}]
 
-$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{negative, prin_{u}, a}_{x}$ $\triangleq$ $\lnot (Permitted(x, [\![act]\!], a))$
+$[\![ preRequisite \Rightarrow_{policyId} act ]\!]^{negative, a}_{x}$ $\triangleq$ $\lnot (Permitted(x, [\![act]\!], a))$
 \end{lstlisting}
 
 If the policy is a $AndPolicy$, the translation yields a conjunction of negative translations of each policy in turn.
@@ -196,7 +196,7 @@ The translation for a $OrPrqs$ yields a formula that is the inclusive disjunctio
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Inclusive Disjunction},label={lst:transpreRequisiteOrPrqs}]
 
-$[\![or$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\lor$ $...$ $\lor$ $[\![preRequisite_{k}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$
+$[\![or$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{[id_{1}, ..., id_{m}], prin_{u}}$ $\lor$ $...$ $\lor$ $[\![preRequisite_{k}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$
 
 \end{lstlisting}
 
@@ -214,7 +214,7 @@ $[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{[id_{1}, ..., id_{m}],
 
 \section{Constraint Translation}
 
-Translation for a constraint is a formula $[\![constraint]\!]^{[id_{1}, ..., id_{m}], prin_{u}, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the constraint, $prin_{u}$ is the agreement's user(s) (and to which the constraint applies), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $constraint$ is described by translation formulas for each type of $constraint$. A $constraint$ is either a $Principal$, a $Count$, or a $CountByPrin$. Each of these has its own translation function, which will be defined in the following subsections.
+Translation for a constraint is a formula $[\![constraint]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the constraint, $prin_{u}$ is the agreement's user(s) (and to which the constraint applies), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $constraint$ is described by translation formulas for each type of $constraint$. A $constraint$ is either a $Principal$, a $Count$, or a $CountByPrin$. Each of these has its own translation function, which will be defined in the following subsections.
 
 \subsection{Principal Constraint Translation}
 The translation for a $Principal$ is handled by a specialized translation function (listing~\ref{lst:transprin}.   
