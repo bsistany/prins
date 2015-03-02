@@ -143,14 +143,14 @@ $[\![ \{ subject_{1}, ..., subject_{m} \} ]\!]_{x}$ $\triangleq$ $[\![subject_{1
 
 \section{Prerequisite Translation}
 
-Translation for a prerequisite is a formula $[\![prerequisite]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the prerequisites, $prin$ is the agreement's user(s) (and to which the prerequisites apply), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $prerequisite$ is described by translation formulas for each type of $prerequisite$. A $prerequisite$ is either always $true$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$. Each of these has its own translation function, which will be defined in the following subsections.
+Translation for a prerequisite is a formula $[\![prerequisite]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the prerequisites, $prin$ is the set of users (typically the agreement's user(s) denoted by $prin_{u}$) to which the prerequisites apply, $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $prerequisite$ is described by translation formulas for each type of $prerequisite$. A $prerequisite$ is either always $true$, a $Constraint$, a $ForEachMember$, a $NotCons$, a $AndPrqs$, a $OrPrqs$ or a $XorPrqs$. Each of these has its own translation function, which will be defined in the following subsections.
 
 \subsection{True Prerequisite Translation}
 The translation for a $TruePrq$ yields a formula that is always \emph{true}.
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Always True Prerequisite},label={lst:transpreRequisiteTruePrq}]
-	$[\![ prerequisite::true ]\!]$ $\triangleq$ True
+	$[\![ true ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\triangleq$ True
 \end{lstlisting}
 
 \subsection{Constraint Prerequisite Translation}
@@ -159,7 +159,7 @@ The translation for a $Constraint$ is handled by a specialized constraint transl
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Constraint},label={lst:transpreRequisiteConstraint}]
 
-$[\![ prerequisite::constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}_{x}$ $\triangleq$ $[\![ constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}_{x}$ 
+$[\![ constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\triangleq$ $[\![ constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin}_{x}$ 
 \end{lstlisting}
 
 \subsection{ForEachMember Prerequisite Translation}
@@ -168,7 +168,7 @@ The translation for a $ForEachMember$ is also is handled by a specialized transl
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} ForEachMember},label={lst:transpreRequisiteForEachMember}]
 
-$[\![ prerequisite::forEachMember ]\!]^{\left\{ {subject_{1}, ..., subject_{k}}\right\}, \left\{ {constraint_{1}, ..., constraint_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![ forEachMember ]\!]^{\left\{ {subject_{1}, ..., subject_{k}}\right\}, \left\{ {constraint_{1}, ..., constraint_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 	
+$[\![ forEachMember ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\triangleq$ $[\![ forEachMember ]\!]^{\left\{ {subject_{1}, ..., subject_{k}}\right\}, \left\{ {constraint_{1}, ..., constraint_{n}}\right\}, \left\{ {id_{1}, ..., id_{m}}\right\}}_{x}$ 	
 \end{lstlisting}
 
 \subsection{NotCons Prerequisite Translation}
@@ -177,7 +177,7 @@ The translation for a $NotCons$ yields a formula that is simply the negation of 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Not Constraint},label={lst:transpreRequisiteNotConstraint}]
 
-$[\![ not$ $prerequisite::constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}_{x}$ $\triangleq$ $\lnot[\![ constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}_{x}$ 
+$[\![ not$ $constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\triangleq$ $\lnot[\![ constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin}_{x}$ 
 \end{lstlisting}
 
 \subsection{AndPrqs Prerequisite Translation}
@@ -186,7 +186,8 @@ The translation for a $AndPrqs$ yields a formula that is the conjunction of the 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Conjunction },label={lst:transpreRequisiteAndPrqs}]
 
-$[\![and$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$ $\land$ $...$ $\land$ $[\![preRequisite_{k}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$
+$[\![and$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}
+$ $\triangleq$ $[\![preRequisite_{1}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\land$ $...$ $\land$ $[\![preRequisite_{k}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$
 
 \end{lstlisting}
 
@@ -196,7 +197,7 @@ The translation for a $OrPrqs$ yields a formula that is the inclusive disjunctio
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Inclusive Disjunction},label={lst:transpreRequisiteOrPrqs}]
 
-$[\![or$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$ $\lor$ $...$ $\lor$ $[\![preRequisite_{k}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$
+$[\![or$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\lor$ $...$ $\lor$ $[\![preRequisite_{k}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$
 
 \end{lstlisting}
 
@@ -207,40 +208,35 @@ The translation for a $XorPrqs$ yields a formula that is the exclusive disjuncti
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} Exclusive Disjunction},label={lst:transpreRequisiteXorPrqs}]
 
-$[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$ $\oplus $ $...$ $\oplus$ $[\![preRequisite_{k}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}$
+$[\![Xor$ $[preRequisite_{1}, ..., preRequisite_{k}]]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\triangleq$ $[\![preRequisite_{1}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$ $\oplus $ $...$ $\oplus$ $[\![preRequisite_{k}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin, a}_{x}$
 
 \end{lstlisting}
 
 
 \section{Constraint Translation}
 
-Translation for a constraint is a formula $[\![constraint]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}, a}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the constraint, $prin_{u}$ is the agreement's user(s) (and to which the constraint applies), $a$ is the asset and $x$ is a variable of type $subject$. The translation for a $constraint$ is described by translation formulas for each type of $constraint$. A $constraint$ is either a $Principal$, a $Count$, or a $CountByPrin$. Each of these has its own translation function, which will be defined in the following subsections.
+Translation for a constraint is a formula $[\![constraint]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin}_{x}$, where the set of $id$s refer to identifiers for policies that are implied by the constraint, $prin$ is the set of users (typically the agreement's user(s) denoted by $prin_{u}$ to which the constraint applies, $x$ is a variable of type $subject$. The translation for a $constraint$ is described by translation formulas for each type of $constraint$. A $constraint$ is either a $Principal$, a $Count$, or a $CountByPrin$. Each of these has its own translation function, which will be defined in the following subsections.
 
 \subsection{Principal Constraint Translation}
-The translation for a $Principal$ is handled by a specialized translation function (listing~\ref{lst:transprin}.   
+The translation for a $Principal$ is handled by a specialized translation function (listing~\ref{lst:transprin}).   
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Principal},label={lst:transconstraintPrin}]
 
-$[\![ constraint::prin ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}}_{x}$ $\triangleq$ $[\![ prin ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}}_{x}$ 
+$[\![ prin ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin}_{x}$ $\triangleq$ $[\![ prin ]\!]_{x}$ 
 \end{lstlisting}
 
 \subsection{Count Constraint Translation}
-The translation for a $Count$ is handled by a specialized translation function (listing~\ref{lst:transconstraintCount}.
+The translation for a $Count$ is handled by a specialized translation function in listing~\ref{lst:transconstraintCount}. 
 
-\lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count},label={lst:transconstraintCount}]
-
-$[\![ constraint::count [N] ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}_{x}$ $\triangleq$ $[\![ count [N] ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}_{x}$ 
-\end{lstlisting}
 
 \subsection{CountByPrin Constraint Translation}
-The translation for a $CountByPrin$ is handled by the same specialized translation function as that for $Count$. The difference is that $CountByPrin$ overrides the subjects in $prin_{u}$ by a different set of subjects (listing~\ref{lst:transconstraintCountbyPrin}.
+The translation for a $CountByPrin$ is handled by the same specialized translation function as that for $Count$. The difference is that $CountByPrin$ overrides the subjects passed in $prin$ (typically agreement's user(s) or $prin_{u}$) by a different set of subjects (listing~\ref{lst:transconstraintCountbyPrin}).
 
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count by Principal},label={lst:transconstraintCountbyPrin}]
 
-$[\![ constraint::prin(count [N]) ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![ prin(count [N]) ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 
+$[\![ prin(count [N]) ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin}_{x}$ $\triangleq$ $[\![ prin(count [N]) ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 
 \end{lstlisting}
 
 
@@ -249,7 +245,8 @@ $[\![ constraint::prin(count [N]) ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={ForEachMember Translation {$\colon$} Count by Principal},label={lst:transforEachMember}]
 
-$[\![ forEachMember ]\!]^{\left\{ {subject_{1}, ..., subject_{k}}\right\}, \left\{ {constraint_{1}, ..., constraint_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![constraint]\!]^{(subject_{1}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{1}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{2}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{2}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{k}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{k}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 
+$[\![ forEachMember ]\!]^{\left\{ {subject_{1}, ..., subject_{k}}\right\}, \left\{ {constraint_{1}, ..., constraint_{n}}\right\}, \left\{ {id_{1}, ..., id_{m}}\right\}}_{x}$ $\triangleq$ $\bigwedge_{(i, subject)\in (subjects \times \left\{ {1, ..., m}\right\})}\nolimits$ $[\![constraint_{i}]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, \left\{subject\right\}}_{x}$
+
 
 \end{lstlisting}
 
