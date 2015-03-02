@@ -117,7 +117,7 @@ $[\![act]\!]$ $\triangleq$ $N$
 
 
 \section{Principal Translation}
-Translation for a \emph{prin} ($[\![ prin ]\!]_{x}$) is a formula that is true if and only if the subject $x$ is in the prin set. A $prin$ is either a single subject or a list of subjects ($\{ subject_{1}, ..., subject_{m} \}$ so the translation covers both cases. Each of these has its own translation function, which will be defined in the following 2 subsections.
+Translation for a \emph{prin} ($[\![ prin ]\!]_{x}$) is a formula that is true if and only if the subject $x$ is in the prin set. A $prin$ is either a single subject or a list of subjects ($\{ subject_{1}, ..., subject_{m} \})$ so the translation covers both cases. Each of these has its own translation function, which will be defined in the following 2 subsections.
 
 
 If the $prin$ is a single subject, the translation is a formula that is true if and only if the subject $x$ is the same as the single subject $subject$.
@@ -168,7 +168,7 @@ The translation for a $ForEachMember$ is also is handled by a specialized transl
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Prerequisite Translation {$\colon$} ForEachMember},label={lst:transpreRequisiteForEachMember}]
 
-$[\![ prerequisite::forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 	
+$[\![ prerequisite::forEachMember ]\!]^{\left\{ {subject_{1}, ..., subject_{k}}\right\}, \left\{ {constraint_{1}, ..., constraint_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![ forEachMember ]\!]^{\left\{ {subject_{1}, ..., subject_{k}}\right\}, \left\{ {constraint_{1}, ..., constraint_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 	
 \end{lstlisting}
 
 \subsection{NotCons Prerequisite Translation}
@@ -222,7 +222,7 @@ The translation for a $Principal$ is handled by a specialized translation functi
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Principal},label={lst:transconstraintPrin}]
 
-$[\![ constraint::prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ $\triangleq$ $[\![ prin ]\!]^{[subject_{1}, ..., subject_{m}]}_{x}$ 
+$[\![ constraint::prin ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}}_{x}$ $\triangleq$ $[\![ prin ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}}_{x}$ 
 \end{lstlisting}
 
 \subsection{Count Constraint Translation}
@@ -240,7 +240,7 @@ The translation for a $CountByPrin$ is handled by the same specialized translati
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={Constraint Translation {$\colon$} Count by Principal},label={lst:transconstraintCountbyPrin}]
 
-$[\![ constraint::prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![ prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 
+$[\![ constraint::prin(count [N]) ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![ prin(count [N]) ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 
 \end{lstlisting}
 
 
@@ -249,7 +249,7 @@ $[\![ constraint::prin(count [N]) ]\!]^{[subject_{1}, ..., subject_{m}], \left\{
 \lstset{mathescape, language=AST}  
 \begin{lstlisting}[frame=single, caption={ForEachMember Translation {$\colon$} Count by Principal},label={lst:transforEachMember}]
 
-$[\![ forEachMember ]\!]^{[subject_{1}, ..., subject_{k}], [constraint_{1}, ..., constraint_{m}], \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![constraint]\!]^{(subject_{1}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{1}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{2}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{2}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{k}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{k}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 
+$[\![ forEachMember ]\!]^{\left\{ {subject_{1}, ..., subject_{k}}\right\}, \left\{ {constraint_{1}, ..., constraint_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $[\![constraint]\!]^{(subject_{1}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{1}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{2}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{2}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{k}, constraint_{1}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\land$ $...$ $\land$ $[\![constraint]\!]^{(subject_{k}, constraint_{m}), \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ 
 
 \end{lstlisting}
 
@@ -265,22 +265,29 @@ $[\![ not$ $constraint ]\!]^{\left\{ {id_{1}, ..., id_{m}}\right\}, prin_{u}}_{x
 \end{lstlisting}
 
 \section{Count Translation}
-Translation for $Count$ or $CountByPrin$ is based on whether the translation is on a single pair and multiple pairs of subject/policyIds. Each of these two cases will be described in the following subsections.
+Translation for $Count$ or $CountByPrin$ is based on whether the translation is on a single pair or multiple pairs of subject/policyIds. Each of these two cases will be described in the following subsections.
 
 \subsection{Count Translation For Subject/ID Pair}
-The translation for $Count$ or $CountByPrin$ for a pair of subject and policy identifier is a formula that is true if the number of times the $subject_{1}$ has invoked a policy with policy identifier $id_{1}$ is smaller than $N$.
+The translation for $Count$ or $CountByPrin$ for a pair of subject and policy identifier is a formula that is true if the number of times $subject_{1}$ has invoked a policy with policy identifier $id_{1}$ is smaller than $N$.
 
 \lstset{mathescape, language=AST}  
-\begin{lstlisting}[frame=single, caption={Count Translation {$\colon$} subject and policyId pair},label={lst:transcountSinglePair}]
+\begin{lstlisting}[frame=single, caption={Count Translation {$\colon$} subject and policyId Pair},label={lst:transcountSinglePair}]
 
 $[\![ count [N] ]\!]^{subject_{1}, id_{1}}_{x}$ $\triangleq$ $getCount(subject_{1}, id_{1}) < N$
 \end{lstlisting}
 
 \subsection{Count Translation For Subject/ID Pairs}
-The translation for $Count$ or $CountByPrin$ for subject and policy identifier pairs is a formula that is true if the total number of times that a subject has invoked a policy with policy identifier $id_{i}$ is smaller than $N$.
+The translation for $Count$ or $CountByPrin$ for subject and policy identifier pairs is a formula that is true when the sum of the number of times that $subject_{i}$ has invoked a policy with policy identifier $id_{j}$ is smaller than $N$.
+
+\lstset{mathescape, language=AST}  
+\begin{lstlisting}[frame=single, caption={Count Translation {$\colon$} subject and policyId Pairs},label={lst:transcountSinglePairs}]
+
+$[\![ count [N] ]\!]^{\left\{ {subject_{1}, ..., subject_{m}}\right\}, \left\{ {id_{1}, ..., id_{n}}\right\}}_{x}$ $\triangleq$ $(\sum_{(id, subject)\in (ids \times subjects)}\nolimits$ $getCount(subject, id)) < N$
+
+\end{lstlisting}
 
 
 
-
+%$getCount(subject_{1}, id_{1})$ $+$ $...$ $getCount(subject_{m}, id_{1})$ $getCount(subject_{1}, id_{1})$ $+$$...$ $getCount(subject_{m}, id_{1})$ < N$
 
 
