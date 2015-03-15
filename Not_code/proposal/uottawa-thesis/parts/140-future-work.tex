@@ -3,17 +3,13 @@
 %======================================================================
 
 %----------------------------------------------------------------------
-\section{Introduction}
+%\section{Introduction}
 %----------------------------------------------------------------------
 
 
 \section{Machine-Checked Proof of Decidability of Queries}
 
-By defining formal semantics for \ac{odrl} authors of~\cite{pucella2006} were able to show some important results. First result is that answering the question of whether a set of ODRL statements imply a permission, denial or other possibilities is decidable and also that its complexity is NP-hard (see Theorem~\ref{customthm41} from~\cite{pucella2006} re-printed below).
-
-\begin{customthm}{4.1}\label{customthm41}
-The problem of deciding, for a query $q = (A, s, act, a, E)$, whether $f^{+}_q$ is E-valid is decidable but NP-hard. Similarly for $f^{-}_q$.
-\end{customthm}
+By defining formal semantics for \ac{odrl} authors of~\cite{pucella2006} were able to show some important results. First result is that answering the question of whether a set of ODRL statements imply a permission, denial or other possibilities is decidable and also that its complexity is NP-hard.
 
 The authors of~\cite{pucella2006} then prove that by removing the construct $not[policySet]$ from \ac{odrl}'s syntax answering the same query remains decidable and efficient (polynomial time complexity). 
 
@@ -52,18 +48,20 @@ boot time) and allows or denies the access request~\cite{Sarna}.
 
 \section{SELinux Policy Language}
 
-The \ac{selinux} policy has four different kinds of statements: declarations, rules, constraints and assertions [archer]. Assertions are compile time checks that the \emph{checkpolicy} tool performs at compile time. The other three kinds of statements however are evaluated at run-time. 
+The \ac{selinux} policy has four different kinds of statements: declarations, rules, constraints and assertions~\cite{ArcherLP03}. Assertions are compile time checks that the \emph{checkpolicy} tool performs at compile time. The other three kinds of statements however are evaluated at run-time. 
 
 Declaration statements declare a user, a role and a type. 
 
 \lstset{language=selinux}
 \begin{lstlisting}[frame=single, caption={Declarations},label={lst:declsselinux}]
 
+type t, attrib_{1}, ..., attrib_{n}; &\Comment{; conjunction }&
+
 user u types Ru;
 
 role r types Tr;
 
-type t, attrib_{1}, ..., attrib_{n};
+
 
 \end{lstlisting}
 
