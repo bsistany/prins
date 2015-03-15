@@ -43,68 +43,73 @@ While \ac{xacml} is a high-level and platform independent access control system 
 \ac{selinux} uses Linux's extended file attributes to attach a \emph{security context} to passive entities (e.g. files, directories, sockets) and also to each active entity typically a Linux user space process. Security context is a data structure that is composed of a user, a role and a domain (or type). While users can map directly to ordinary user names they can also be defined separately. Roles are meant to group users and add flexibility when assigning permissions and are the basis for \ac{RBAC}. Finally domains or types are the basis for defining common access control requirements for both passive and active entities. 
 
 
-The enforcement of \ac{selinux} policies are performed by the \emph{security server}. Whenever a security operation is requested from user space by a system call, the security server is invoked to arbitrate the operation and either allow the operation or to deny it. Each operation is identified by two pieces of information: an object class (e.g. file) and a permission (e.g. read, write). When an operation is requested to be performed on an object, the class and the permissions associated with the object along with security contexts of the source (typically the source entity is a process) and the object are passed to the security server. The security server consults the loaded policy (loaded at 
-boot time) and allows or denies the access request~\cite{Sarna}.
+The enforcement of \ac{selinux} policies are performed by the \emph{security server}. Whenever a security operation is requested from user space by a system call, the security server is invoked to arbitrate the operation and either allow the operation or to deny it. Each operation is identified by two pieces of information: an object class (e.g. file) and a permission (e.g. read, write). When an operation is requested to be performed on an object, the class and the permissions associated with the object along with security contexts of the source (typically the source entity is a process) and the object are passed to the security server. The security server consults the loaded policy (loaded at boot time) and allows or denies the access request~\cite{Sarna}.
 
 \section{SELinux Policy Language}
 
 The \ac{selinux} policy has four different kinds of statements: declarations, rules, constraints and assertions~\cite{ArcherLP03}. Assertions are compile time checks that the \emph{checkpolicy} tool performs at compile time. The other three kinds of statements however are evaluated at run-time. 
 
-Declaration statements declare a user, a role and a type. 
+Declaration statements are used to declare a type, a role and a type. First types are declared using a type declaration statement. Roles are declared and authorized for particular domains (types) through role declarations, and finally user declarations are used to define each user and to specify the set of authorized roles for each of these users (see~\ref{lst:declsselinux}). Note that in the listings below we will present a simplified and modified version of the official \ac{selinux} syntax in order to (re-)use the \ac{odrl} Coq framework.
 
 \lstset{language=selinux}
 \begin{lstlisting}[frame=single, caption={Declarations},label={lst:declsselinux}]
 
-type t, attrib_{1}, ..., attrib_{n}; &\Comment{; conjunction }&
+'type' T ';' &\Comment{; type T}&
 
-user u types Ru;
+'role' R T ';' &\Comment{; role R is associated with type T }&
 
-role r types Tr;
-
-
+'user' U R ';' &\Comment{; user U is associated with role R }&
 
 \end{lstlisting}
 
-Rule statements define access vector rules and type transition rules. Access vector (AV) rules (see listing~\ref{lst:avruleselinux}) specify which operations are allowed and whether to audit (log). Any operation not covered by AV rules are denied and all denied operations are logged. The semantics of the AV rule with avkind \emph{allow} is: processes with type \emph{sourcetype} are allowed to perform operations in \emph{perm} on objects with class \emph{obj-class} and type \emph{targettype}. \emph{auditallow} means to allow and audit, \emph{dontaudit} means to never audit and finally \emph{neverallow} provides a mechanism to override allow rules. When a process changes security context, the role may change, assuming a role transition rule exists relating the old and the new roles (listing~\ref{lst:roletransitionselinux}).
+Rule statements define access vector rules. Access vector (AV) rules (see listing~\ref{lst:avruleselinux}) specify which operations are allowed and whether to audit (log). Any operation not covered by AV rules are denied and all denied operations are logged. The semantics of the AV rule with avkind \emph{allow} is: processes with type \emph{T1} are allowed to perform operations in \emph{P} on objects with class \emph{C} and type \emph{T2} (with avkind=\emph{deny} meaning not to allow). 
 
 \lstset{language=selinux}
 \begin{lstlisting}[frame=single, caption={AV Rule},label={lst:avruleselinux}]
 
-avkind sourcetype targettype:object-class perm
+<avRule> -> <avkind> T1 T2:C P ';'
 
-avkind=allow, auditallow, dontaudit, neverallow
+<avkind> -> 'allow' | 'deny'
 \end{lstlisting}
 
-Constraints are additional conditions that must hold for an attempted operation to be allowed. Constrains relate all of their arguments (the security contexts) to the server (see listing~\ref{lst:constrainselinux}. Whenever a permission is requested on an obj-class, the security server checks that the two security contexts are related by a constrain statement.
+When a process changes security context, the role may change, assuming a \emph{role transition} exists relating the old and the new roles. There is a related AV rule called the \emph{type transition} rule where a process with type T1 is allowed/denied to transition to type T2 when C=process and P=transition (see~\ref{lst:typeAndroletransselinux}).
+
+\lstset{mathescape, language=AST} 
+\begin{lstlisting}[frame=single, caption={Type Transition and Role-Allow Rules},label={lst:typeAndroletransselinux}]
+
+<avkind> T1 T2:process transition ';'
+
+<role_transition_rule> -> <avkind> R1 R2 ';' &\Comment{; when a process changes security contexts this rule must hold }&
+
+\end{lstlisting}
+
+Constraints are additional conditions on permissions in the form of boolean expressions that must hold in order for the specified permissions to be allowed (see listing~\ref{lst:constrainselinux}. Whenever a permission is requested on an object class C, the security server checks that the constraints hold.
 
 \lstset{language=selinux}
+\begin{minipage}[c]{0.95\textwidth}
 \begin{lstlisting}[frame=single, caption={Constrain Rule},label={lst:constrainselinux}]
 
-constrain classes, perms, sourcetype, sourcerole, sourceuser, targettype, targetrole, targetuser
-\end{lstlisting}
+<constraint> -> 'constrain' C, P, <expr> ';'
 
+<expr> -> 'not' <expr> | <expr> 'and' <expr> | <expr> or <expr> | U1 <op> U2 | T1 <op> T2 | R1 <op> R2
+
+<op> -> '==' | '!='
+ 
+\end{lstlisting}
+\end{minipage}
 
 \section{Agreements in \ac{selinux}}
 
-As with \ac{odrl} we will start by limiting the policy language to only allow AV rules. As mentioned earlier an operation not covered by a allow rule is denied by \ac{selinux}. We will make up explicit \emph{deny} as required therefore an agreement is defined to be a combination of allow and deny rules. Allow and deny rules are mappings defined in listing~\ref{lst:allowmappingastselinux}.
+As with \ac{odrl} we will start by limiting the policy language to only allow AV rules. As mentioned earlier an operation not covered by a allow rule is denied by \ac{selinux}. We will make up explicit \emph{deny} rules therefore an agreement is defined to be a combination of allow and deny rules. Allow and deny rules as mappings are defined in listing~\ref{lst:allowmappingastselinux}.
 
 \lstset{language=AST}
 \begin{lstlisting}[frame=single, caption={'allow'/'deny' Rule as a Mapping},label={lst:allowmappingastselinux}]
-allow/deny rule : $T \times (T \times C) \rightarrow 2^{P}$
+AV rule : $T \times (T \times C) \rightarrow 2^{P}$
 \end{lstlisting}
 
 \lstset{language=AST}
 \begin{lstlisting}[frame=single, caption={\ac{selinux} Agreement},label={lst:agreementastselinux}]
-<agreement> ::= <avRule> 
-\end{lstlisting}
-
-
-\lstset{mathescape, language=AST, escapechar=\&}  
-\begin{lstlisting}[frame=single, caption={AV Rule},label={lst:avruleastselinux}]
-<avRule> ::=  
-	'allow' $(T1, T2, C, P)$	&\Comment{; allow rule }&
-	'deny' $(T1, T2, C, P)$	    &\Comment{; deny rule }&
-	'and'[ <avRule$_{1}$>, ..., <avRule$_{m}$> ]	&\Comment{; conjunction }&
+<agreement> ::= <avRule> ';' <agreement> 
 \end{lstlisting}
 
 
@@ -121,55 +126,29 @@ To answer such queries we use the authorization relation \emph{auth(C, P, T1, R1
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={$f^{+}_q$ for \ac{selinux}},label={lst:fqplussel}]
 
-$allow (T1, T2, C, P)$ $\land$ $(E$ $consistent$ $wrt$ $<T1, R1, U1>$ and $<T2, R2, U2>)$ $\implies auth(C, P, T1, R1, U1, T2, R2, U2)$ 
+$allow (T1, T2, C, P)$ $\land$ $(E$ $consistent$ $wrt$ <T1, R1, U1> $\land$ <T2, R2, U2>) $\land$ $(((C,P)==(process, transition))$ $\implies$ $allow (R1, R2))$ $\implies auth(C, P, T1, R1, U1, T2, R2, U2)$ 
 
 \end{lstlisting}
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={$f^{-}_q$ for \ac{selinux}},label={lst:fqminussel}]
 
-$deny (T1, T2, C, P)$ $\lor$ $\lnot (E$ $consistent$ $wrt$ $<T1, R1, U1>$ and $<T2, R2, U2>)$ $\implies \lnot auth(C, P, T1, R1, U1, T2, R2, U2)$ 
+$deny (T1, T2, C, P)$ $\lor$ $\lnot (E$ $consistent$ $wrt$ <T1, R1, U1> $\land$ <T2, R2, U2>) $\lor$ $(((C,P)==(process, transition))$ $\implies$ $deny (R1, R2))$ $\implies \lnot auth(C, P, T1, R1, U1, T2, R2, U2)$ 
 
 \end{lstlisting}
 
 \section{Decidability of Queries in \ac{selinux}}
 
-In this thesis we will be investigating the question of decidability for answering queries in \ac{selinux} policies based on the same four outcomes we encountered earlier in ~\ref{sec:answerqueriesodrl} namely error, permitted, denied and ``not applicable''. We will first state a decidability theorem similar to theorem in listing~\ref{lst:decidabilityodrl0coq} (minor adjustments may be needed to allow for differences with \ac{selinux} policy language) and present a proof for it in Coq. The literature in the \ac{selinux} implies only two outcomes are possible: permitted or denied. We will next attempt to prove this conjecture in Coq. Finally we will add constrain relations (see listing~\ref{lst:fqplusconstsel} and listing~\ref{lst:fqminusconstsel}) to \ac{selinux} policies (which we have not included so far) and prove the same decidability results again for the augmented policy.
+In this thesis we will be investigating the question of decidability for answering queries in \ac{selinux} policies based on the same four outcomes we encountered earlier in~\ref{sec:answerqueriesodrl} namely error, permitted, denied and ``not applicable''. We will first state a decidability theorem similar to the theorem in listing~\ref{lst:decidabilityodrl0coq} (minor adjustments may be needed to allow for differences with \ac{selinux} policy language) and present a proof for it in Coq. The literature in the \ac{selinux} implies only two outcomes are possible: permitted or denied. We will next attempt to prove this conjecture in Coq. Finally we will add constraint relations (see listing~\ref{lst:fqplusconstsel} and listing~\ref{lst:fqminusconstsel}) to \ac{selinux} policies (which we have not included so far) and prove the same decidability results again for the augmented policy.
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={$f^{+}_q$ for \ac{selinux}},label={lst:fqplusconstsel}]
-
-$allow (T1, T2, C, P)$ $\land$ $constrain (C, P, T1, R1, U1, T2, R2, U2)$ $\land$
-$(E$ $consistent$ $wrt$ $<T1, R1, U1>$ and $<T2, R2, U2>)$ $\implies auth(C, P, T1, R1, U1, T2, R2, U2)$ 
+$allow (T1, T2, C, P)$ $\land$ $constrain (C, P, T1, R1, U1, T2, R2, U2)$ $\land$ $(E$ $consistent$ $wrt$ <T1, R1, U1> $\land$ <T2, R2, U2>) $\land$ $(((C,P)==(process, transition))$ $\implies$ $allow (R1, R2))$ $\implies auth(C, P, T1, R1, U1, T2, R2, U2)$ 
 
 \end{lstlisting}
 
 \lstset{mathescape, language=AST} 
 \begin{lstlisting}[frame=single, caption={$f^{-}_q$ for \ac{selinux}},label={lst:fqminusconstsel}]
-
-$deny (T1, T2, C, P)$ $\lor$ $\lnot$ $constrain (C, P, T1, R1, U1, T2, R2, U2)$ $\lor$
-$\lnot (E$ $consistent$ $wrt$ $<T1, R1, U1>$ and $<T2, R2, U2>)$ $\implies \lnot auth(C, P, T1, R1, U1, T2, R2, U2)$ 
+$deny (T1, T2, C, P)$ $\lor$ $\lnot$ $constrain (C, P, T1, R1, U1, T2, R2, U2)$ $\lor$ $\lnot (E$ $consistent$ $wrt$ <T1, R1, U1> $\land$ <T2, R2, U2>) $\lor$ $(((C,P)==(process, transition))$ $\implies$ $deny (R1, R2))$ $\implies \lnot auth(C, P, T1, R1, U1, T2, R2, U2)$ 
 
 \end{lstlisting}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
