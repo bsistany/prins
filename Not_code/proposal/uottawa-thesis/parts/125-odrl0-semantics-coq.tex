@@ -8,7 +8,7 @@
 
 
 % COQ
-The translation functions plus the auxiliary types and infrastructure, implementing the semantics have been encoded in Coq. Translation functions build Coq terms of type $Prop$. Well-formed propositions (or $Prop$s) are assertions one can express about values such as mathematical objects or even programs (e.g. 3 < 8) in Coq. 
+The translation functions plus the auxiliary types and infrastructure which implement the semantics have been encoded in Coq. Translation functions build Coq terms of type $Prop$. Well-formed propositions (or $Prop$s) are assertions one can express about values such as mathematical objects or even programs (e.g. 3 < 8) in Coq. 
 
 Whether a permission is granted or denied depends on the agreements in question but also on the facts recorded in the environment. For ODRL0 those facts revolve around the number of times a policy has been used to justify an action (see section~\ref{sec:odrl0} for more details on odrl0). We encode this information in an \emph{environment} which is a conjunction of equalities of the form $count(s, policyId) = n$. 
 
@@ -147,7 +147,7 @@ let trans_p_list := (fix trans_p_list (p_list:nonemptylist policy)(prin_u:prin)(
   end.
 \end{lstlisting}
 
-A negative translation for a policy (called $trans\_policy\_negative$ in listing~\ref{lst:transpolicynegativeCoq}) takes as input $e$, the $environment$, $x$, the $subject$, $p$, the $policy$ to translate, and $a$ the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is forbidden to do $action$ to $a$ regardless of whether $preRequisite$ holds. Note that the notation $(\lnot)$ indicates that $Permitted$ may be negated. As the case for the positive translation, to implement the translation for an $AndPolicy$ a local function $trans\_p\_list$ has been defined where for a single $policy$, $trans\_policy\_negative$ is returned, and for a list of $policy$s, the conjunction of $trans\_policy\_negative$s are returned.
+A negative translation for a policy (called $trans\_policy\_negative$ in listing~\ref{lst:transpolicynegativeCoq}) takes as input $e$, the $environment$, $x$, the $subject$, $p$, the $policy$ to translate, and $a$ the asset and proceeds based on whether we have a $PrimitivePolicy$ or a $AndPolicy$. If the policy is a $PrimitivePolicy$ an implication is returned which indicates $x$ is forbidden to do $action$ to $a$ regardless of whether $preRequisite$ holds. As is the case for the positive translation, to implement the translation for an $AndPolicy$ a local function $trans\_p\_list$ has been defined where for a single $policy$, $trans\_policy\_negative$ is returned, and for a list of $policy$s, the conjunction of $trans\_policy\_negative$s are returned.
 
 
 \lstset{language=Coq, frame=single, caption={Translation of a Negative Policy},label={lst:transpolicynegativeCoq}}
@@ -192,9 +192,7 @@ Definition trans_preRequisite
   end.
 \end{lstlisting}
 
-The translation of a $constraint$ (called $trans\_constraint$ in listing~\ref{lst:transconstraintCoq}) takes as input $e$ the $environment$, $x$ the $subject$, $const$, the $constraint$ to translate, $IDs$, the set of identifiers (of policies implied by the parent $preRequisite$) and $prin_{u}$, the agreement's user and proceeds by case analysis on the structure of the $constraint$. A $constraint$ is either a $Principal$, a $Count$ or a $CountByPrin$.
-
-In listing~\ref{lst:transconstraintCoq} the translation for $Principal$ returns the translation function (namely $trans\_prin$) for the $prn$ (the $prin$ that accompanies the $const$ constraint). The translation for $Count$ and $CountByPrin$ return the translation function $trans\_count$. For $Count$ the $prin$ used is the agreement's user, whereas the $prin$ used is the one passed to $CountByPrin$ namely $prn$.
+The translation of a $constraint$ (called $trans\_constraint$ in listing~\ref{lst:transconstraintCoq}) takes as input $e$ the $environment$, $x$ the $subject$, $const$, the $constraint$ to translate, $IDs$, the set of identifiers (of policies implied by the parent $preRequisite$) and $prin_{u}$, the agreement's user and proceeds by case analysis on the structure of the $constraint$. A $constraint$ is either a $Principal$, a $Count$ or a $CountByPrin$. The translation for $Principal$ returns the translation function (namely $trans\_prin$) for the $prn$ (the $prin$ that accompanies the $const$ constraint). The translation for $Count$ and $CountByPrin$ return the translation function $trans\_count$. For $Count$ the $prin$ used is the agreement's user, whereas the $prin$ used is the one passed to $CountByPrin$ namely $prn$.
 
 
 \lstset{language=Coq, frame=single, caption={Translation of a Constraint},label={lst:transconstraintCoq}}
