@@ -8,7 +8,7 @@
 
 In this chapter we will declare and prove some very simple theorems about the examples from chapter~\ref{chap:examples}. This simple introduction is only meant to give us a feel for how theorems are stated in Coq and how proofs are constructed using Coq \emph{tactics}. 
 
-As mentioned earlier propositions are types in Coq whose type is the sort $Prop$. Any term $t$ whose type is a proposition is a proof term or, for short, a proof. A \emph{Hypothesis} is a local declaration $h : P$ where $h$ is an identifier and $P$ is a proposition. An \emph{Axiom} is similar to a hypothesis except it is declared at the global scope and so it is always available. A \emph{Theorem} or \emph{Lemma} is any identifier whose type is a proposition (~\cite{BC04}). Keywords ``Hypothesis'', ``Axiom'' and ``Theorem'' or ``Lemma'' are used in each case respectively. 
+As mentioned earlier, propositions are types in Coq whose type is the sort $Prop$. Any term $t$ whose type is a proposition is a proof term or, for short, a proof. A \emph{Hypothesis} is a local declaration $h : P$ where $h$ is an identifier and $P$ is a proposition. An \emph{Axiom} is similar to a hypothesis except it is declared at the global scope and so it is always available. A \emph{Theorem} or \emph{Lemma} is any identifier whose type is a proposition (~\cite{BC04}). Keywords ``Hypothesis'', ``Axiom'' and ``Theorem'' or ``Lemma'' are used in each case respectively. 
 
 To build a proof in Coq the user states the proposition to prove; this is called a goal to be proved or discharge, along with some hypothesis that makes up the local context. The user then uses commands called tactics to manipulate the local context and to decompose the goal into simpler goals. The goal simplification into sub-goals will continue until all the sub-goals are solved.
 
@@ -21,7 +21,7 @@ Note that the notation $P : T$ is also used to declare program $P$ has type $T$.
 Theorem example1: forall x:nat, x < x + 1.
 \end{lstlisting}
 
-In the following listings, we will include the Coq commands that complete a proof for completeness of the presentation, but we will not explain them here. Including the commands are meant as an indication of the size of the proof in terms of lines of Coq script.
+In the following listings, for the sake of completeness of the presentation, we will include the Coq commands that complete the proof of the respective theorem. We will not however explain the individual commands further here. Showing the commands in the listings, is meant as an indication of the size of the proof in terms of lines of Coq script.
 
 
 \section{Theorem One}
@@ -65,7 +65,7 @@ Proof. simpl in H. apply H. split. reflexivity. auto.  omega. Qed.
 
 In listing~\ref{lst:theoremtwo} we define an exclusive policy set $policySet$ containing a policy $pol$ that allows printing. The agreement $AgreeA5$ includes the exclusive policy set to express that Bob may print $LoveAndPeace$. However any subject that is not the agreement's user (e.g. Bob) is forbidden from printing $LoveAndPeace$. 
 
-Notice that due to the fact that environments are defined as non-empty lists, we have added a Null count to it (see $eA5$). We continue to capture the relevant facts from the environment and the agreement through defining a hypothesis (e.g. $H$). The hypothesis is shown below : 
+Notice that due to the fact that environments are defined as non-empty lists, we have added a Null count to it (see $eA5$). We continue to capture the relevant facts from the environment and the agreement through defining a hypothesis (e.g. $H$). The hypothesis is shown in listing~\ref{lst:theoremtwo}. 
 
 \lstset{language=Coq}
 \begin{lstlisting}[frame=single, caption={Hypothesis for Theorem Two}, label={lst:theoremtwohypo}]

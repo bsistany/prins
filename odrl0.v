@@ -1888,6 +1888,8 @@ Theorem allQueriesWillGetAnAnswer: forall (e:environment),
 (permissionDenied e [agr] s action a)  \/
 (queryInconsistent e [agr] s action a) \/
 (permissionUnregulated e [agr] s action a).
+
+Abort. 
                                  
 
 End ODRL.

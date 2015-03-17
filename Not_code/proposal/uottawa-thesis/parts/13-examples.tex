@@ -11,7 +11,7 @@
 
 In this chapter we will take a tour of the syntax and semantics we have so far developed by examining some example agreements. In the following we will start by reviewing some of the examples used in~\cite{pucella2006}.
 
-Ultimately the goal of specifying all the syntax and semantics is to declare some interesting theorems about policy expressions and proving them in Coq however we will start with some specific propositions/theorems about these examples to get a feel for how proofs are done in Coq.
+Ultimately the goal of specifying all the syntax and semantics is to declare some interesting theorems about policy expressions and proving them in Coq. However we will first start with some specific propositions/theorems about these examples to get a feel for how proofs are done in Coq.
 
 \section{Agreement 2.1}
 
@@ -92,19 +92,7 @@ Definition A2.5 := Agreement prins2_5 ebook policySet2_5.
 
 \end{lstlisting}
 
-\section{Agreement 2.6}
 
-Consider example 2.6 (from~\cite{pucella2006}) where the $policySet$ is a $PrimitiveExclusivePolicySet$ with a $InSequence$ \emph{requirement} as prerequisite. We will cover requirements type constraints in \emph{ODRL1} since in ODRL0 we have elided their use. We will also describe this example in detail when ODRL1 constructs are added.
-
- 
-\lstset{language=Coq}
-\begin{lstlisting}[frame=single, caption={Example 2.6},label={lst:example26}]
-Definition prins2_6 := prins2_5.
-
-Definition aliceCount10:preRequisite := Constraint (CountByPrin (Single Alice) 10).
-Definition primPolicy2_6:policy := PrimitivePolicy aliceCount10 id3 Play.
-Definition policySet2_6_modified:= PrimitiveExclusivePolicySet TruePrq primPolicy2_6.
-\end{lstlisting}
 
 
 
