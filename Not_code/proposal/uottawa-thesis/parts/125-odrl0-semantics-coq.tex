@@ -13,7 +13,7 @@ The translation functions plus the auxiliary types and infrastructure which impl
 Whether a permission is granted or denied depends on the agreements in question but also on the facts recorded in the environment. For ODRL0 those facts revolve around the number of times a policy has been used to justify an action (see section~\ref{sec:odrl0} for more details on odrl0). We encode this information in an \emph{environment} which is a conjunction of equalities of the form $count(s, policyId) = n$. 
 
 % COQ
-The Coq version of the count equality is a new inductive type called \emph{count_equality}. An environment is defined to be a non-empty list of $count\_equality$ objects (see listing~\ref{lst:environmentcoq}).
+The Coq version of the count equality is a new inductive type called \emph{count\_equality}. An environment is defined to be a non-empty list of $count\_equality$ objects (see listing~\ref{lst:environmentcoq}). Function $make\_count\_equality$ in listing~\ref{lst:environmentcoq} is simply a convenience function that builds $count\_equality$s. For an example of how environments are created see listing~\ref{lst:environmentusagecoq}.
 
 \lstset{language=Coq, frame=single, caption={Environments and Counts},label={lst:environmentcoq}}
 %\begin{minipage}[c]{0.95\textwidth}
@@ -21,6 +21,10 @@ The Coq version of the count equality is a new inductive type called \emph{count
 Inductive count_equality : Set := 
    | CountEquality : subject -> policyId -> nat -> count_equality.
 
+Definition make_count_equality
+  (s:subject)(id:policyId)(n:nat): count_equality :=
+  CountEquality s id n.
+  
 Inductive environment : Set := 
   | SingleEnv : count_equality -> environment
   | ConsEnv :  count_equality ->  environment -> environment.
@@ -28,6 +32,17 @@ Inductive environment : Set :=
 \end{lstlisting}
 %\end{minipage}
 
+\lstset{language=Coq, frame=single, caption={Defining Environments},label={lst:environmentusagecoq}}
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}
+
+Definition e1 : environment := 
+  (SingleEnv (make_count_equality Alice id1 8)).
+
+\end{lstlisting}
+\end{minipage}
+  
+  
 We also define a \emph{getCount} function (see listing~\ref{lst:getCountcoq}) that given a pair consisting of a subject and policy id, looks for a corresponding count in the environment.
 $getCount$ assumes the given environment is consistent, so it returns the first matched $count$ it sees for a $(subject, id)$ pair. If a $count$ for a $(subject, id)$ pair is not found it returns 0.
 
