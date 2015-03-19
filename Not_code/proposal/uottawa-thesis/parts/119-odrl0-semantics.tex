@@ -13,7 +13,7 @@ Unless specifically mentioned, we use superscripts to denote parameters to trans
 
 \section{Agreement Translation}
 
-At a high-level, an agreement is translated into a conjunction of formulas of the form $\forall x ( prerequisites(x) \rightarrow P(x))$ where $P(x)$ itself is a conjunction of formulas of the form $ prerequisites(x) \rightarrow (\lnot) Permitted (x, act, a)$, where $Permitted (x, act, a)$ means the subject $x$ is permitted to perform action $act$ on asset $a$. More concretely, an agreement is translated by invoking the agreement translation mapping and passing in a $policySet$, the agreement's user(s) as $prin_{u}$, and $a$, the asset: $[\![agreement]\!]^{policySet, prin_{u}, a}$. 
+At a high-level, an agreement is translated into a conjunction of formulas of the form $\forall x ( prerequisites(x) \rightarrow P(x))$ where $P(x)$ itself is a conjunction of formulas of the form $ prerequisites(x) \rightarrow (\lnot) Permitted (x, act, a)$, where $Permitted (x, act, a)$ means the subject $x$ is permitted to perform action $act$ on asset $a$. More concretely, given an agreement and observing that the only way an agreement can be built is by passing a $prin$ (typically $prin_{u}$ the agreement's user(s)), an $asset$, and a $policySet$ to the constructor of the type agreement (see~\ref{sec:agreementConstructor}), the given agreement is translated by invoking the agreement translation mapping with the passed in arguments: $[\![agreement]\!]^{policySet, prin_{u}, a}$. 
 
 
 The agreement translation mapping declares its three formal arguments as a $policySet$, a set of users, $prin$, and an asset, $a$ (see~\ref{lst:transAgreementast}).
