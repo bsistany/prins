@@ -1549,10 +1549,10 @@ Theorem theo9_2: forall (e:environment),
                 forall (action:act),
                 forall (a:asset),
 
-((permissionDenied e [agr] s action a) ->
+((permissionDenied e [agr] s action a) <->
 (~is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
- is_fminus_single_query_evalid (SingletonQuery agr s action a e)))
-
+ is_fminus_single_query_evalid (SingletonQuery agr s action a e))).
+(*
 /\
 
 ((~is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
@@ -1562,6 +1562,11 @@ Theorem theo9_2: forall (e:environment),
 
 Proof. intros. split. 
 
+unfold permissionDenied. apply iff_refl.
+unfold permissionDenied. apply iff_refl. Qed.
+*)
+Proof. 
+split. 
 unfold permissionDenied. apply iff_refl.
 unfold permissionDenied. apply iff_refl. Qed.
 
@@ -1588,24 +1593,19 @@ Theorem theo9_2_B: forall (e:environment),
 (permissionDenied e [agr] s action a)).
 Proof. unfold permissionDenied. intros. exact H. Qed.
 
+
+
 Theorem theo9_3: forall (e:environment), 
                 forall (agr: agreement),
                 forall (s:subject),
                 forall (action:act),
                 forall (a:asset),
 
-((permissionGranted e [agr] s action a) ->
+((permissionGranted e [agr] s action a) <->
 (is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
- ~is_fminus_single_query_evalid (SingletonQuery agr s action a e)))
-
-/\
-
-((is_fplus_single_query_evalid (SingletonQuery agr s action a e) /\ 
- ~is_fminus_single_query_evalid (SingletonQuery agr s action a e)) ->
-(permissionGranted e [agr] s action a)).
-
-Proof. intros. split. 
-
+ ~is_fminus_single_query_evalid (SingletonQuery agr s action a e))).
+Proof. 
+split.
 unfold permissionGranted. apply iff_refl.
 unfold permissionGranted. apply iff_refl. Qed.
 
@@ -1641,9 +1641,24 @@ Theorem theo9_4_A : forall (e:environment),
 (permissionGranted e [agr] s action a) -> ~(permissionDenied e [agr] s action a).
 
 Proof.
-
-intros e agr s action a. intro. apply theo9_3_A in H. unfold not. intro.
+intros e agr s action a. intro. 
+apply theo9_3_A in H. unfold not. intro.
 apply theo9_2_A in H0. intuition. Qed. 
+
+Theorem theo9_4_A_For_Agreements : forall (e:environment), 
+                forall (agrs: nonemptylist agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+ 
+(permissionGranted e agrs s action a) -> ~(permissionDenied e agrs s action a).
+
+Proof.
+
+intros e agrees s action a. 
+induction agrees. apply theo9_4_A. intros. firstorder. Qed.
+
+
 
 Theorem theo9_4_B : forall (e:environment), 
                 forall (agr: agreement),
@@ -1654,23 +1669,53 @@ Theorem theo9_4_B : forall (e:environment),
 (permissionDenied e [agr] s action a) -> ~(permissionGranted e [agr] s action a).
 
 Proof.
-Show Proof.
+
 intros e agr s action a. 
-Show Proof.
 intro. 
-Show Proof.
 apply theo9_2_A in H. 
-Show Proof.
 unfold not.
-Show Proof. 
 intro.
-Show Proof.
 apply theo9_3_A in H0. 
-Show Proof.
 intuition. 
-Show Proof.
 Qed. 
 
+Theorem theo9_4_B_For_Agreements : forall (e:environment), 
+                forall (agrs: nonemptylist agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+ 
+(permissionDenied e agrs s action a) -> ~(permissionGranted e agrs s action a).
+
+Proof.
+
+intros e agrees s action a. 
+induction agrees. apply theo9_4_B. intros. firstorder. Qed.
+
+
+(** Do I need to prove 
+
+~permissionDenied -> permissionGranted 
+
+and 
+
+~permissionGranted -> permissionDenied
+
+Or better yet, do I need to prove
+
+pG <-> ~pD (see theo10 below)
+
+and
+
+pD <-> ~pG (I will call this theo11 it if turns out I need it)
+
+
+Not sure for now: May 2015. 
+***********)
+
+
+
+(*****
 
 Theorem theo10 : forall (e:environment), 
                 forall (agrs: nonemptylist agreement),
@@ -1682,8 +1727,15 @@ Theorem theo10 : forall (e:environment),
 
 Proof.
 
+apply theo9_4_A_For_Agreements. 
+firstorder. 
+
 induction agrs as [| agr rest]. 
 
+apply theo9_4_A.
+
+firstorder.  
+**)
 (*
 
 apply theo9_4_A.
@@ -1694,7 +1746,7 @@ intros.intuition.unfold permissionDenied in H0.unfold permissionGranted in H.int
 
 Both work.
 *)
-
+(*
 apply theo9_4_A.
 
 
@@ -1704,7 +1756,7 @@ unfold permissionDenied in H0.
 unfold permissionGranted in H.
 intuition.
 Qed.
-
+*)
 
 (*
 intros e agrs s action a.
@@ -1773,11 +1825,12 @@ a proof of some proposition) and then changes the conclusion
 from G to T -> G, 
 where T is the type of t (for instance, the proposition proved by the proof t).
 
-Here 'generalize (HPQ HP)' applies HPQ to HP resulting in Q. the generlize changes the 
+Here 'generalize (HPQ HP)' applies HPQ to HP resulting in Q. then generlize changes the 
 goal from False to Q -> False.
 **)
 generalize (HPQ HP).
-intro HQ. 
+intro HQ.
+(* Notice that we have both Q and ~Q which is a contradiction *) 
 contradiction.
 Qed.
 
