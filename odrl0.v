@@ -1942,7 +1942,49 @@ Theorem allQueriesWillGetAnAnswer: forall (e:environment),
 (queryInconsistent e [agr] s action a) \/
 (permissionUnregulated e [agr] s action a).
 
-Abort. 
+Abort.
+
+Section May2015.
+
+(*
+
+a constraint can be built 3 ways in ODRL0:
+
+Inductive constraint : Set :=
+  | Principal : prin  -> constraint 
+  | Count : nat -> constraint 
+  | CountByPrin : prin -> nat -> constraint.
+
+In all three cases we conjecture that [[cons]] => [[preRequisite]]
+*)
+
+(*
+Theorem prq_is_evalid : forall (e:environment), 
+                forall (agr: agreement),
+                forall (s:subject),
+                forall (action:act),
+                forall (a:asset),
+ 
+trans_constraint e s cons IDs prin_u -> trans_preRequisite e s prq IDs prin_u.
+
+*)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+End May2015. 
                                  
 
 End ODRL.
