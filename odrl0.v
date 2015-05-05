@@ -1931,16 +1931,41 @@ destruct H0 as [H01 H02].
 
 End Sanity1.
 
-Theorem allQueriesWillGetAnAnswer: forall (e:environment), 
-                forall (agr: agreement),
-                forall (s:subject),
-                forall (action:act),
-                forall (a:asset),
+Definition get_Sq_Agreement(sq:single_query): agreement := 
+  match sq with
+    | SingletonQuery agr s myact a e => agr
+  end.
+Definition get_Sq_Subject(sq:single_query): subject := 
+  match sq with
+    | SingletonQuery agr s myact a e => s
+  end.
+Definition get_Sq_Action(sq:single_query): act := 
+  match sq with
+    | SingletonQuery agr s myact a e => myact
+  end.
+Definition get_Sq_Asset(sq:single_query): asset := 
+  match sq with
+    | SingletonQuery agr s myact a e => a
+  end.
+Definition get_Sq_Env(sq:single_query): environment := 
+  match sq with
+    | SingletonQuery agr s myact a e => e
+  end.
 
-(permissionGranted e [agr] s action a) \/
-(permissionDenied e [agr] s action a)  \/
-(queryInconsistent e [agr] s action a) \/
-(permissionUnregulated e [agr] s action a).
+
+Theorem allQueriesWillGetAnAnswer: 
+                forall (sq:single_query), 
+                
+(permissionGranted (get_Sq_Env sq) [(get_Sq_Agreement sq)] 
+  (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq)) \/
+(permissionDenied (get_Sq_Env sq) [(get_Sq_Agreement sq)] 
+  (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq)) \/
+(queryInconsistent (get_Sq_Env sq) [(get_Sq_Agreement sq)] 
+  (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq)) \/
+(permissionUnregulated (get_Sq_Env sq) [(get_Sq_Agreement sq)] 
+  (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq)).
+
+Proof. intros. left. unfold permissionGranted. split. Show Proof. inversion sq. simpl.
 
 Abort.
 
