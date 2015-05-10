@@ -1953,21 +1953,114 @@ Definition get_Sq_Env(sq:single_query): environment :=
   end.
 
 
+
+Section ZZZ.
+
+(*From Pierce: SF*)
+
+Theorem eq_nat_dec : forall (n m : nat), {n = m} + {n <> m}.
+Proof.
+  intros n.
+  induction n as [|n'].
+
+    intros m.
+    destruct m as [|m'].
+
+      left. reflexivity.
+
+      right. intros contra. inversion contra.
+  
+    intros m.
+    destruct m as [|m'].
+
+      right. intros contra. inversion contra.
+ 
+      destruct IHn' with (m := m') as [eq | neq].
+      left. apply f_equal.  apply eq.
+      right. intros Heq. inversion Heq as [Heq']. apply neq. apply Heq'.
+Defined. 
+
+(*
+
+Variable myagr : agreement.
+Variable myenv : environment.
+Variable mysubj : subject.
+Variable myact : act.
+Variable myasset: asset.
+*)
+
+Hypothesis e_is_consistent: forall (e:environment), env_consistent e.
+
+
+Parameter P_eq_a : forall (a b:subject), (b = a) -> a = b.
+Parameter P_neq_a : forall (a b: subject), (b <> a) -> a = b.
+
 Theorem allQueriesWillGetAnAnswer: 
                 forall (sq:single_query), 
-                
-(permissionGranted (get_Sq_Env sq) [(get_Sq_Agreement sq)] 
-  (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq)) \/
-(permissionDenied (get_Sq_Env sq) [(get_Sq_Agreement sq)] 
-  (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq)) \/
-(queryInconsistent (get_Sq_Env sq) [(get_Sq_Agreement sq)] 
-  (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq)) \/
-(permissionUnregulated (get_Sq_Env sq) [(get_Sq_Agreement sq)] 
-  (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq)).
+   let myagre := (get_Sq_Agreement sq) in 
+   let myenv := (get_Sq_Env sq) in
+   let mysubj := (get_Sq_Subject sq) in
+   let myact := (get_Sq_Action sq) in
+   let myasset := (get_Sq_Asset sq) in
+(permissionGranted myenv [myagre] mysubj myact myasset) \/
+(permissionDenied  myenv [myagre] mysubj myact myasset) \/
+(queryInconsistent myenv [myagre] mysubj myact myasset) \/
+(permissionUnregulated myenv [myagre] mysubj myact myasset).
 
-Proof. intros. left. unfold permissionGranted. split. Show Proof. inversion sq. simpl.
+Proof. intros. left. simpl. split. induction myagre. right. split.
+induction p. unfold is_subject_in_prin.
 
+(** Using eq_nat_dec instead of dec_eq_nat simply for understanding purposes otherwise 
+they are equivalent **)
+elim (eq_nat_dec mysubj x).
+
+intro h. exact h. 
+
+
+(****** IGNORE THE REST: I am stuck at proving subgoal: mysubj <> x -> mysubj = x  
+
+
+
+
+
+intro.
+
+generalize (eq_nat_dec mysubj x). intro h. contradiction. intro. subst.
+
+intuition. auto.
+
+
+
+apply 
+P_neq_a.
+
+ intro h. elim h.
+
+intro. exact H. 
+
+intro. intuition. destruct H. auto.
+ 
+
+ 
+intro.
+apply e_is_consistent.
+
+specialize e_is_consistent with (1:=myenv).
+
+intro. elim H. intuition. 
+
+
+induction f. 
+
+destruct (e_is_consistent (fun myenv => env_consistent myenv)).
+apply e_is_consistent.
+
+inversion myagre.
+
+ auto. simpl. unfold is_fplus_single_query_evalid. induction sq. 
+*****)
 Abort.
+End ZZZ.
 
 Section May2015.
 
