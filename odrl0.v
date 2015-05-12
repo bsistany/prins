@@ -45,6 +45,32 @@ Fixpoint length_nonempty (l1 : nonemptylist) : nat :=
   | NewList s rest => 1 + (length_nonempty rest)
   end.
 
+Definition hd (l:nonemptylist) : X :=
+  match l with
+  | Single s => s
+  | NewList s rest => s
+  end.
+
+
+Fixpoint In (a:X) (l:nonemptylist) : Prop :=
+    match l with
+      | Single s => s=a
+      | NewList s rest => s = a \/ In a rest
+    end.
+
+Theorem in_dec :
+ (forall x y:X, {x = y} + {x <> y}) ->
+    forall (a:X) (l:nonemptylist), {In a l} + {~ In a l}.
+
+
+Proof. 
+intro H; induction l as [| a0 l IHl].
+apply H.
+destruct (H a0 a); simpl; auto.
+destruct IHl; simpl; auto.
+right; unfold not; intros [Hc1| Hc2]; auto.
+Defined.
+
 
 End nonemptylist.
 
@@ -820,6 +846,7 @@ Inductive answer : Set :=
   | PermissionUnregulated : answer.
 
 Check Permitted.
+
 
 Fixpoint is_subject_in_prin (s:subject)(p:prin): Prop :=
   match p with
@@ -1980,20 +2007,28 @@ Proof.
       right. intros Heq. inversion Heq as [Heq']. apply neq. apply Heq'.
 Defined. 
 
-(*
 
-Variable myagr : agreement.
-Variable myenv : environment.
-Variable mysubj : subject.
-Variable myact : act.
-Variable myasset: asset.
-*)
+    
+
+Theorem subject_in_prin_dec : (forall (x y:subject), {x = y} + {x <> y}) ->
+    forall (a:subject) (l:prin), {is_subject_in_prin a l} + {~ is_subject_in_prin a l}.
+
+Proof. 
+intro H. induction l as [| a0 l IHl].
+apply H.
+destruct (H a0 a); simpl; auto.
+destruct IHl; simpl; auto.
+right; unfold not; intros [Hc1| Hc2]; auto.
+Defined.
+
+
+
+
+
 
 Hypothesis e_is_consistent: forall (e:environment), env_consistent e.
 
 
-Parameter P_eq_a : forall (a b:subject), (b = a) -> a = b.
-Parameter P_neq_a : forall (a b: subject), (b <> a) -> a = b.
 
 Theorem allQueriesWillGetAnAnswer: 
                 forall (sq:single_query), 
