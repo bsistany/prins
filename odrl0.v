@@ -1979,6 +1979,15 @@ Definition get_Sq_Env(sq:single_query): environment :=
     | SingletonQuery agr s myact a e => e
   end.
 
+Definition get_Prin_From_Agreement(agr:agreement): prin := 
+  match agr with 
+   | Agreement prin_u a ps => prin_u
+   end.
+
+Definition get_Asset_From_Agreement(agr:agreement): asset := 
+  match agr with 
+   | Agreement prin_u a ps => a
+   end.
 
 
 Section ZZZ.
@@ -2007,29 +2016,22 @@ Proof.
       right. intros Heq. inversion Heq as [Heq']. apply neq. apply Heq'.
 Defined. 
 
-
-    
-
-Theorem subject_in_prin_dec : (forall (x y:subject), {x = y} + {x <> y}) ->
+Theorem subject_in_prin_dec : 
     forall (a:subject) (l:prin), {is_subject_in_prin a l} + {~ is_subject_in_prin a l}.
 
 Proof. 
-intro H. induction l as [| a0 l IHl].
-apply H.
-destruct (H a0 a); simpl; auto.
+induction l as [| a0 l IHl].
+apply eq_nat_dec.
+destruct (eq_nat_dec a0 a); simpl; auto.
 destruct IHl; simpl; auto.
 right; unfold not; intros [Hc1| Hc2]; auto.
 Defined.
 
 
-
-
-
-
 Hypothesis e_is_consistent: forall (e:environment), env_consistent e.
 
 
-
+  
 Theorem allQueriesWillGetAnAnswer: 
                 forall (sq:single_query), 
    let myagre := (get_Sq_Agreement sq) in 
@@ -2037,12 +2039,52 @@ Theorem allQueriesWillGetAnAnswer:
    let mysubj := (get_Sq_Subject sq) in
    let myact := (get_Sq_Action sq) in
    let myasset := (get_Sq_Asset sq) in
+   let thePrin := (get_Prin_From_Agreement myagre) in
+   let theAsset := (get_Asset_From_Agreement myagre) in
+((is_subject_in_prin mysubj thePrin) /\ 
+ ((get_Asset_From_Agreement myagre=get_Sq_Asset sq))) ->
+(
 (permissionGranted myenv [myagre] mysubj myact myasset) \/
 (permissionDenied  myenv [myagre] mysubj myact myasset) \/
 (queryInconsistent myenv [myagre] mysubj myact myasset) \/
-(permissionUnregulated myenv [myagre] mysubj myact myasset).
+(permissionUnregulated myenv [myagre] mysubj myact myasset)).
 
-Proof. intros. left. simpl. split. induction myagre. right. split.
+Proof. intros. left. split. induction myagre. right. split.
+
+
+ 
+destruct H as [H1 H2]. apply H1. split.
+destruct H as [H1 H2]. subst myasset. unfold get_Asset_From_Agreement in H2. symmetry.
+exact H2. simpl.
+
+
+
+induction p0. red. induction p0.
+
+(**** SO FAR SO GOOD ****)
+
+intros.
+firstorder.
+
+cbv beta. red.
+unfold getSplus. 
+unfold getPrqAndTheRestTuple.
+cbv beta.
+
+red. 
+
+
+
+
+
+
+
+
+symmetry. subst. rewrite <- H2. 
+
+
+apply subject_in_prin_dec.
+
 induction p. unfold is_subject_in_prin.
 
 (** Using eq_nat_dec instead of dec_eq_nat simply for understanding purposes otherwise 
