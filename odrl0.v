@@ -1098,22 +1098,26 @@ Fixpoint getPrinsSetDifference (p p':prin){struct p}: nonemptylist subject :=
   | NewList s rest => app_nonempty (process_element_list s p') (getPrinsSetDifference rest p') 
   end.
 
+Definition isPrqAndPrq'_evalid2 
+    (e:environment)(s:subject)(t:Twos preRequisite fourTuple)(pr: prin): Prop :=
+          (trans_preRequisite e s (left t)            (tt_I (right t))           pr) /\
+          (trans_preRequisite e s (tt_prq' (right t)) (Single (tt_id (right t))) pr).
 
 Fixpoint process_act_tuple_subject_pairs 
         (e:environment)
         (prin_u': prin)
         (act_tuple_subject_pairs : nonemptylist (Twos act (Twos (Twos preRequisite fourTuple) subject))) : Prop :=
-
+(*
   let isPrqAndPrq'_evalid 
     := (fix isPrqAndPrq'_evalid 
             (e:environment)(s:subject)(t:Twos preRequisite fourTuple)(pr: prin): Prop :=
           (trans_preRequisite e s (left t)            (tt_I (right t))           pr) /\
           (trans_preRequisite e s (tt_prq' (right t)) (Single (tt_id (right t))) pr) 
           ) in
-
+*)
   match act_tuple_subject_pairs with
-    | Single f => isPrqAndPrq'_evalid e (right (right f)) (left (right f)) prin_u'
-    | NewList f rest => (isPrqAndPrq'_evalid e (right (right f)) (left (right f)) prin_u') \/
+    | Single f => isPrqAndPrq'_evalid2 e (right (right f)) (left (right f)) prin_u'
+    | NewList f rest => (isPrqAndPrq'_evalid2 e (right (right f)) (left (right f)) prin_u') \/
                             (process_act_tuple_subject_pairs e prin_u' rest)
   end.
 
@@ -1155,15 +1159,17 @@ End Lemma45.
 
 Fixpoint isPrqs_evalid (e:environment)(s:subject)(pr: prin)
                        (tups:nonemptylist (Twos preRequisite fourTuple)) : Prop :=
+(*
   let isPrqAndPrq'_evalid 
     := (fix isPrqAndPrq'_evalid 
             (e:environment)(s:subject)(t:Twos preRequisite fourTuple)(pr: prin): Prop :=
           (trans_preRequisite e s (left t)            (tt_I (right t))           pr) /\
           (trans_preRequisite e s (tt_prq' (right t)) (Single (tt_id (right t))) pr) 
           ) in
+*)
   match tups with
-    | Single t =>  isPrqAndPrq'_evalid e s t pr
-    | NewList t lst' => (isPrqAndPrq'_evalid e s t pr) \/ (isPrqs_evalid e s pr lst')
+    | Single t =>  isPrqAndPrq'_evalid2 e s t pr
+    | NewList t lst' => (isPrqAndPrq'_evalid2 e s t pr) \/ (isPrqs_evalid e s pr lst')
   end.
 
 
@@ -1811,6 +1817,7 @@ intro. inversion e5.
 intro. inversion e5. destruct H as [H11 H12]. Admitted.
 *)
 
+(*
 Theorem aliceMayPrintTheReportGivenAgreeCan : (trans_agreement eA1 AgreeCan) -> permissionGranted eA1 [AgreeCan] Alice Print TheReport.
 Proof. 
 
@@ -1818,7 +1825,7 @@ simpl. intro.
 
 intuition. elim H1. apply e_is_consistent. Qed.
 
-
+*)
 
 Functional Scheme agreements_hold_in_at_least_one_E_relevant_model_ind := 
   Induction for agreements_hold_in_at_least_one_E_relevant_model Sort Prop.
@@ -2063,6 +2070,26 @@ induction p0. red. induction p0.
 
 (**** SO FAR SO GOOD ****)
 
+simpl. destruct p1. simpl. unfold isPrqAndPrq'_evalid2. simpl. split. apply I.
+unfold trans_preRequisite. 
+induction p0. 
+apply I.
+unfold trans_constraint. 
+induction c.
+unfold trans_prin.
+destruct p0.
+(** Here we go again: we cannot really prove 
+mysubj = s
+
+this is like proving x=y forall x and y...
+
+So should I just assume I have the proof for 'trans_prin mysubj p0'?
+
+**)
+destruct H as [H1 H2]. 
+(**** SO FAR SO GOOD 2 ****)
+
+(*
 intros.
 firstorder.
 
@@ -2086,13 +2113,14 @@ symmetry. subst. rewrite <- H2.
 apply subject_in_prin_dec.
 
 induction p. unfold is_subject_in_prin.
-
+*)
 (** Using eq_nat_dec instead of dec_eq_nat simply for understanding purposes otherwise 
 they are equivalent **)
+(*
 elim (eq_nat_dec mysubj x).
 
 intro h. exact h. 
-
+*)
 
 (****** IGNORE THE REST: I am stuck at proving subgoal: mysubj <> x -> mysubj = x  
 
