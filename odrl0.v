@@ -2034,6 +2034,30 @@ destruct IHl; simpl; auto.
 right; unfold not; intros [Hc1| Hc2]; auto.
 Defined.
 
+Theorem PermOrNot:
+  forall (sq:single_query), 
+(trans_agreement (get_Sq_Env sq) (get_Sq_Agreement sq) -> 
+    (Permitted (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq))) \/
+(trans_agreement (get_Sq_Env sq) (get_Sq_Agreement sq) -> 
+    (~Permitted (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq))).
+Proof.
+intros. left. unfold trans_agreement. destruct sq. destruct a. simpl. 
+unfold trans_ps. induction p0. 
+intros.
+specialize (H s). assert (H': trans_prin s p /\ trans_preRequisite e s p0 (getId p1) p).
+induction p0. unfold trans_preRequisite. induction p1.
+Abort.
+(*
+unfold trans_policy_positive in H.
+
+
+unfold trans_agreement in H. red in H. destruct sq in H. destruct a in H.
+unfold trans_ps in H. induction p0 in H. 
+specialize (H s). simpl in H. 
+
+ inversion sq. 
+
+*)
 
 Hypothesis e_is_consistent: forall (e:environment), env_consistent e.
 
