@@ -484,23 +484,18 @@ Fixpoint getId (p:policy) : nonemptylist policyId :=
   end.
   
 
-
-Fixpoint trans_count 
-  (e:environment)(n:nat)(IDs:nonemptylist policyId)
-  (prin_u:prin) : Prop := 
-
-  let trans_count_aux 
-    := (fix trans_count_aux
-         (ids_and_subjects : nonemptylist (Twos policyId subject)) : nat :=
-     match ids_and_subjects with
+Fixpoint trans_count_aux (e:environment)(ids_and_subjects : nonemptylist (Twos policyId subject)) : nat :=
+  match ids_and_subjects with
         | Single pair1 => getCount e (right pair1) (left pair1)
         | NewList pair1 rest_pairs =>
             (getCount e (right pair1)(left pair1)) +
-            (trans_count_aux rest_pairs)
-      end) in
-  
+            (trans_count_aux e rest_pairs)
+  end.
+Fixpoint trans_count 
+  (e:environment)(n:nat)(IDs:nonemptylist policyId)
+  (prin_u:prin) : Prop := 
   let ids_and_subjects := process_two_lists IDs prin_u in
-  let running_total := trans_count_aux ids_and_subjects in
+  let running_total := trans_count_aux e ids_and_subjects in
   running_total < n.
 
 
@@ -2034,6 +2029,51 @@ destruct IHl; simpl; auto.
 right; unfold not; intros [Hc1| Hc2]; auto.
 Defined.
 
+
+Theorem getCountGtEqualZero:  
+  forall (e:environment)(s:subject)(id: policyId),
+    (getCount e s id) >= 0.
+Proof.
+intros. destruct e. destruct c. 
+unfold getCount. 
+case_eq (beq_nat s s0). 
+intuition.
+intuition.
+destruct c.
+unfold getCount. 
+case_eq (beq_nat s s0). 
+intuition.
+intuition.
+Qed.
+
+Theorem trans_count_auxGtEqualZero:  
+  forall (e:environment)(ids_and_subjects : nonemptylist (Twos policyId subject)),
+    (trans_count_aux e ids_and_subjects) >= 0.
+Proof.
+intros. destruct e. destruct c. unfold trans_count_aux. induction ids_and_subjects.
+apply getCountGtEqualZero. intuition.
+destruct c. unfold trans_count_aux. induction ids_and_subjects.
+apply getCountGtEqualZero. intuition.
+Qed. 
+
+
+Theorem trans_count_dec :
+   forall (e:environment)(n:nat)(IDs:nonemptylist policyId)(prn:prin), 
+     {trans_count e n IDs prn} + {~trans_count e n IDs prn}.
+
+Proof.
+intros. 
+
+induction e as [|e']. induction c.
+unfold trans_count. 
+apply lt_dec. apply lt_dec. 
+
+Defined.
+
+(*** HERE I am : May 22, 2015, 1:04. ***)
+
+Hypothesis trans_prin_True: forall (s:subject)(p: prin), trans_prin s p.
+
 Theorem PermOrNot:
   forall (sq:single_query), 
 (trans_agreement (get_Sq_Env sq) (get_Sq_Agreement sq) -> 
@@ -2046,6 +2086,16 @@ unfold trans_ps. induction p0.
 intros.
 specialize (H s). assert (H': trans_prin s p /\ trans_preRequisite e s p0 (getId p1) p).
 induction p0. unfold trans_preRequisite. induction p1.
+split. apply trans_prin_True. apply I. split. apply trans_prin_True. apply I.
+split. apply trans_prin_True.
+unfold trans_preRequisite. unfold trans_constraint. 
+induction c. apply trans_prin_True.
+unfold getId. induction p1. 
+
+
+destruct (le_lt_dec (trans_count_aux e (process_two_lists [p1] p)) n). subst.
+
+
 Abort.
 (*
 unfold trans_policy_positive in H.
