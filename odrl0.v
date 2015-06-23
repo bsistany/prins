@@ -2070,14 +2070,57 @@ apply lt_dec. apply lt_dec.
 
 Defined.
 
+
 (*** HERE I am : May 22, 2015, 1:04. ***)
 
+Theorem trans_prin_dec :
+   forall (x:subject)(p: prin), 
+     {trans_prin x p} + {~trans_prin x p}.
+
+Proof.
+
+apply subject_in_prin_dec. 
+Defined.
+
+(*
 Hypothesis trans_prin_True: forall (s:subject)(p: prin), trans_prin s p.
+*)
+
+Theorem PermNot:
+  forall (sq:single_query), 
+(~trans_prin (get_Sq_Subject sq)
+              (get_Prin_From_Agreement ((get_Sq_Agreement sq)))) ->
+ (trans_agreement (get_Sq_Env sq) (get_Sq_Agreement sq) ->
+    (~Permitted (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq))).
+Proof.
+intros. 
+unfold trans_agreement in H0.
+destruct sq. destruct a. simpl. red in H0. 
+unfold trans_ps in H0.
+induction p0 in H0. 
+specialize (H0 (get_Sq_Subject (SingletonQuery (Agreement p a p0) s a0 a1 e))).
+apply H0.
+               
+destruct H0 as [H1 H2].
+
+simpl in H0. induction p2 in H0. 
+
+unfold not in H. unfold trans_prin.
+
+
+
 
 Theorem PermOrNot:
   forall (sq:single_query), 
-(trans_agreement (get_Sq_Env sq) (get_Sq_Agreement sq) -> 
+if (trans_prin_dec (get_Sq_Subject sq)
+                    (get_Prin_From_Agreement ((get_Sq_Agreement sq))))
+    
+then
+((trans_agreement (get_Sq_Env sq) (get_Sq_Agreement sq) -> 
     (Permitted (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq))) \/
+ (trans_agreement (get_Sq_Env sq) (get_Sq_Agreement sq) -> 
+    (~Permitted (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq))))
+else
 (trans_agreement (get_Sq_Env sq) (get_Sq_Agreement sq) -> 
     (~Permitted (get_Sq_Subject sq) (get_Sq_Action sq) (get_Sq_Asset sq))).
 Proof.
@@ -2086,7 +2129,12 @@ unfold trans_ps. induction p0.
 intros.
 specialize (H s). assert (H': trans_prin s p /\ trans_preRequisite e s p0 (getId p1) p).
 induction p0. unfold trans_preRequisite. induction p1.
-split. apply trans_prin_True. apply I. split. apply trans_prin_True. apply I.
+apply and_comm. 
+split. apply I.
+destruct (trans_prin_dec s p). exact t. 
+split in H.
+
+apply trans_prin_dec.  split. apply trans_prin_True. apply I.
 split. apply trans_prin_True.
 unfold trans_preRequisite. unfold trans_constraint. 
 induction c. apply trans_prin_True.
